@@ -4,6 +4,7 @@ Created on Thu Sept 16 2020
 @author: scott
 
 
+
 """
 
 from scipy import signal
@@ -26,7 +27,8 @@ d_ref = True # did you use a reference channel? True or False
 include_meas_refs = True # include the reference channels for other measurements as background scans?
 
 calc_fits = False # fit the background data
-calc_background = True # generate the model for the fits (for background water subtraction)
+calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
+remove_spikes = True # remove digital noise spikes from background scan before filtering 
 save_results = False # save the things you calculate here? 
 
 d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
@@ -435,36 +437,44 @@ for bl in range(bl_number):
             f.close() 
         
 
-#%% remove noise spikes before smoothing
+#%% remove noise spikes before smoothing    
 
-    for j in range(len(meas_spike_all[bl,:])): # second index = which wavenumber
-        
-        point_ij = meas_bg_all[bl,j]
-        points_span = meas_bg_all[bl,j-spike_points_num:j+spike_points_num]
-        points_avg = np.mean(points_span)
-        points_std = np.std(points_span) 
-        
-        try: 
-            if abs(point_ij-points_avg) > spike_threshold*points_std: 
-                print('     '+str(j))
-                meas_spike_all[bl,j] = meas_spike_all[bl,j-1]
-        except: pass
+    meas_spike_all[bl,:] = meas_bg_all[bl,:].copy()
     
-        if d_ref: 
+    if d_ref: 
+        meas_spike_all_ref[bl,:] = meas_bg_all_ref[bl,:].copy()
+
+    if remove_spikes: 
+        print('********** warning - this section of code was tested on a case by case basis **********')
+        print('********** proceed with caution if you are using it **********')
+    
+        for j in range(len(meas_spike_all[bl,:])): # second index = which wavenumber
             
-            point_ij = meas_bg_all_ref[bl,j]
-            points_span = meas_bg_all_ref[bl,j-spike_points_num:j+spike_points_num]
+            point_ij = meas_bg_all[bl,j]
+            points_span = meas_bg_all[bl,j-spike_points_num:j+spike_points_num]
             points_avg = np.mean(points_span)
             points_std = np.std(points_span) 
             
             try: 
                 if abs(point_ij-points_avg) > spike_threshold*points_std: 
-                    meas_spike_all_ref[bl,j] = meas_spike_all[bl,j-1]
+                    meas_spike_all[bl,j] = meas_spike_all[bl,j-1]
             except: pass
+        
+            if d_ref: 
+                
+                point_ij = meas_bg_all_ref[bl,j]
+                points_span = meas_bg_all_ref[bl,j-spike_points_num:j+spike_points_num]
+                points_avg = np.mean(points_span)
+                points_std = np.std(points_span) 
+                
+                try: 
+                    if abs(point_ij-points_avg) > spike_threshold*points_std: 
+                        meas_spike_all_ref[bl,j] = meas_spike_all[bl,j-1]
+                except: pass
 
 
     index_all_final[bl,:] = td.bandwidth_select_td(wvn, wvn2_range_BL, max_prime_factor=50, print_value=False) # remove buffer
-           
+
 
 # %% filter the data and remove the buffer
         
@@ -502,11 +512,11 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23]:
     plt.plot(meas_spike_all_final[bl,:], label='noise spike removal')
     plt.plot(meas_filt_all_final[bl,:], label='lowpass filter')
     
-    point_dif = np.diff(meas_bg_all_final[bl,:])
+    point_diff = np.diff(meas_bg_all_final[bl,:])
     point_std = np.std(np.diff(meas_bg_all_final[bl,:]))
 
-    plt.plot(point_dif/point_std/100, label='raw')
-    plt.plot(point_dif/point_std/100 + meas_filt_all_final[bl,:-1]+0.2, label='raw')
+    plt.plot(point_diff/point_std/100, label='diff')
+    # plt.plot(point_diff/point_std/100 + meas_filt_all_final[bl,:-1]+0.2, label='raw')
 
     plt.plot(1+(meas_bg_all_final[bl,:] - meas_spike_all_final[bl,:])*10)
     
