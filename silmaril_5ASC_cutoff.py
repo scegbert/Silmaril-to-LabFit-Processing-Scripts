@@ -1,11 +1,11 @@
 
 import numpy as np
-import os
 import pickle 
 import matplotlib.pyplot as plt
 
+import os
 from sys import path
-path.append(r'C:\Users\scott\Documents\1-WorkStuff\code\modules')
+path.append(os.path.abspath('..')+'\\modules')
 
 from scipy.constants import speed_of_light
 import pldspectrapy as pld
@@ -20,7 +20,7 @@ import time
 
 d_type = 'air' # 'pure' or 'air'
 
-removed_bg = False # if True, use the transmission file with the background removed, otherwise send the background information to labfit
+remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
 d_ref = True # there is a reference channel
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -84,10 +84,10 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     [trans_BGremoved, trans_BGincluded, wavenumbers, T_meas, P_meas, y_h2o_meas, pathlength, favg, fitresults, model2020, _, _] = pickle.load(f)
     f.close() 
     
-    if removed_bg: transmission = trans_BGremoved
+    if remove_bg: transmission = trans_BGremoved
     else: transmission = trans_BGincluded
         
-    if removed_bg is False: # if you want to include this in labfit, we'll need the data
+    if remove_bg is False: # if you want to include this in labfit, we'll need the data
         
         d_load = os.path.join(d_vac, 'BL conditions.pckl')   
         f = open(d_load, 'rb')
@@ -110,7 +110,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
     # %% load the background conditions (if you're not subtracting out background before going to labfit)
     
-    if removed_bg is False: 
+    if remove_bg is False: 
         y_h2o_BG_fit = bg_conditions[which_BG[which_file],0]
         P_BG_fit = bg_conditions[which_BG[which_file],2] 
         
@@ -126,6 +126,12 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     plot_residual_offset = 1.05
     fit_order = 300
     fit_cutoff = 0.999 # fit the baseline (not transmission)
+    
+    # edge case that gave weird discontinuity
+    if which_file in [7,12] and d_type == 'air': 
+        fit_order = 300
+        fit_cutoff = 0.995 # fit the baseline (not transmission)
+        
     bl_fit = np.polynomial.chebyshev.Chebyshev.fit(wavenumbers[model2020 > fit_cutoff], transmission[model2020 > fit_cutoff], fit_order) 
     
     bl = bl_fit(wavenumbers) # improved baseline correction for entire spectrum
@@ -262,7 +268,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         Pstr = ('%.5f' % P).rjust(13)
         ystr = '%.6f' % yh2o
 
-        if removed_bg is False:            
+        if remove_bg is False:            
             
             Lstr_BG = ('%.7f' % L_BG).rjust(13)
             Tstr_BG = ('%.4f' % T_BG).rjust(12)
@@ -294,7 +300,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         file.write("  00000.00    0.00000     0.00e0     " + str(molecule_id) + "   2     3   0        0\n")
         file.write("    " + Lstr + Tstr + Pstr + "    " + ystr + "    .0000000 .0000000 0.000\n")
         
-        if removed_bg: file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n") # nothing
+        if remove_bg: file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n") # nothing
         else: file.write(Lstr_BG + Tstr_BG + Pstr_BG + "    " + ystr_BG + ".0000000 .0000000 0.000\n") # background conditions
         
         file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n")

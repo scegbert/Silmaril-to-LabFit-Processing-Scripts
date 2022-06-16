@@ -9,21 +9,22 @@ also checks to see how well things match the model
 """
 
 import numpy as np
-import os
 import pickle 
 import matplotlib.pyplot as plt
 
+import os
 from sys import path
-path.append(r'C:\Users\scott\Documents\1-WorkStuff\code\scottcode\modules')
+path.append(os.path.abspath('..')+'\\modules')
 
-from packfind import find_package
-find_package('pldspectrapy')
 import pldspectrapy as pld
 import td_support as td
 
+import clipboard_and_style_sheet
+clipboard_and_style_sheet.style_sheet()
+
 # %% dataset specific information
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -38,7 +39,7 @@ BL_fcutoff = '0.030'
 spike_location_expected = 13979
 
 check_bl = False
-check_fit = True
+check_fit = False
 save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -583,21 +584,22 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
         # %% compare transmission spectra
 
-        # plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-        # plt.plot(wvn, model_trans*100, label='model at measured furnace conditions')
-        # if check_fit:
-        #     plt.plot(wvn, model_trans_fit2020*100, label='model at fit furnace conditions')
-        # # plt.plot(wvn, meas_trans_BL, label='mesured - BL correction only')
-        # plt.plot(wvn, meas_trans_bg*100, label='measured - BL and BG corrections')
-        # plt.plot(wvn, bg_trans*100, label='model of background water absorption')
+        plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+        plt.plot(wvn, model_trans*100, label='model at measured furnace conditions')
+        if check_fit:
+            plt.plot(wvn, model_trans_fit2020*100, label='model at fit furnace conditions')
+        # plt.plot(wvn, meas_trans_BL, label='measured - BL correction only')
+        plt.plot(wvn, meas_trans_bg*100, label='measured w/ BL and BG corrections')
+        plt.plot(wvn, (meas_trans_bg-model_trans_fit2020)*100 + 105, label='measured w/ BL and BG corrections')
+        plt.plot(wvn, bg_trans*100, label='model of background water absorption')
         
-        # if wvn2_fit is not None:
-        #     plt.axvline(x=wvn2_fit[0],color='k', linestyle='-.', label='fit region')
-        #     plt.axvline(x=wvn2_fit[1],color='k', linestyle='-.')
+        if wvn2_fit is not None:
+            plt.axvline(x=wvn2_fit[0],color='k', linestyle='-.', label='fit region')
+            plt.axvline(x=wvn2_fit[1],color='k', linestyle='-.')
         
-        # plt.xlabel('wavenumber')
-        # plt.ylabel('% transmission')
-        # plt.legend()
+        plt.xlabel('wavenumber')
+        plt.ylabel('% transmission')
+        plt.legend(loc='lower right')
         
         # %% compare residuals for transmission spectra
         

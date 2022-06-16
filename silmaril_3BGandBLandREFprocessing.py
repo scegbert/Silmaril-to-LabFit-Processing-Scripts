@@ -9,24 +9,26 @@ Created on Thu Sept 16 2020
 
 from scipy import signal
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 import pickle
 
 import os
 from sys import path
-path.append(os.path.abspath('../..')+'\\modules')
+path.append(os.path.abspath('..')+'\\modules')
 
 import pldspectrapy as pld
 import td_support as td
 
+import clipboard_and_style_sheet
+clipboard_and_style_sheet.style_sheet()
+
 pld.db_begin('data - HITRAN 2020')  # load the linelists into Python (keep out of the for loop)
 
 #%% dataset specific information
-d_ref = True # did you use a reference channel? True or False
-include_meas_refs = True # include the reference channels for other measurements as background scans?
+d_ref = True # did you use a reference channel? True or False 
+include_meas_refs = True # include the reference channels for other measurements as background scans?  
 
-calc_fits = False # fit the background data
+calc_fits = False # fit the background data  
 calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
 save_results = False # save the things you calculate here? 
@@ -507,20 +509,20 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23]:
     
     plt.figure()
     plt.title('plot #{}, with threshold of {}'.format(bl,spike_threshold))
-    plt.plot(meas_raw_all_final[bl,:], label='raw')
-    plt.plot(meas_bg_all_final[bl,:], label='bg water removal')
-    plt.plot(meas_spike_all_final[bl,:], label='noise spike removal')
-    plt.plot(meas_filt_all_final[bl,:], label='lowpass filter')
+    plt.plot(wvn_all_final[bl,:], meas_raw_all_final[bl,:], label='raw')
+    plt.plot(wvn_all_final[bl,:], meas_bg_all_final[bl,:], label='bg water removal')
+    plt.plot(wvn_all_final[bl,:], meas_spike_all_final[bl,:], label='noise spike removal')
+    plt.plot(wvn_all_final[bl,:], meas_filt_all_final[bl,:], label='lowpass filter')
     
     point_diff = np.diff(meas_bg_all_final[bl,:])
     point_std = np.std(np.diff(meas_bg_all_final[bl,:]))
 
-    plt.plot(point_diff/point_std/100, label='diff')
-    # plt.plot(point_diff/point_std/100 + meas_filt_all_final[bl,:-1]+0.2, label='raw')
+    plt.plot(wvn_all_final[bl,:-1], point_diff/point_std/100, label='differential of raw')
+    # plt.plot(wvn_all_final[bl,:], point_diff/point_std/100 + meas_filt_all_final[bl,:-1]+0.2, label='raw')
 
-    plt.plot(1+(meas_bg_all_final[bl,:] - meas_spike_all_final[bl,:])*10)
+    plt.plot(wvn_all_final[bl,:], (meas_bg_all_final[bl,:] - meas_spike_all_final[bl,:])*10-0.25)
     
-    plt.legend(loc='lower left')
+    plt.legend(loc='upper right')
 
 
 # %% add a row of all 1's (does nothing) for datasets where you want to do nothing (combine after applying separate baselines)
