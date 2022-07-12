@@ -24,7 +24,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -39,8 +39,8 @@ BL_fcutoff = '0.030'
 spike_location_expected = 13979
 
 check_bl = False
-check_fit = False
-save_file = check_fit
+check_fit = True
+save_file = False # check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
 
@@ -107,8 +107,8 @@ elif d_type == 'air':
     which_BL = which_BL_air
     which_BG = which_BG_air
 
-    vary_P = False
-    vary_yh2o = True
+    vary_P = True
+    vary_yh2o = False
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
     which_conditions = 'Air Water P & T.pckl'
@@ -510,7 +510,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         model_TD_fit2020 = np.fft.irfft(model_abs_fit2020)
         
     # %% check values by fitting for them against HITRAN 2016 database
-    
+        
+        r'''
         pld.db_begin('data - HITRAN 2016')  # load the 2016 linelist into Python
         fit_mod2016, fit_pars2016 = td.spectra_single_lmfit()
         
@@ -600,6 +601,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         plt.xlabel('wavenumber')
         plt.ylabel('% transmission')
         plt.legend(loc='lower right')
+        r'''
         
         # %% compare residuals for transmission spectra
         
