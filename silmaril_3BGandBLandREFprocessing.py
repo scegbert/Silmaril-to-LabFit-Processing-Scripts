@@ -3,8 +3,6 @@ Created on Thu Sept 16 2020
 
 @author: scott
 
-
-
 """
 
 from scipy import signal
@@ -27,6 +25,8 @@ pld.db_begin('data - HITRAN 2020')  # load the linelists into Python (keep out o
 #%% dataset specific information
 d_ref = True # did you use a reference channel? True or False 
 include_meas_refs = True # include the reference channels for other measurements as background scans?  
+
+two_background_temps = True # fit two background temperatures? (one for 4f, one for furnace)
 
 calc_fits = False # fit the background data  
 calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
@@ -83,8 +83,8 @@ Tfurnace = [300, 300, 300, 300, 300, 300, 500, 500, 500, 500, 500, 500,
             600, 700, 700, 900, 900, 900, 1100, 1100, 1100, 1100, 1100, 
             1100, 1100, 1200, 1200, 1200, 1200, 1200, 700]
 
-pathlength = 2*160 - 91.4 + 15 # furnace (x2) - cell (double pass) + 4f (combs passed separately, but with nominally equal path length)
-pathlength_ref = 15. # pathlength of the reference channel
+pathlength_furnace = 2*160 - 91.4 # furnace (x2) - cell (double pass)
+pathlength_4f = 15. # 4f (combs passed separately, but with nominally equal path length), this is the pathlength of the reference channel
 
 yH2Obg = 2.5e-5 # guess at BG water concentration
 
@@ -193,7 +193,7 @@ for bl in range(bl_number):
     
     else: 
 
-        #%% spectrally trim and normalize spectra in preparation for fitting it
+        #%% spectrally trim and normalize spectra, convert to TD in preparation for fitting it
         
         [istart, istop] = td.bandwidth_select_td(wvn_raw, wvn2_range_fit, max_prime_factor=50, print_value=False)
         
@@ -218,14 +218,33 @@ for bl in range(bl_number):
         pars['pressure'].set(value = Patm / 760, vary = vary_pressure) # pressure in atm (converted from Torr)
         pars['molefraction'].set(value = yH2Obg, vary = True) # mole fraction
 
-        pars['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
-        
-        if not include_meas_refs or bl < bl_vac_number:
-            Tavg = np.mean([Tatm,Tfurnace[bl]])
-        else: Tavg = Tatm # won't be used (will be reset for measurement scans)
+        if two_background_temps:
+            Tguess1 = Tatm
+            Tguess2 = Tfurnace[bl]
 
-        pars['temperature'].set(value = Tavg, vary = True) # temperature in K
-        
+            Tboundary = Tguess1 + 50
+
+
+
+            pathlength1 = pathlength_4f
+            pathlength2 = pathlength_furnace
+
+        else:
+            if not include_meas_refs or bl < bl_vac_number: # don't process measurements with water in the cell
+                Tguess1 = np.mean([Tatm,Tfurnace[bl]])
+            else: Tguess1 = Tatm # won't be used (will be reset for measurement scans)
+
+            Tboundary = Tfurnace[bl] + 100
+            pathlength1 = pathlength_furnace + pathlength_4f
+
+        pars['pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
+        pars['temperature'].set(value = Tguess1, vary = True, max=Tboundary) # temperature in K
+
+        if two_background_temps:
+            mod2, pars2 = td.spectra_single_lmfit()
+
+
+
         # model_TD_fit = mod.eval(xx=wvn_fit, params=pars, name='H2O')
         # model_fit = np.exp(-np.real(np.fft.rfft(model_TD_fit)))
         
