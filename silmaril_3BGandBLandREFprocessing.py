@@ -23,19 +23,22 @@ clipboard_and_style_sheet.style_sheet()
 pld.db_begin('data - HITRAN 2020')  # load the linelists into Python (keep out of the for loop)
 
 #%% dataset specific information
-d_ref = True # did you use a reference channel? True or False 
-include_meas_refs = True # include the reference channels for other measurements as background scans?  
+d_ref = False # did you use a reference channel? True or False 
+include_meas_refs = False # include the reference channels for other measurements as background scans?  
 
 two_background_temps = True # fit two background temperatures? (one for 4f, one for furnace)
 
-calc_fits = False # fit the background data  
+calc_fits = True # fit the background data  
 calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
-save_results = False # save the things you calculate here? 
+save_results = True # save the things you calculate here? 
 
 d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 d_file = 'vac '
-d_conditions = os.path.join(d_folder, 'BL conditions.pckl')
+
+if two_background_temps: d_conditions = os.path.join(d_folder, 'BL conditions with 2Ts.pckl')
+else: d_conditions = os.path.join(d_folder, 'BL conditions.pckl')
+
 d_bgcorrected = os.path.join(d_folder, 'BL BG corrected.pckl')
 
 spike_location_expected = 13979
@@ -75,7 +78,7 @@ wvn2_range_BL = [6500, 7800] # entire range we will want for the measurements
 wvn_buffer = 30 # wavenumber buffer to avoid edge effects
 wvn2_range_fit = [7050,7450] # [7000,7185] # focusing on strongest water features we can see in BG scans
 
-vary_pressure = True # fit pressure? (advise yes, you can correct P*y back to y@Patm later if you'd like)
+vary_pressure = True # fit pressure? (advise yes, you can correct P*y back to y@Patm later if you'd like a stable value for y)
 Patm = 628 # Torr
 
 Tatm = 293
@@ -99,7 +102,9 @@ bl_etalons = [[[745,765], [1477,1486], [48040,48100]],
 spike_threshold = 4 # how many standard deviations from average is a noise spike? 
 spike_points_num = 30 # how many points on each side to remove
 
-bl_conditions = np.zeros((bl_number,9)) # initialize variable to hold all results
+if two_background_temps: bl_conditions = np.zeros((bl_number,9*2)) # initialize variable to hold all results (2x for 2T's)
+else: bl_conditions = np.zeros((bl_number,9)) # initialize variable to hold all results
+
 if d_ref: bl_conditions_ref = np.zeros((bl_number,9)) # initialize variable to hold all results
 spike_location = np.zeros(bl_number, dtype=int)
 
@@ -118,8 +123,8 @@ index_all_final = np.zeros((bl_number,2))
 #%% Locate phase-corrected measured spectrum
 
 
-for bl in range(bl_number):
- 
+for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
+
     if not include_meas_refs or bl < bl_vac_number: 
         print('loading vacuum scan ' + str(bl))
         d_file_meas = d_file +' '+ str(bl)
@@ -139,7 +144,10 @@ for bl in range(bl_number):
     
     f = open(d_final, 'rb')
     if d_ref: [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, trans_raw_ref, trans_snip_ref] = pickle.load(f)
-    else: [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt] = pickle.load(f)
+    else: 
+        # [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt] = pickle.load(f) # if there isn't a reference channel
+        [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, _, _] = pickle.load(f) # if there is a reference channel, but you don't want to use it right now
+            
     f.close() 
     
     spike_location[bl] = np.argmax(np.abs(np.diff(trans_raw_w_spike, n=5))) + 2 # the nyquist window starts with a large delta function (location set by shift in Silmatil GUI)
@@ -211,20 +219,20 @@ for bl in range(bl_number):
         
         #%% prepare to calculate background water concentration
         
-        mod, pars = td.spectra_single_lmfit()
+        mod1, pars = td.spectra_single_lmfit('T1')
         
-        pars['mol_id'].value = 1 # water = 1 (hitran molecular code)
+        pars['T1mol_id'].value = 1 # water = 1 (hitran molecular code)
         
-        pars['pressure'].set(value = Patm / 760, vary = vary_pressure) # pressure in atm (converted from Torr)
-        pars['molefraction'].set(value = yH2Obg, vary = True) # mole fraction
+        pars['T1pressure'].set(value = Patm / 760, vary = vary_pressure) # pressure in atm (converted from Torr)
+        pars['T1molefraction'].set(value = yH2Obg, vary = True) # mole fraction
 
         if two_background_temps:
+
             Tguess1 = Tatm
             Tguess2 = Tfurnace[bl]
 
-            Tboundary = Tguess1 + 50
-
-
+            Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2
+            Tboundary2 = Tboundary1
 
             pathlength1 = pathlength_4f
             pathlength2 = pathlength_furnace
@@ -234,15 +242,28 @@ for bl in range(bl_number):
                 Tguess1 = np.mean([Tatm,Tfurnace[bl]])
             else: Tguess1 = Tatm # won't be used (will be reset for measurement scans)
 
-            Tboundary = Tfurnace[bl] + 100
+            Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2 + 100
             pathlength1 = pathlength_furnace + pathlength_4f
 
-        pars['pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
-        pars['temperature'].set(value = Tguess1, vary = True, max=Tboundary) # temperature in K
+        pars['T1pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
+        pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
 
         if two_background_temps:
-            mod2, pars2 = td.spectra_single_lmfit()
+            
+            mod2, pars2 = td.spectra_single_lmfit('T2')
 
+            pars2['T2mol_id'].value = 1  # water = 1 (hitran molecular code)
+
+            pars2['T2pressure'].expr = 'T1pressure' # testing linked pressure for now
+            pars2['T2molefraction'].set(value=yH2Obg, vary=True)  # mole fraction
+
+            pars2['T2pathlength'].set(value = pathlength2, vary = False) # pathlength in cm
+            pars2['T2temperature'].set(value = Tguess2, vary = True, min=Tboundary2) # [K], furnace temperature (must be higher than 4f temperature)
+
+            mod = mod1 + mod2
+            pars.update(pars2)
+
+        else: mod = mod1
 
 
         # model_TD_fit = mod.eval(xx=wvn_fit, params=pars, name='H2O')
@@ -269,6 +290,7 @@ for bl in range(bl_number):
         if not include_meas_refs or bl < bl_vac_number:
         
             print('fitting background conditions')
+            if two_background_temps: print('     for two temperatures (this will probably take a while)')
 
             if bl in [0,1,2,3]: bl_which = 0
             elif bl == 4: bl_which = 1
@@ -277,23 +299,45 @@ for bl in range(bl_number):
 
             bg_fit = mod.fit(meas_TD_fit, xx=wvn_fit, params=pars, weights=weight)
             # meas_noBL = td.plot_fit(wvn_fit, bg_fit)
+
+            yH2Obg1_fit = bg_fit.params['T1molefraction'].value
+            yH2Obg1_fit_unc = bg_fit.params['T1molefraction'].stderr
             
-            yH2Obg_fit = bg_fit.params['molefraction'].value
-            yH2Obg_fit_unc = bg_fit.params['molefraction'].stderr
+            P1_fit = bg_fit.params['T1pressure'].value * 760
+            try: P1_fit_unc = bg_fit.params['T1pressure'].stderr * 760
+            except: P1_fit_unc = bg_fit.params['T1pressure'].stderr # can't multiple NAN by a number
             
-            P_fit = bg_fit.params['pressure'].value * 760
-            try: P_fit_unc = bg_fit.params['pressure'].stderr * 760
-            except: P_fit_unc = bg_fit.params['pressure'].stderr # can't multiple NAN by a number
+            T1_fit = bg_fit.params['T1temperature'].value
+            T1_fit_unc = bg_fit.params['T1temperature'].stderr
             
-            T_fit = bg_fit.params['temperature'].value
-            T_fit_unc = bg_fit.params['temperature'].stderr
+            shift1_fit = bg_fit.params['T1shift'].value
+            shift1_fit_unc = bg_fit.params['T1shift'].stderr
             
-            shift_fit = bg_fit.params['shift'].value
-            shift_fit_unc = bg_fit.params['shift'].stderr
+            pl1_fit = bg_fit.params['T1pathlength'].value
             
-            pl_fit = bg_fit.params['pathlength'].value
+            if two_background_temps: 
+                
+                yH2Obg2_fit = bg_fit.params['T2molefraction'].value
+                yH2Obg2_fit_unc = bg_fit.params['T2molefraction'].stderr
+                
+                P2_fit = bg_fit.params['T2pressure'].value * 760
+                try: P2_fit_unc = bg_fit.params['T2pressure'].stderr * 760
+                except: P2_fit_unc = bg_fit.params['T2pressure'].stderr # can't multiple NAN by a number
+                
+                T2_fit = bg_fit.params['T2temperature'].value
+                T2_fit_unc = bg_fit.params['T2temperature'].stderr
+                
+                shift2_fit = bg_fit.params['T2shift'].value
+                shift2_fit_unc = bg_fit.params['T2shift'].stderr
+                
+                pl2_fit = bg_fit.params['T2pathlength'].value
+                
+                bl_conditions[bl,:] = [yH2Obg1_fit, yH2Obg1_fit_unc, P1_fit, P1_fit_unc, T1_fit, T1_fit_unc, shift1_fit, shift1_fit_unc, pl1_fit, 
+                                       yH2Obg2_fit, yH2Obg2_fit_unc, P2_fit, P2_fit_unc, T2_fit, T2_fit_unc, shift2_fit, shift2_fit_unc, pl2_fit]
             
-            bl_conditions[bl,:] = [yH2Obg_fit, yH2Obg_fit_unc, P_fit, P_fit_unc, T_fit, T_fit_unc, shift_fit, shift_fit_unc, pl_fit]
+            else: 
+                
+                bl_conditions[bl,:] = [yH2Obg1_fit, yH2Obg1_fit_unc, P1_fit, P1_fit_unc, T1_fit, T1_fit_unc, shift1_fit, shift1_fit_unc, pl1_fit]
             
             if save_results: 
                 f = open(d_conditions, 'wb')
@@ -308,7 +352,7 @@ for bl in range(bl_number):
             pars['pressure'].set(value = Patm / 760, vary = True) # pressure in atm (converted from Torr)
             pars['molefraction'].set(value = yH2Obg, vary = True) # mole fraction
             
-            pars['pathlength'].set(value = pathlength_ref, vary = False) # pathlength in cm
+            pars['pathlength'].set(value = pathlength_4f, vary = False) # pathlength in cm
             pars['temperature'].set(value = Tatm, vary = True) # temperature in K
             
             # model_TD_fit = mod.eval(xx=wvn_fit, params=pars, name='H2O')
@@ -333,15 +377,15 @@ for bl in range(bl_number):
             bl_which = 2
             weight = td.weight_func(len(wvn_fit), bl_start, etalons=bl_etalons[bl_which])
             
-            bg_fit = mod.fit(meas_TD_fit_ref, xx=wvn_fit, params=pars, weights=weight)
+            bg_fit = mod1.fit(meas_TD_fit_ref, xx=wvn_fit, params=pars, weights=weight)
             # meas_noBL = td.plot_fit(wvn_fit, bg_fit)
-            
+
             yH2Obg_fit = bg_fit.params['molefraction'].value
             yH2Obg_fit_unc = bg_fit.params['molefraction'].stderr
             
             P_fit = bg_fit.params['pressure'].value * 760
             try: P_fit_unc = bg_fit.params['pressure'].stderr * 760
-            except: P_fit_unc = bg_fit.params['pressure'].stderr # can't multiple NAN by a number
+            except: P_fit_unc = bg_fit.params['pressure'].stderr # can't multiply NAN by a number
             
             T_fit = bg_fit.params['temperature'].value
             T_fit_unc = bg_fit.params['temperature'].stderr
@@ -357,6 +401,10 @@ for bl in range(bl_number):
                 f = open(d_conditions, 'wb')
                 pickle.dump([bl_conditions, bl_conditions_ref], f)
                 f.close() 
+            
+for i in error: 
+    
+            
             
     # %% generate the model for the spectrum to be subtracted off of the entire BL measurement
 
@@ -467,6 +515,7 @@ for bl in range(bl_number):
 
     if remove_spikes: 
         print('********** warning - this section of code was tested on a case by case basis **********')
+        print('********** to remove noise spikes in the vacuum data **********')
         print('********** proceed with caution if you are using it **********')
     
         for j in range(len(meas_spike_all[bl,:])): # second index = which wavenumber
