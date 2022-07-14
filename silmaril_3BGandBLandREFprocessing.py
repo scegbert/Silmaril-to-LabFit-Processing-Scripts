@@ -31,7 +31,7 @@ two_background_temps = True # fit two background temperatures? (one for 4f, one 
 calc_fits = True # fit the background data  
 calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
-save_results = True # save the things you calculate here? 
+save_results = False # save the things you calculate here? 
 
 d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 d_file = 'vac '
@@ -57,19 +57,19 @@ if include_meas_refs:
     bl_number += meas_pure_number + meas_air_number
     
     d_file_pure = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
-          '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
-          '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
-          '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
-          '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', 
-          '1300 K 16 T']
+                   '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
+                   '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
+                   '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
+                   '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', 
+                   '1300 K 16 T']
     d_folder_pure = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
 
     d_file_air = ['300 K 20 T', '300 K 40 T',  '300 K 60 T','300 K 80 T',  '300 K 120 T', '300 K 160 T', '300 K 320 T', '300 K 600 T', 
-              '500 K 40 T',  '500 K 80 T',  '500 K 160 T',  '500 K 320 T',  '500 K 600 T', 
-              '700 K 40 T',  '700 K 80 T',  '700 K 160 T',  '700 K 320 T',  '700 K 600 T', 
-              '900 K 40 T',  '900 K 80 T',  '900 K 160 T',  '900 K 320 T',  '900 K 600 T', 
-              '1100 K 40 T', '1100 K 80 T', '1100 K 160 T', '1100 K 320 T', '1100 K 600 T', 
-              '1300 K 600 T']
+                  '500 K 40 T',  '500 K 80 T',  '500 K 160 T',  '500 K 320 T',  '500 K 600 T', 
+                  '700 K 40 T',  '700 K 80 T',  '700 K 160 T',  '700 K 320 T',  '700 K 600 T', 
+                  '900 K 40 T',  '900 K 80 T',  '900 K 160 T',  '900 K 320 T',  '900 K 600 T', 
+                  '1100 K 40 T', '1100 K 80 T', '1100 K 160 T', '1100 K 320 T', '1100 K 600 T', 
+                  '1300 K 600 T']
     d_folder_air = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -123,27 +123,28 @@ index_all_final = np.zeros((bl_number,2))
 #%% Locate phase-corrected measured spectrum
 
 
-for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
-
+for bl in range(bl_number): #-1,-1,-1):    
+    
     if not include_meas_refs or bl < bl_vac_number: 
-        print('loading vacuum scan ' + str(bl))
+        print('******* loading vacuum scan ' + str(bl))
         d_file_meas = d_file +' '+ str(bl)
         d_final = os.path.join(d_folder, d_file + str(bl) + ' pre.pckl')
         
     elif bl >= bl_vac_number and bl_number-bl > meas_pure_number:
-        print('loading pure water reference scan ' + str(bl) + ' (' + d_file_pure[bl-bl_vac_number] + ')')
+        print('******* loading pure water reference scan ' + str(bl) + ' (' + d_file_pure[bl-bl_vac_number] + ')')
         d_file_meas = d_file_pure[bl-bl_vac_number]
         d_final = os.path.join(d_folder_pure, d_file_meas + ' pre.pckl')
 
     else: 
-        print('loading air-water reference scan ' + str(bl) + ' (' + d_file_air[bl-bl_vac_number-meas_pure_number] + ')')
+        print('******* loading air-water reference scan ' + str(bl) + ' (' + d_file_air[bl-bl_vac_number-meas_pure_number] + ')')
         d_file_meas = d_file_air[bl-bl_vac_number-meas_pure_number]
         d_final = os.path.join(d_folder_air, d_file_meas + ' pre.pckl')
     
     d_file_meas_all.append(d_file_meas)
     
     f = open(d_final, 'rb')
-    if d_ref: [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, trans_raw_ref, trans_snip_ref] = pickle.load(f)
+    if d_ref: 
+        [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, trans_raw_ref, trans_snip_ref] = pickle.load(f)
     else: 
         # [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt] = pickle.load(f) # if there isn't a reference channel
         [trans_raw_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, _, _] = pickle.load(f) # if there is a reference channel, but you don't want to use it right now
@@ -226,45 +227,46 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
         pars['T1pressure'].set(value = Patm / 760, vary = vary_pressure) # pressure in atm (converted from Torr)
         pars['T1molefraction'].set(value = yH2Obg, vary = True) # mole fraction
 
-        if two_background_temps:
 
-            Tguess1 = Tatm
-            Tguess2 = Tfurnace[bl]
+        if not include_meas_refs or bl < bl_vac_number: # don't process measurements with water in the cell
+                    
+            if two_background_temps: # process 2 background temperatures
+    
+                Tguess1 = Tatm
+                Tguess2 = Tfurnace[bl]
+    
+                Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2 + 50 # split at average, add a buffer for when they are close
+                Tboundary2 = Tboundary1 - 50
+    
+                pathlength1 = pathlength_4f
+                pathlength2 = pathlength_furnace
 
-            Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2
-            Tboundary2 = Tboundary1
+                pars['T1pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
+                pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
 
-            pathlength1 = pathlength_4f
-            pathlength2 = pathlength_furnace
 
-        else:
-            if not include_meas_refs or bl < bl_vac_number: # don't process measurements with water in the cell
+                mod2, pars2 = td.spectra_single_lmfit('T2')
+    
+                pars2['T2mol_id'].value = 1  # water = 1 (hitran molecular code)
+    
+                pars2['T2pressure'].expr = 'T1pressure' # testing linked pressure for now
+                pars2['T2molefraction'].set(value=yH2Obg, vary=True)  # mole fraction
+    
+                pars2['T2pathlength'].set(value = pathlength2, vary = False) # pathlength in cm
+                pars2['T2temperature'].set(value = Tguess2, vary = True, min=Tboundary2) # [K], furnace temperature (must be higher than 4f temperature)
+    
+                mod = mod1 + mod2
+                pars.update(pars2)
+
+            else: # only process one background temperatures
+                
                 Tguess1 = np.mean([Tatm,Tfurnace[bl]])
-            else: Tguess1 = Tatm # won't be used (will be reset for measurement scans)
-
-            Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2 + 100
-            pathlength1 = pathlength_furnace + pathlength_4f
-
-        pars['T1pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
-        pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
-
-        if two_background_temps:
-            
-            mod2, pars2 = td.spectra_single_lmfit('T2')
-
-            pars2['T2mol_id'].value = 1  # water = 1 (hitran molecular code)
-
-            pars2['T2pressure'].expr = 'T1pressure' # testing linked pressure for now
-            pars2['T2molefraction'].set(value=yH2Obg, vary=True)  # mole fraction
-
-            pars2['T2pathlength'].set(value = pathlength2, vary = False) # pathlength in cm
-            pars2['T2temperature'].set(value = Tguess2, vary = True, min=Tboundary2) # [K], furnace temperature (must be higher than 4f temperature)
-
-            mod = mod1 + mod2
-            pars.update(pars2)
-
-        else: mod = mod1
-
+                Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2 + 50
+                pathlength1 = pathlength_4f + pathlength_furnace
+        
+                pars['T1pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
+                pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
+           
 
         # model_TD_fit = mod.eval(xx=wvn_fit, params=pars, name='H2O')
         # model_fit = np.exp(-np.real(np.fft.rfft(model_TD_fit)))
@@ -290,7 +292,7 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
         if not include_meas_refs or bl < bl_vac_number:
         
             print('fitting background conditions')
-            if two_background_temps: print('     for two temperatures (this will probably take a while)')
+            if two_background_temps: print('\t\tfor two temperatures (this will probably take a while)')
 
             if bl in [0,1,2,3]: bl_which = 0
             elif bl == 4: bl_which = 1
@@ -349,11 +351,11 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
             
             print('fitting background conditions for reference channel')
             
-            pars['pressure'].set(value = Patm / 760, vary = True) # pressure in atm (converted from Torr)
-            pars['molefraction'].set(value = yH2Obg, vary = True) # mole fraction
+            pars['T1pressure'].set(value = Patm / 760, vary = True) # pressure in atm (converted from Torr)
+            pars['T1molefraction'].set(value = yH2Obg, vary = True) # mole fraction
             
-            pars['pathlength'].set(value = pathlength_4f, vary = False) # pathlength in cm
-            pars['temperature'].set(value = Tatm, vary = True) # temperature in K
+            pars['T1pathlength'].set(value = pathlength_4f, vary = False) # pathlength in cm
+            pars['T1temperature'].set(value = Tatm, vary = True) # temperature in K
             
             # model_TD_fit = mod.eval(xx=wvn_fit, params=pars, name='H2O')
             # model_fit = np.exp(-np.real(np.fft.rfft(model_TD_fit)))
@@ -380,32 +382,30 @@ for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]:  # range(bl_number):
             bg_fit = mod1.fit(meas_TD_fit_ref, xx=wvn_fit, params=pars, weights=weight)
             # meas_noBL = td.plot_fit(wvn_fit, bg_fit)
 
-            yH2Obg_fit = bg_fit.params['molefraction'].value
-            yH2Obg_fit_unc = bg_fit.params['molefraction'].stderr
+            yH2Obg_fit = bg_fit.params['T1molefraction'].value
+            yH2Obg_fit_unc = bg_fit.params['T1molefraction'].stderr
             
-            P_fit = bg_fit.params['pressure'].value * 760
-            try: P_fit_unc = bg_fit.params['pressure'].stderr * 760
-            except: P_fit_unc = bg_fit.params['pressure'].stderr # can't multiply NAN by a number
+            P_fit = bg_fit.params['T1pressure'].value * 760
+            try: P_fit_unc = bg_fit.params['T1pressure'].stderr * 760
+            except: P_fit_unc = bg_fit.params['T1pressure'].stderr # can't multiply NAN by a number
             
-            T_fit = bg_fit.params['temperature'].value
-            T_fit_unc = bg_fit.params['temperature'].stderr
+            T_fit = bg_fit.params['T1temperature'].value
+            T_fit_unc = bg_fit.params['T1temperature'].stderr
             
-            shift_fit = bg_fit.params['shift'].value
-            shift_fit_unc = bg_fit.params['shift'].stderr
+            shift_fit = bg_fit.params['T1shift'].value
+            shift_fit_unc = bg_fit.params['T1shift'].stderr
             
-            pl_fit = bg_fit.params['pathlength'].value
+            pl_fit = bg_fit.params['T1pathlength'].value
             
             bl_conditions_ref[bl,:] = [yH2Obg_fit, yH2Obg_fit_unc, P_fit, P_fit_unc, T_fit, T_fit_unc, shift_fit, shift_fit_unc, pl_fit]
             
             if save_results: 
                 f = open(d_conditions, 'wb')
                 pickle.dump([bl_conditions, bl_conditions_ref], f)
-                f.close() 
-            
-for i in error: 
+                f.close()   
+                       
+for i in erroneous: 
     
-            
-            
     # %% generate the model for the spectrum to be subtracted off of the entire BL measurement
 
     wvn2_range_BL_buffer = [wvn2_range_BL[0]-wvn_buffer, wvn2_range_BL[1]+wvn_buffer]
@@ -433,23 +433,40 @@ for i in error:
         
     else:
     
+# for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]: 
+        
+    
         mod, pars = td.spectra_single_lmfit()
     
         pars['mol_id'].value = 1 # water = 1 (hitran molecular code)
         
-        if not include_meas_refs or bl < bl_vac_number:
-
-            pars['pathlength'].set(value = bl_conditions[bl,8]) # pathlength in cm
+        meas_TD_bg = meas_TD.copy()
         
-            pars['molefraction'].value = bl_conditions[bl,0] # mole fraction
-            pars['pressure'].value = bl_conditions[bl,2] / 760 # pressure in atm 
-            pars['temperature'].value = bl_conditions[bl,4] # temperature in K
-            pars['shift'].value = bl_conditions[bl,6] # spectral shift in cm-1
+        if not include_meas_refs or bl < bl_vac_number:
             
-            print('generating spectrum at background conditions')
-            model_TD_bg = mod.eval(xx=wvn, params=pars, name='H2O')
-            meas_TD_bg = meas_TD - model_TD_bg
-            meas_bg = np.exp(-np.real(np.fft.rfft(meas_TD_bg)))
+            if two_background_temps: num_model = 2
+            else:  num_model = 1
+            
+            plt.figure()
+            plt.title('baseline #{}'.format(bl))
+            
+            for i in range(num_model): 
+    
+                pars['pathlength'].set(value = bl_conditions[bl,8+i*9]) # pathlength in cm
+            
+                pars['molefraction'].value = bl_conditions[bl,0+i*9] # mole fraction
+                pars['pressure'].value = bl_conditions[bl,2+i*9] / 760 # pressure in atm 
+                pars['temperature'].value = bl_conditions[bl,4+i*9] # temperature in K
+                pars['shift'].value = bl_conditions[bl,6+i*9] # spectral shift in cm-1
+                
+                print('generating spectrum at background conditions')
+                model_TD_bg = mod.eval(xx=wvn, params=pars, name='H2O')
+                meas_TD_bg = meas_TD_bg - model_TD_bg # if there are 2 T's, this will remove both
+                meas_bg = np.exp(-np.real(np.fft.rfft(meas_TD_bg)))
+                
+                plt.plot(wvn, np.exp(-np.real(np.fft.rfft(model_TD_bg))), label=i)
+            plt.legend()
+                
         
         #%% do the same thing again if you have a reference channel
 
