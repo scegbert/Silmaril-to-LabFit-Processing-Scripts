@@ -23,30 +23,33 @@ clipboard_and_style_sheet.style_sheet()
 pld.db_begin('data - HITRAN 2020')  # load the linelists into Python (keep out of the for loop)
 
 #%% dataset specific information
-d_ref = False # did you use a reference channel? True or False 
-include_meas_refs = False # include the reference channels for other measurements as background scans?  
+d_ref = True # did you use a reference channel? True or False 
+include_meas_refs = True # include the reference channels for other measurements as background scans?  
 
 two_background_temps = True # fit two background temperatures? (one for 4f, one for furnace)
 
 calc_fits = True # fit the background data  
-calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
+calc_background = True # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
-save_results = False # save the things you calculate here? 
+save_results = True # save the things you calculate here? 
 
 d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 d_file = 'vac '
-
-if two_background_temps: d_conditions = os.path.join(d_folder, 'BL conditions with 2Ts.pckl')
-else: d_conditions = os.path.join(d_folder, 'BL conditions.pckl')
-
-d_bgcorrected = os.path.join(d_folder, 'BL BG corrected.pckl')
 
 spike_location_expected = 13979
 
 forderLP = 1
 fcutoffLP = '0.030'
 
-d_filter = str(forderLP) + ' ' + fcutoffLP
+if two_background_temps: 
+    d_conditions = os.path.join(d_folder, 'BL conditions with 2Ts.pckl')
+    d_bgcorrected = os.path.join(d_folder, 'BL BG corrected with 2Ts.pckl')
+    d_filter = str(forderLP) + ' ' + fcutoffLP + ' with 2Ts'
+else: 
+    d_conditions = os.path.join(d_folder, 'BL conditions.pckl')
+    d_bgcorrected = os.path.join(d_folder, 'BL BG corrected.pckl')
+    d_filter = str(forderLP) + ' ' + fcutoffLP
+
 fcutoffLP = float(fcutoffLP)
 
 bl_number = 30 # there are 30 of them (0-29)
@@ -123,7 +126,7 @@ index_all_final = np.zeros((bl_number,2))
 #%% Locate phase-corrected measured spectrum
 
 
-for bl in range(bl_number): #-1,-1,-1):    
+for bl in range(bl_number):    
     
     if not include_meas_refs or bl < bl_vac_number: 
         print('******* loading vacuum scan ' + str(bl))
@@ -192,14 +195,14 @@ for bl in range(bl_number): #-1,-1,-1):
     # plt.plot(wvn_raw, meas_raw)
     
     #%% check if we need to fit the data (or if we already saved that info previously)
-
+    
     if not calc_fits: 
         
         f = open(d_conditions, 'rb')
         if d_ref: [bl_conditions, bl_conditions_ref] = pickle.load(f)
         else: [bl_conditions] = pickle.load(f)
         f.close() 
-    
+        
     else: 
 
         #%% spectrally trim and normalize spectra, convert to TD in preparation for fitting it
@@ -235,14 +238,14 @@ for bl in range(bl_number): #-1,-1,-1):
                 Tguess1 = Tatm
                 Tguess2 = Tfurnace[bl]
     
-                Tboundary1 = Tatm + (Tatm+Tfurnace[bl])/2 + 50 # split at average, add a buffer for when they are close
+                Tboundary1 = (Tatm+Tfurnace[bl])/2 + 50 # split at average, add a buffer for when they are close
                 Tboundary2 = Tboundary1 - 50
     
                 pathlength1 = pathlength_4f
                 pathlength2 = pathlength_furnace
 
                 pars['T1pathlength'].set(value = pathlength1, vary = False) # pathlength in cm
-                pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
+                pars['T1temperature'].set(value = Tguess1, vary = True, max=Tboundary1, min=100) # [K], for 2T this is 4f temperature (must be lower than furnace temperature)
 
 
                 mod2, pars2 = td.spectra_single_lmfit('T2')
@@ -253,7 +256,7 @@ for bl in range(bl_number): #-1,-1,-1):
                 pars2['T2molefraction'].set(value=yH2Obg, vary=True)  # mole fraction
     
                 pars2['T2pathlength'].set(value = pathlength2, vary = False) # pathlength in cm
-                pars2['T2temperature'].set(value = Tguess2, vary = True, min=Tboundary2) # [K], furnace temperature (must be higher than 4f temperature)
+                pars2['T2temperature'].set(value = Tguess2, vary = True, min=Tboundary2, max=3000) # [K], furnace temperature (must be higher than 4f temperature)
     
                 mod = mod1 + mod2
                 pars.update(pars2)
@@ -403,9 +406,7 @@ for bl in range(bl_number): #-1,-1,-1):
                 f = open(d_conditions, 'wb')
                 pickle.dump([bl_conditions, bl_conditions_ref], f)
                 f.close()   
-                       
-for i in erroneous: 
-    
+        
     # %% generate the model for the spectrum to be subtracted off of the entire BL measurement
 
     wvn2_range_BL_buffer = [wvn2_range_BL[0]-wvn_buffer, wvn2_range_BL[1]+wvn_buffer]
@@ -431,10 +432,7 @@ for i in erroneous:
         else: [meas_bg_all, meas_raw_all, wvn_all] = pickle.load(f) 
         f.close() # note that wvn only applies to last dataset processed (for reference)
         
-    else:
-    
-# for bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]: 
-        
+    else:       
     
         mod, pars = td.spectra_single_lmfit()
     
@@ -447,8 +445,9 @@ for i in erroneous:
             if two_background_temps: num_model = 2
             else:  num_model = 1
             
-            plt.figure()
-            plt.title('baseline #{}'.format(bl))
+            if bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]: 
+                plt.figure()
+                plt.title('baseline #{}'.format(bl))
             
             for i in range(num_model): 
     
@@ -464,8 +463,9 @@ for i in erroneous:
                 meas_TD_bg = meas_TD_bg - model_TD_bg # if there are 2 T's, this will remove both
                 meas_bg = np.exp(-np.real(np.fft.rfft(meas_TD_bg)))
                 
-                plt.plot(wvn, np.exp(-np.real(np.fft.rfft(model_TD_bg))), label=i)
-            plt.legend()
+                if bl in [0, 3, 10, 12, 15, 16, 19, 21, 23, 25, 29]: 
+                    plt.plot(wvn, np.exp(-np.real(np.fft.rfft(model_TD_bg))), label=i) 
+                    plt.legend()
                 
         
         #%% do the same thing again if you have a reference channel

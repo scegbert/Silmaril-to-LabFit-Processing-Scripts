@@ -152,9 +152,13 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
     f = open(d_load, 'rb')
     if d_ref: [bl_conditions, bl_conditions_ref]  = pickle.load(f) 
-    else: [bl_conditions]  = pickle.load(f) 
+    else: [bl_conditions]  = pickle.load(f)    
     f.close() 
+   
+    num_backgroundTs = np.shape(bl_conditions)[1]//9 # should be a 1 or a 2
+ 
     
+ 
     h2o_BG = bl_conditions[which_BG[which_file],0]
     P_BG = bl_conditions[which_BG[which_file],2] 
     T_BG = bl_conditions[which_BG[which_file],4]
