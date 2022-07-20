@@ -67,9 +67,7 @@ d_base_air = ['300 K 20 T', '300 K 40 T',  '300 K 60 T','300 K 80 T',  '300 K 12
               '1100 K 40 T', '1100 K 80 T', '1100 K 160 T', '1100 K 320 T', '1100 K 600 T', 
               '1300 K 600 T']
 
-pathlength = 91.4
-pathlength_BG = 2*160 - 91.4 + 15 # furnace (x2) - cell (double pass) + 4f (combs passed separately, but with nominally equal path length)
-pathlength_ref = 15 # pathlength of the reference channel
+pathlength = 91.4 # pathlength inside the quartz cell (double passed)
 
 which_BG_pure = [0,0,0,0,0,0,0,0, 10,10,10,10,10, 29,12,12,12,29, 15,15,16,16,16, 23,23,23,21,21, 23] # don't mess with this one (determined by date of data collection)
 which_BG_air = [3,3,3,3,3,3,3,3, 10,10,10,10,10, 12,12,12,12,12, 16,16,16,16,16, 19,19,19,19,19, 23] # don't mess with this one (determined by date of data collection)
@@ -131,7 +129,7 @@ if calc_yh2o:
     output_yh20P = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20_test = {}
 
-#%% load in measured conditions (P and T) and bg conditions
+#%% load in measured conditions (P and T) 
 
 d_load = os.path.join(d_meas, which_conditions)
 
@@ -147,22 +145,6 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
     P = P_all[which_file]
     T = T_all[which_file]
-    
-    d_load = os.path.join(d_vac, 'BL conditions.pckl')
-    
-    f = open(d_load, 'rb')
-    if d_ref: [bl_conditions, bl_conditions_ref]  = pickle.load(f) 
-    else: [bl_conditions]  = pickle.load(f)    
-    f.close() 
-   
-    num_backgroundTs = np.shape(bl_conditions)[1]//9 # should be a 1 or a 2
- 
-    
- 
-    h2o_BG = bl_conditions[which_BG[which_file],0]
-    P_BG = bl_conditions[which_BG[which_file],2] 
-    T_BG = bl_conditions[which_BG[which_file],4]
-    shift_BG = bl_conditions[which_BG[which_file],6]
     
     
     # %% Locate phase-corrected measured spectrum
@@ -350,8 +332,19 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
                 plt.legend(loc = 'upper right')
                     
         please = stophere # no need to continue if you haven't picked a baseline yet
+    #%% load in background conditions
 
+    d_load = os.path.join(d_vac, 'BL conditions.pckl')
+    
+    f = open(d_load, 'rb')
+    if d_ref: [bl_conditions, bl_conditions_ref]  = pickle.load(f) 
+    else: [bl_conditions]  = pickle.load(f)    
+    f.close() 
+   
+    num_backgroundTs = np.shape(bl_conditions)[1]//9 # should be a 1 or a 2    
+    
     # %% calculate and remove background water 
+
     
     try: 
         
@@ -365,18 +358,34 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
         pld.db_begin('data - HITRAN 2020')  # load the linelists into Python
         
-        bg_mod, bg_pars = td.spectra_single_lmfit() # this makes a single-path H2O cell path to model using HAPI, which is available online
-        bg_pars['mol_id' ].value = 1 # water = 1 (hitran molecular code)
+        for i in range(num_backgroundTs): 
+            
+            h2o_BG = bl_conditions[which_BG[which_file],0+i*9]
+            P_BG = bl_conditions[which_BG[which_file],2+i*9] 
+            T_BG = bl_conditions[which_BG[which_file],4+i*9]
+            shift_BG = bl_conditions[which_BG[which_file],6+i*9]
+            pathlength_BG = bl_conditions[which_BG[which_file],8+i*9]
+            
+            bg_mod, bg_pars = td.spectra_single_lmfit() # this makes a single-path H2O cell path to model using HAPI, which is available online
+            bg_pars['mol_id' ].value = 1 # water = 1 (hitran molecular code)
+            
+            bg_pars['pathlength'].value = pathlength_BG # pathlength in cm
+            bg_pars['molefraction'].value = h2o_BG # mole fraction
+            bg_pars['temperature'].value = T_BG # temperature in K
+            bg_pars['pressure'].value = P_BG / 760 # pressure in atm (converted from Torr)
+            bg_pars['shift'].value = shift_BG # pressure in atm (converted from Torr)
+            
+            if i == 0: 
+                
+                bg_TD1 = bg_mod.eval(xx=wvn, params=bg_pars, name='H2O') # 'H2O' needs to be in db_begin directory
+                bg_TD = bg_TD1.copy()
+                
+            elif i == 1: 
+                
+                bg_TD2 = bg_mod.eval(xx=wvn, params=bg_pars, name='H2O') # 'H2O' needs to be in db_begin directory
+                bg_TD += bg_TD2
         
-        bg_pars['pathlength'].value = pathlength_BG # pathlength in cm
-        bg_pars['molefraction'].value = h2o_BG # mole fraction
-        bg_pars['temperature'].value = T_BG # temperature in K
-        bg_pars['pressure'].value = P_BG / 760 # pressure in atm (converted from Torr)
-        bg_pars['shift'].value = shift_BG # pressure in atm (converted from Torr)
-        
-        bg_TD = bg_mod.eval(xx=wvn, params=bg_pars, name='H2O') # 'H2O' needs to be in db_begin directory
-    
-        d_load = os.path.join(d_meas, d_base[which_file] + ' model background.pckl')
+            d_load = os.path.join(d_meas, d_base[which_file] + ' model background.pckl')
         
         f = open(d_load, 'wb')
         pickle.dump([bg_TD], f)
@@ -516,7 +525,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
     # %% check values by fitting for them against HITRAN 2016 database
         
-        r'''
+
         pld.db_begin('data - HITRAN 2016')  # load the 2016 linelist into Python
         fit_mod2016, fit_pars2016 = td.spectra_single_lmfit()
         
@@ -606,7 +615,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         plt.xlabel('wavenumber')
         plt.ylabel('% transmission')
         plt.legend(loc='lower right')
-        r'''
+
         
         # %% compare residuals for transmission spectra
         
