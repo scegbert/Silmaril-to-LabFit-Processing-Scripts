@@ -28,7 +28,7 @@ include_meas_refs = True # include the reference channels for other measurements
 
 two_background_temps = True # fit two background temperatures? (one for 4f, one for furnace)
 
-calc_fits = True # fit the background data  
+calc_fits = False # fit the background data(or use previously fit data)
 calc_background = True # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
 save_results = True # save the things you calculate here? 

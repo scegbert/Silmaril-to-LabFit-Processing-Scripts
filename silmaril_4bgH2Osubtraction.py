@@ -36,12 +36,15 @@ which_BL_air = [3,3,3,3,3,3,3,3, 10,10,10,10,10, 12,12,12,12,12, 16,16,16,16,16,
 #               0,1,2,3,4,5,6,7   8, 9,10,11,12  13,14,15,16,17  18,19,20,21,22  23,24,25,26,27, 28
 bl_number = 30 # there are 30 of them (0-29)
 
+
 BL_fcutoff = '0.030'
 spike_location_expected = 13979
 
-check_bl = False
-check_fit = True
-save_file = False # check_fit
+
+check_bl = False # look at a bunch of BL's to try to find the right one
+two_BG_temps = True # number of background temperatures to subtract (False==1, True==2)
+check_fit = False # fit measurments against HITRAN database (2020, 2016, and Paul)
+save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
 
@@ -100,7 +103,7 @@ elif d_type == 'air':
                  0.0188913, 0.0193134, 0.0190521, 0.0185838, 0.0186800, 
                  0.0193265] # calculated from Paul's features (see excel spreadsheet)
     
-    calc_yh2o = False
+    calc_yh2o = True # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -243,14 +246,15 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     model_trans = np.exp(-model_abs)
         
     # %% load filtered laser baseline spectra
-       
-    d_load = os.path.join(d_vac, 'BL filtered 1 ' + BL_fcutoff + '.pckl')
+    
+    if two_BG_temps: d_load = os.path.join(d_vac, 'BL filtered 1 ' + BL_fcutoff + ' with 2Ts.pckl')
+    else:  d_load = os.path.join(d_vac, 'BL filtered 1 ' + BL_fcutoff + '.pckl')
     
     f = open(d_load, 'rb')
     if d_ref: [bl_filt_all, bl_filt_all_ref, wvn_bl] = pickle.load(f)
     else: [bl_filt_all, wvn_bl] = pickle.load(f)
     f.close()
-        
+    
     if not check_bl: # we're only looking at one baseline 
         
         bl_filt = bl_filt_all[which_BL[which_file],:]
@@ -334,21 +338,23 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         please = stophere # no need to continue if you haven't picked a baseline yet
     #%% load in background conditions
 
-    d_load = os.path.join(d_vac, 'BL conditions.pckl')
+    if two_BG_temps: 
+        d_load = os.path.join(d_vac, 'BL conditions with 2Ts.pckl')
+        num_backgroundTs = 2
+    else: 
+        d_load = os.path.join(d_vac, 'BL conditions.pckl')
+        num_backgroundTs = 1
     
     f = open(d_load, 'rb')
     if d_ref: [bl_conditions, bl_conditions_ref]  = pickle.load(f) 
     else: [bl_conditions]  = pickle.load(f)    
     f.close() 
-   
-    num_backgroundTs = np.shape(bl_conditions)[1]//9 # should be a 1 or a 2    
-    
+       
     # %% calculate and remove background water 
-
-    
+   
     try: 
         
-        d_load = os.path.join(d_meas, d_base[which_file] + ' model background.pckl')
+        d_load = os.path.join(d_meas, d_base[which_file] + ' model background.pckl') # see if we've already done it
         
         f = open(d_load, 'rb')
         [bg_TD] = pickle.load(f)
