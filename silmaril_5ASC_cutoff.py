@@ -18,20 +18,28 @@ import time
 
 # %% dataset specific information
 
+save_data = False
+check_bins = True
 d_type = 'air' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
+two_BG_temps = True # only matters if remove_bg = False (trying to put conditions in ASC), not yet prepared for two backgrounds in the ASC file
+
 d_ref = True # there is a reference channel
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
 
 if d_type == 'pure': 
-   
+    
     d_base = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
               '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
               '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
               '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
               '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', '1300 K 16 T']
+    
+    if check_bins: 
+        # d_base = ['300 K 16 T', '500 K 16 T', '700 K 16 T', '900 K 16 T', '1100 K 16 T', '1300 K 16 T']
+        d_base = ['300 K _5 T', '300 K 16 T', '700 K 1 T', '700 K 16 T', '1100 K 1 T', '1100 K 16 T']
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
     file_number = 1000 # counter to start the save files at (skipped 2000 due to first round)
@@ -48,6 +56,10 @@ elif d_type == 'air':
               '700 K 40 T',  '700 K 80 T',  '700 K 160 T',  '700 K 320 T',  '700 K 600 T', 
               '900 K 40 T',  '900 K 80 T',  '900 K 160 T',  '900 K 320 T',  '900 K 600 T', 
               '1100 K 40 T', '1100 K 80 T', '1100 K 160 T', '1100 K 320 T', '1100 K 600 T', '1300 K 600 T']
+    
+    if check_bins: 
+        # d_base = ['300 K 600 T', '500 K 600 T', '700 K 600 T', '900 K 600 T', '1100 K 600 T', '1300 K 600 T']
+        d_base = ['300 K 20 T', '300 K 600 T', '700 K 40 T', '700 K 600 T', '1100 K 40 T', '1100 K 600 T', '1300 K 600 T']
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
     file_number = 5000 # counter to start the save files at (skipped 2000 due to first round)
@@ -71,11 +83,22 @@ nuLow = 0
 nuHigh = 0
 shift = 0.0000000 # here if you want it (not sure why you would)
 
+bins = np.array([6500.0, 6562.8, 6579.7, 6599.5, 6620.6, 6639.4, 6660.2, 6680.1, 6699.6, 6717.9,
+                 6740.4, 6761.0, 6779.6, 6801.8, 6822.3, 6838.3 ,6861.4, 6883.2, 6900.1, 6920.2,
+                 6940.0, 6960.5, 6982.9, 7002.5, 7021.4, 7041.1, 7060.5, 7081.7, 7099.0, 7119.0, 
+                 7141.4, 7158.3, 7177.4, 7198.2, 7217.1, 7238.9, 7258.4, 7279.7, 7301.2, 7321.2, 
+                 7338.9, 7358.5, 7377.1, 7398.5, 7421.0, 7440.8, 7460.5, 7480.6, 7500.1, 7520.4,
+                 7540.6, 7560.5, 7580.5, 7600.0, 7620.0, 7640.0, 7660.0, 7720.0, 7800.0])
+
+bins_count = np.ones((len(bins)-1, len(d_base)))
+
+inp_file_conditions = []
+
 for which_file in range(len(d_base)): # check with d_base[which_file]
     
     file_number = int(np.ceil((file_number+.1)/100) * 100)
     cutoff_locations[d_base[which_file]] = []
-    
+        
 # %% load the files and data    
     d_load = os.path.join(d_meas, d_base[which_file] + ' bg subtraction.pckl')   
     
@@ -86,9 +109,14 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
     if remove_bg: transmission = trans_BGremoved
     else: transmission = trans_BGincluded
-        
+    
     if remove_bg is False: # if you want to include this in labfit, we'll need the data
         
+        if two_BG_temps: 
+            print('\n\n********   this file is not ready for two background temperatures   ********')
+            print('either it needs an upgrade, you need to use 1 background condition, or just remove BG before labfot')
+            print('          sorry\n\n')
+    
         d_load = os.path.join(d_vac, 'BL conditions.pckl')   
         f = open(d_load, 'rb')
         if d_ref: [bg_conditions, _] = pickle.load(f)
@@ -128,7 +156,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     fit_cutoff = 0.999 # fit the baseline (not transmission)
     
     # edge case that gave weird discontinuity
-    if which_file in [7,12] and d_type == 'air': 
+    if d_base[which_file] in ['300 K 600 T', '500 K 600 T'] and d_type == 'air': 
         fit_order = 300
         fit_cutoff = 0.995 # fit the baseline (not transmission)
         
@@ -138,20 +166,31 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
     transmission_bl = transmission / bl
     
-    plt.figure()
-    fig_keep = plt.gcf().number
-    plt.title(d_base[which_file] +  ' saved portions')
-    plt.xlabel('wavenumber (cm-1)')
-    plt.ylabel('transmission')
+    if check_bins: 
+        
+        if d_type == 'air': line_type = '--'
+        else: line_type = ''
+        
+        plt.figure(1)
+        plt.plot(wavenumbers, 2.02 - transmission_bl, line_type)
+        plt.plot(wavenumbers, model2020, line_type)
+        # plt.plot(bins, np.ones_like(bins)+0.01, 'X', color='k',markersize=10)
     
-    plt.hlines(cutoff, min(wavenumbers), max(wavenumbers), colors='k', linestyles='solid', linewidth=1)
-    plt.hlines(plot_residual_offset, min(wavenumbers), max(wavenumbers), colors='k', linestyles='dashed', linewidth=1)
-    
-    
-    plt.figure()
-    fig_reject = plt.gcf().number
-    plt.title(d_base[which_file] + ' rejected portions')
-    plt.ylabel('transmission')
+    if not check_bins: 
+        plt.figure()
+        fig_keep = plt.gcf().number
+        plt.title(d_base[which_file] +  ' saved portions')
+        plt.xlabel('wavenumber (cm-1)')
+        plt.ylabel('transmission')
+        
+        plt.hlines(cutoff, min(wavenumbers), max(wavenumbers), colors='k', linestyles='solid', linewidth=1)
+        plt.hlines(plot_residual_offset, min(wavenumbers), max(wavenumbers), colors='k', linestyles='dashed', linewidth=1)
+        
+        
+        plt.figure()
+        fig_reject = plt.gcf().number
+        plt.title(d_base[which_file] + ' rejected portions')
+        plt.ylabel('transmission')
     
     i_stop_cutoff = 0
     counter = 0
@@ -192,49 +231,52 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         transmission_snip = transmission[i_start_cutoff:i_stop_cutoff]
                        
         # plot what you're keeping
-        if counter == 1: 
+        
+        if counter == 1: # add legend entries on the first iteration
             label_keep_meas = 'measured'
             label_keep_residual = 'meas-model+'+str(plot_residual_offset)
-        else: 
+        else: # we don't need 50 legend entries (stop adding them)
             label_keep_meas = ''
             label_keep_residual = ''        
         
-        plt.figure(fig_keep)
-        plt.plot(wavenumbers_snip, 
-                 transmission_snip, label=label_keep_meas)
-        plt.plot(wavenumbers_snip, 
-                 transmission_bl[i_start_cutoff:i_stop_cutoff] - model2020[i_start_cutoff:i_stop_cutoff] + plot_residual_offset, label=label_keep_residual)
-        plt.legend(loc='upper right')
-        
-        # plot what you're rejecting
-        plt.figure(fig_reject)
-
-        i_plot_span = np.arange(i_start_cutoff_next - i_stop_cutoff + 2) + i_plot_start 
-        i_plot_span_wide = np.arange(i_start_cutoff_next - i_stop_cutoff + 8) + i_plot_start - 3
-        
-        if len(i_plot_span) > 0: # if there are points left to plot
+        if not check_bins: 
+            plt.figure(fig_keep)
+            plt.plot(wavenumbers_snip, 
+                     transmission_snip, label=label_keep_meas)
+            plt.plot(wavenumbers_snip, 
+                     transmission_bl[i_start_cutoff:i_stop_cutoff] - model2020[i_start_cutoff:i_stop_cutoff] + plot_residual_offset, label=label_keep_residual)
+            plt.legend(loc='upper right')
             
-            plt.plot(i_plot_span_wide, 
-                     model2020[i_stop_cutoff-4:i_start_cutoff_next+4], '--', color='gray') # model + 1 point on each side
-            plt.plot(i_plot_span_wide, 
-                     transmission_bl[i_stop_cutoff-4:i_start_cutoff_next+4], 'k:') # transmission + 1 point on each side
-            plt.plot(i_plot_span_wide, 
-                      transmission_bl[i_stop_cutoff-4:i_start_cutoff_next+4] - model2020[i_stop_cutoff-4:i_start_cutoff_next+4] + 1-plot_residual_offset, 'k:') # residual + 1 point on each side
-            
-            plt.plot(i_plot_span, 
-                     transmission_bl[i_stop_cutoff-1:i_start_cutoff_next+1]) # transmission removed
-            plt.plot(i_plot_span, 
-                     transmission_bl[i_stop_cutoff-1:i_start_cutoff_next+1] - model2020[i_stop_cutoff-1:i_start_cutoff_next+1] + 1-plot_residual_offset) # residual removed
+            # plot what you're rejecting
+            plt.figure(fig_reject)
     
-            plt.hlines(cutoff, i_plot_span_wide[0], i_plot_span_wide[-1], colors='k', linestyles='solid', linewidth=1)
-            plt.hlines(1-plot_residual_offset, i_plot_span_wide[0], i_plot_span_wide[-1], colors='k', linestyles='dashed', linewidth=1)
-
-            i_plot_start = i_plot_span_wide[-1] + 3
+            i_plot_span = np.arange(i_start_cutoff_next - i_stop_cutoff + 2) + i_plot_start 
+            i_plot_span_wide = np.arange(i_start_cutoff_next - i_stop_cutoff + 8) + i_plot_start - 3
             
+            if len(i_plot_span) > 0: # if there are points left to plot
+                
+                plt.plot(i_plot_span_wide, 
+                         model2020[i_stop_cutoff-4:i_start_cutoff_next+4], '--', color='gray') # model + 1 point on each side
+                plt.plot(i_plot_span_wide, 
+                         transmission_bl[i_stop_cutoff-4:i_start_cutoff_next+4], 'k:') # transmission + 1 point on each side
+                plt.plot(i_plot_span_wide, 
+                          transmission_bl[i_stop_cutoff-4:i_start_cutoff_next+4] - model2020[i_stop_cutoff-4:i_start_cutoff_next+4] + 1-plot_residual_offset, 'k:') # residual + 1 point on each side
+                
+                plt.plot(i_plot_span, 
+                         transmission_bl[i_stop_cutoff-1:i_start_cutoff_next+1]) # transmission removed
+                plt.plot(i_plot_span, 
+                         transmission_bl[i_stop_cutoff-1:i_start_cutoff_next+1] - model2020[i_stop_cutoff-1:i_start_cutoff_next+1] + 1-plot_residual_offset) # residual removed
+        
+                plt.hlines(cutoff, i_plot_span_wide[0], i_plot_span_wide[-1], colors='k', linestyles='solid', linewidth=1)
+                plt.hlines(1-plot_residual_offset, i_plot_span_wide[0], i_plot_span_wide[-1], colors='k', linestyles='dashed', linewidth=1)
+    
+                i_plot_start = i_plot_span_wide[-1] + 3
           
+        if wavenumbers_snip[-1] < wavenumbers[-1]: 
+            bins_count[np.argmax(bins>wavenumbers_snip[-1])-1, which_file] += 1 # there is a bin break in this bin for this file
+        
+# %% process and save ASC file for labfit   
     
-# %% process and save ASC file for labfit
-
         file_number +=1 
         labfitname = str(file_number).zfill(4)
         
@@ -276,7 +318,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             ystr_BG = ('%.9f' % y_h2o_BG).ljust(12) # %.9 is most it will support, %.6 is most it will carry between iterations (still exploring what that means)
 
             
-        delta = favg / speed_of_light
+        delta = favg / speed_of_light / 100 # speed of light in cm-1
         delta = '%.31f' %  delta     #cm-1 ; note notation suppresses scientific notation
         
         wavenumbers_snip -= shift
@@ -294,47 +336,61 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
         fname = labfitname + "_" + d_base[which_file].replace("_", "-").replace(" ", "_") + "_" + str(counter) + ".asc"
         
-        file = open(os.path.join(d_save,fname),'w')
-        file.write("******* File "+labfitname+", "+descriptor+"\n")
-        file.write(labfitname + "   " + startwn + "   " + endwn + "   " + delta+"\n")
-        file.write("  00000.00    0.00000     0.00e0     " + str(molecule_id) + "   2     3   0        0\n")
-        file.write("    " + Lstr + Tstr + Pstr + "    " + ystr + "    .0000000 .0000000 0.000\n")
+        if save_data: 
+            
+            file = open(os.path.join(d_save,fname),'w')
+            file.write("******* File "+labfitname+", "+descriptor+"\n")
+            file.write(labfitname + "   " + startwn + "   " + endwn + "   " + delta+"\n")
+            file.write("  00000.00    0.00000     0.00e0     " + str(molecule_id) + "   2     3   0        0\n")
+            file.write("    " + Lstr + Tstr + Pstr + "    " + ystr + "    .0000000 .0000000 0.000\n")
+            
+            if remove_bg: file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n") # nothing
+            else: file.write(Lstr_BG + Tstr_BG + Pstr_BG + "    " + ystr_BG + ".0000000 .0000000 0.000\n") # background conditions
+            
+            file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
+            file.write("DATE " + time.strftime("%m/%d/%Y") + "; time " + time.strftime("%H:%M:%S") + "\n")
+            file.write("\n")
+            # this line is an artifact of Ryan Cole. I'm not sure what the hard-coded numbers mean - scott
+            file.write(startwn_other + " " + delta + " 15031 1 1    2  0.9935  0.000   0.000 294.300 295.400 295.300   7.000  22.000 500.000 START\n")
+            
+            wavelist = wavenumbers_snip.tolist()
+            translist = transmission_snip.tolist()
+            
+            for i in range(len(wavelist)):
+                wavelist[i] = '%.5f' %  wavelist[i]
+                translist[i] = '%.5f' % translist[i]
+                file.write(wavelist[i] + "      " + translist[i] + "\n")
+            file.close()
+            
+            print("Labfit Input Generated for Labfit file " + labfitname)
+            # these values are also in the inp file (which I think labfit prefers to use) You will want to change them there to match the ASC file (if needed)
+            print(str(counter) + '          ' + delta[:8] + '       ' + str(T + 273.15).split('.')[0] + '     ' + Pstr[:-4] + '         ' + ystr[:5] + '\n') 
         
-        if remove_bg: file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n") # nothing
-        else: file.write(Lstr_BG + Tstr_BG + Pstr_BG + "    " + ystr_BG + ".0000000 .0000000 0.000\n") # background conditions
-        
-        file.write("    0.0000000     23.4486      0.00000    0.000000    .0000000 .0000000 0.000\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("1. 1. 1. 1. 1. 1. 1. 1. 1. 1.\n")
-        file.write("DATE " + time.strftime("%m/%d/%Y") + "; time " + time.strftime("%H:%M:%S") + "\n")
-        file.write("\n")
-        # this line is an artifact of Ryan Cole. I'm not sure what the hard-coded numbers mean - scott
-        file.write(startwn_other + " " + delta + " 15031 1 1    2  0.9935  0.000   0.000 294.300 295.400 295.300   7.000  22.000 500.000 START\n")
-        
-        wavelist = wavenumbers_snip.tolist()
-        translist = transmission_snip.tolist()
-        
-        for i in range(len(wavelist)):
-            wavelist[i] = '%.5f' %  wavelist[i]
-            translist[i] = '%.5f' % translist[i]
-            file.write(wavelist[i] + "      " + translist[i] + "\n")
-        file.close()
-        
-        print("Labfit Input Generated for Labfit file " + labfitname)
-        # these values are also in the inp file (which I think labfit prefers to use) You will want to change them there to match the ASC file (if needed)
-        print(str(counter) + '          ' + delta[:8] + '       ' + str(T + 273.15).split('.')[0] + '     ' + Pstr[:-4] + '         ' + ystr[:5] + '\n') 
+            cutoff_locations[d_base[which_file]].append([fname, np.round(wavenumbers_snip[0],3), np.round(wavenumbers_snip[-1],3)])
+
+    #%% prep conditions so you can copy and paste them into a generic INP file
     
-        cutoff_locations[d_base[which_file]].append([fname, np.round(wavenumbers_snip[0],3), np.round(wavenumbers_snip[-1],3)])
-
-
-f = open(os.path.join(d_save, 'cutoff locations ' + d_type + '.pckl'), 'wb')
-pickle.dump(cutoff_locations,f)
-f.close() 
+        if counter == 1: 
+            
+            Tstr = ('%.7f' % T)
+            Pstr = ('%.7f' % P)
+            delta = delta[:8] # checked that it was the same for all of my files (not included)
+        
+            inp_file_conditions.append([fname, Tstr, Pstr])
+    
+    #%% save the boundaries between files for use later
+    
+if save_data: 
+    f = open(os.path.join(d_save, 'cutoff locations ' + d_type + '.pckl'), 'wb')
+    pickle.dump(cutoff_locations,f)
+    f.close() 
 

@@ -24,7 +24,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -95,15 +95,16 @@ if d_type == 'pure':
     which_ref_start = bl_number # file to start with when identifying reference channel files
     
 elif d_type == 'air':
-
-    y_h2o_all = [0.0188819, 0.0191286, 0.0192363, 0.0193254, 0.0194003, 0.0195227, 0.0195141, 0.0193617, 
-                 0.0192266, 0.0192145, 0.0190968, 0.0191739, 0.0194092,
-                 0.0188545, 0.0189112, 0.0188502, 0.0188136, 0.0187419,
-                 0.0185558, 0.0187983, 0.0185486, 0.0184250, 0.0183824, 
-                 0.0188913, 0.0193134, 0.0190521, 0.0185838, 0.0186800, 
-                 0.0193265] # calculated from Paul's features (see excel spreadsheet)
     
-    calc_yh2o = True # probably don't want to fit against model yet (set to False)
+    
+    y_h2o_all = [0.0188734, 0.0191270, 0.0192354, 0.0193250, 0.0194002, 0.0195231, 0.0195152, 0.0193630, 
+                 0.0192269, 0.0192150, 0.0190975, 0.0191753, 0.0194099, 
+                 0.0188613, 0.0189159, 0.0188542, 0.0188175, 0.0187454, 
+                 0.0185795, 0.0188123, 0.0185581, 0.0184324, 0.0183884, 
+                 0.0189748, 0.0193512, 0.0190751, 0.0185992, 0.0186915, 
+                 0.0192879] # calculated from Paul's features (see excel spreadsheet)
+    
+    calc_yh2o = False # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -605,22 +606,22 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
         # %% compare transmission spectra
 
-        plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-        plt.plot(wvn, model_trans*100, label='model at measured furnace conditions')
-        if check_fit:
-            plt.plot(wvn, model_trans_fit2020*100, label='model at fit furnace conditions')
-        # plt.plot(wvn, meas_trans_BL, label='measured - BL correction only')
-        plt.plot(wvn, meas_trans_bg*100, label='measured w/ BL and BG corrections')
-        plt.plot(wvn, (meas_trans_bg-model_trans_fit2020)*100 + 105, label='measured w/ BL and BG corrections')
-        plt.plot(wvn, bg_trans*100, label='model of background water absorption')
+        # plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+        # plt.plot(wvn, model_trans*100, label='model at measured furnace conditions')
+        # if check_fit:
+        #     plt.plot(wvn, model_trans_fit2020*100, label='model at fit furnace conditions')
+        # # plt.plot(wvn, meas_trans_BL, label='measured - BL correction only')
+        # plt.plot(wvn, meas_trans_bg*100, label='measured w/ BL and BG corrections')
+        # plt.plot(wvn, (meas_trans_bg-model_trans_fit2020)*100 + 105, label='measured w/ BL and BG corrections')
+        # plt.plot(wvn, bg_trans*100, label='model of background water absorption')
         
-        if wvn2_fit is not None:
-            plt.axvline(x=wvn2_fit[0],color='k', linestyle='-.', label='fit region')
-            plt.axvline(x=wvn2_fit[1],color='k', linestyle='-.')
+        # if wvn2_fit is not None:
+        #     plt.axvline(x=wvn2_fit[0],color='k', linestyle='-.', label='fit region')
+        #     plt.axvline(x=wvn2_fit[1],color='k', linestyle='-.')
         
-        plt.xlabel('wavenumber')
-        plt.ylabel('% transmission')
-        plt.legend(loc='lower right')
+        # plt.xlabel('wavenumber')
+        # plt.ylabel('% transmission')
+        # plt.legend(loc='lower right')
 
         
         # %% compare residuals for transmission spectra
