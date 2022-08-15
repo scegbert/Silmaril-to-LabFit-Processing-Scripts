@@ -18,13 +18,14 @@ path.append(os.path.abspath('..')+'\\modules')
 
 import pldspectrapy as pld
 import td_support as td
+import linelist_conversions as db
 
 import clipboard_and_style_sheet
 clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -53,6 +54,14 @@ wvn2_fit = [6800, 7050] # avoiding big features (saturation issues)
 wvn2_spectroscopy = [] # range we will send to labfit
 wvn2_concentration = [[7184.85, 7186.48], [7412.82, 7413.35], [7415.83, 7416.18], [6919.71, 6920.20], [6807.60, 6807.94], # Goldenstein (higher temp)
                       [7134.30, 7135.25], [7135.70, 7136.65], [7138.50, 7139.39], [7139.39, 7139.97], [7138.50, 7139.97]] # other hanson features, lower temp
+
+wvn2_concentration = [[7010.2,7010.7],[7012.45,7012.95],[7026.35,7027],[7038.1,7038.8],[7041.8,7042.8],
+                      [7046.9,7048.3],[7070.1,7071.2],[7071.05,7072.3],[7085.5,7086.3],[7093.7,7095.3],[7104.3,7105.3],
+                      [7116.6,7118.6],[7138.4,7140.4],[7160.95,7162.1],[7167.6,7169.6],[7193.6,7196],[7198.5,7200],
+                      [7201.5,7203.5],[7204.4,7206.2],[7212.3,7213.4],[7214.9,7215.9],[7215.9,7216.9],[7218.6,7220.3],
+                      [7241.55,7245],[7293.05,7295.6],[7311.4,7313.5],[7326.9,7329.3],[7338.5,7341.4],[7347.6,7349.2],
+                      [7355, 7356.6],[7374.1,7376.17],[7389,7390.6],[7396.7,7398.5],[7405.5,7406.3],[7412.8,7413.4],
+                      [7413.3,7414.4],[7415.8,7416.6],[7417.2,7418.3]]
 
 wvn2_etalon = [6630,7570] # some kind of etalon range with vacuum scans from December 2020 water data. can't remember why I included this
 
@@ -104,7 +113,7 @@ elif d_type == 'air':
                  0.0189748, 0.0193512, 0.0190751, 0.0185992, 0.0186915, 
                  0.0192879] # calculated from Paul's features (see excel spreadsheet)
     
-    calc_yh2o = False # probably don't want to fit against model yet (set to False)
+    calc_yh2o = True # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -132,6 +141,10 @@ if calc_yh2o:
     output_P = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20P = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20_test = {}
+    
+    path_yh2o_load = r'\\data - HITRAN 2020\\'
+    path_yh2o_save = r'\\data - temp\\'
+    df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.par')
 
 #%% load in measured conditions (P and T) 
 
@@ -413,15 +426,19 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     # %% calculate water concentration in the cell (if desired)
    
     if calc_yh2o: 
-
+        
         output_yh20_test[d_base[which_file]] = np.zeros((len(wvn2_concentration),6))   
-
-        pld.db_begin('data - HITRAN 2020')  # load the linelists into Python
-
+        
         for wvn2 in wvn2_concentration: 
             
-            print(wvn2)
+            print('     {}       {}'.format(d_base[which_file], wvn2))
             
+            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
+                        
+            db.df_to_par(df_yh2o_iter.reset_index(), par_name='H2O_yh2o', save_dir=os.path.abspath('')+path_yh2o_save, print_name=False)
+    
+            pld.db_begin('data - temp')  # load the linelists into Python
+        
             [istart, istop] = td.bandwidth_select_td(wvn, wvn2, max_prime_factor=50, print_value=False)
             
             wvn_fit = wvn[istart:istop]
@@ -439,9 +456,11 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             fit_pars2020['temperature'].set(value = T, vary = False) # temperature in K
     
             fit_pars2020['molefraction'].set(value = y_h2o, vary = True) # mole fraction
-            model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O') # used to check baseline decision
             
             r'''
+            model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O_yh2o') # used to check baseline decision
+            
+            
             plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
             plt.plot(model_TD_fit2020, label='model')
             plt.plot(meas_TD_bg_fit, label='BG')
@@ -451,7 +470,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             weight = td.weight_func(len(wvn_fit), bl_cutoff_h2o, etalons = [])
             
-            meas_fit_bg2020 = fit_mod2020.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_pars2020, weights=weight)
+            meas_fit_bg2020 = fit_mod2020.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_pars2020, weights=weight, name='H2O_yh2o')
             # td.plot_fit(wvn_fit, meas_fit_bg2020)
             
             yh2o_fit = meas_fit_bg2020.params['molefraction'].value
@@ -472,6 +491,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
         y_h2o = np.average(output_yh20P[which_file,:])
     
+for i in erroniuos:     
+
     # %% check values by fitting for them against HITRAN 2020 database
     
     if check_fit:
