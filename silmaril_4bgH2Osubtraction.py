@@ -8,6 +8,9 @@ also checks to see how well things match the model
 
 """
 
+import time 
+# time.sleep(60*60*4) # hang out for 4 hours
+
 import numpy as np
 import pickle 
 import matplotlib.pyplot as plt
@@ -25,7 +28,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -89,7 +92,7 @@ bl_cutoff = 101
 if d_type == 'pure': 
 
     y_h2o = 1
-    calc_yh2o = False
+    calc_yh2o = True
     
     d_base = d_base_pure
     which_BL = which_BL_pure
@@ -140,6 +143,8 @@ if calc_yh2o:
     output_yh20 = np.zeros((len(d_base),len(wvn2_concentration)))
     output_P = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20P = np.zeros((len(d_base),len(wvn2_concentration)))
+    output_Pyh2o = np.zeros((len(d_base),len(wvn2_concentration)))
+    output_shift = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20_test = {}
     
     path_yh2o_load = r'\\data - HITRAN 2020\\'
@@ -452,14 +457,13 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             fit_pars2020['mol_id'].value = 1 # water = 1 (hitran molecular code)
             fit_pars2020['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
-            fit_pars2020['pressure'].set(value = P / 760, vary = True) # pressure in atm (converted from Torr)
+            fit_pars2020['pressure'].set(value = P / 760, vary = True, max=3) # pressure in atm (converted from Torr)
             fit_pars2020['temperature'].set(value = T, vary = False) # temperature in K
     
-            fit_pars2020['molefraction'].set(value = y_h2o, vary = True) # mole fraction
+            fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
             
             r'''
             model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O_yh2o') # used to check baseline decision
-            
             
             plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
             plt.plot(model_TD_fit2020, label='model')
@@ -471,7 +475,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             weight = td.weight_func(len(wvn_fit), bl_cutoff_h2o, etalons = [])
             
             meas_fit_bg2020 = fit_mod2020.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_pars2020, weights=weight, name='H2O_yh2o')
-            # td.plot_fit(wvn_fit, meas_fit_bg2020)
+            # td.plot_fit(wvn_fit, meas_fit_bg2020, plot_td = False)
             
             yh2o_fit = meas_fit_bg2020.params['molefraction'].value
             yh2o_fit_unc = meas_fit_bg2020.params['molefraction'].stderr
@@ -479,18 +483,20 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             P_fit = meas_fit_bg2020.params['pressure'].value * 760
             try: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr * 760
             except: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr # can't multiple NAN by a number
-
+            
             shift_fit = meas_fit_bg2020.params['shift'].value
             shift_fit_unc = meas_fit_bg2020.params['shift'].stderr
             
             output_yh20[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit
             output_P[which_file, wvn2_concentration.index(wvn2)] = P_fit
+            
+            output_shift[which_file, wvn2_concentration.index(wvn2)] = shift_fit / hz2cm / 1e6 # in MHz
+            
+            output_yh20P[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / P # adjusted yh2o at known pressure
+            output_Pyh2o[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / y_h2o # adjust pressure at known concentration
+            
             output_yh20_test[d_base[which_file]][wvn2_concentration.index(wvn2),:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, shift_fit, shift_fit_unc]
-            
-            output_yh20P[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / P # adjust yh2o to compensate for changes in P
-            
-        y_h2o = np.average(output_yh20P[which_file,:])
-    
+
 for i in erroniuos:     
 
     # %% check values by fitting for them against HITRAN 2020 database

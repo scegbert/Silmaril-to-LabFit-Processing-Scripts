@@ -69,12 +69,12 @@ span = [[7010.2,7010.7],[7012.45,7012.95],[7026.35,7027],[7038.1,7038.8],[7041.8
 
 
 
-# plt.plot(df.nu, 1 + df.ratio_300, 'yx', markersize=5)
-# plt.plot(df.nu, 1 + df.ratio_1100, 'cx', markersize=5)
+plt.plot(df.nu, 1 + df.ratio_300, 'bx', markersize=5)
+plt.plot(df.nu, 1 + df.ratio_1100, 'rx', markersize=5)
 
-# plt.plot(df_keep.nu, 1 + df_keep.ratio_300, 'yo', markersize=10)
-# plt.plot(df_keep.nu, 1 + df_keep.ratio_1100, 'co', markersize=10)
-# plt.plot(df_keep.nu, 1 + df_keep.ratio_1100/1e15, 'ko', markersize=10)
+plt.plot(df_keep.nu, 1 + df_keep.ratio_300, 'bo', markersize=10)
+plt.plot(df_keep.nu, 1 + df_keep.ratio_1100, 'ro', markersize=10)
+plt.plot(df_keep.nu, 1 + df_keep.ratio_1100/1e15, 'ko', markersize=10)
 
 for features in span: 
     
