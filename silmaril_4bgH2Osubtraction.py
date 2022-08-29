@@ -28,7 +28,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -47,13 +47,12 @@ spike_location_expected = 13979
 
 check_bl = False # look at a bunch of BL's to try to find the right one
 two_BG_temps = True # number of background temperatures to subtract (False==1, True==2)
-check_fit = False # fit measurments against HITRAN database (2020, 2016, and Paul)
+check_fit = True # fit measurments against HITRAN database (2020, 2016, and Paul)
 save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
 
 wvn2_processing = [6500, 7800]
-wvn2_fit = [6800, 7050] # avoiding big features (saturation issues)
 wvn2_spectroscopy = [] # range we will send to labfit
 wvn2_concentration = [[7010.2,7010.7],[7012.45,7012.95],[7026.35,7027],[7038.1,7038.8],[7041.8,7042.8],
                       [7046.9,7048.3],[7070.1,7071.2],[7071.05,7072.3],[7085.5,7086.3],[7093.7,7095.3],[7104.3,7105.3],
@@ -89,7 +88,7 @@ bl_cutoff = 101
 if d_type == 'pure': 
 
     y_h2o = 1
-    calc_yh2o = True
+    calc_yh2o = False
     
     d_base = d_base_pure
     which_BL = which_BL_pure
@@ -103,6 +102,9 @@ if d_type == 'pure':
     
     which_ref_start = bl_number # file to start with when identifying reference channel files
     
+    wvn2_fit = [6699.6, 7041.1] # avoiding big features (saturation issues), using bin breaks
+
+    
 elif d_type == 'air':
     
     y_h2o_all = [0.0189748, 0.0191960, 0.0192649, 0.0193174, 0.0193936, 0.0194903, 0.0195316, 0.0194732, 
@@ -112,20 +114,21 @@ elif d_type == 'air':
                  0.0191551, 0.0195356, 0.0192415, 0.0187509, 0.0188582, 
                  0.0193093] # calculated using 38 features (listed above)
    
-    calc_yh2o = True # probably don't want to fit against model yet (set to False)
+    calc_yh2o = False # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
     which_BG = which_BG_air
 
-    vary_P = True
-    vary_yh2o = False
+    vary_P = False
+    vary_yh2o = True
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
     which_conditions = 'Air Water P & T.pckl'
     
     which_ref_start = bl_number + len(d_base_pure) # file to start with when identifying reference channel files
 
+    wvn2_fit = [6699.6, 7177.4] # avoiding big features (saturation issues), using bin breaks
 
 d_vac = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 
@@ -493,8 +496,6 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             output_yh20_test[d_base[which_file]][wvn2_concentration.index(wvn2),:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, shift_fit, shift_fit_unc]
 
-for i in erroniuos:     
-
     # %% check values by fitting for them against HITRAN 2020 database
     
     if check_fit:
@@ -562,7 +563,7 @@ for i in erroniuos:
         fit_pars2016['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_pars2016['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
         
-        fit_pars2016['molefraction'].set(value = 1, vary = vary_yh2o) # mole fraction
+        fit_pars2016['molefraction'].set(value = y_h2o, vary = vary_yh2o) # mole fraction
         fit_pars2016['pressure'].set(value = P / 760, vary = vary_P) # pressure in atm (converted from Torr)
         
         fit_pars2016['temperature'].set(value = T, vary = True) # temperature in K
@@ -599,7 +600,7 @@ for i in erroniuos:
         fit_parsPaul['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_parsPaul['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
 
-        fit_parsPaul['molefraction'].set(value = 1, vary = vary_yh2o) # mole fraction
+        fit_parsPaul['molefraction'].set(value = y_h2o, vary = vary_yh2o) # mole fraction
         fit_parsPaul['pressure'].set(value = P / 760, vary = vary_P) # pressure in atm (converted from Torr)
 
         fit_parsPaul['temperature'].set(value = T, vary = True) # temperature in K

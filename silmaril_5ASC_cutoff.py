@@ -20,7 +20,7 @@ import time
 
 save_data = False
 check_bins = True
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
 two_BG_temps = True # only matters if remove_bg = False (trying to put conditions in ASC), not yet prepared for two backgrounds in the ASC file
