@@ -18,8 +18,8 @@ import time
 
 # %% dataset specific information
 
-save_data = False
-check_bins = True
+save_data = True
+check_bins = False # only look at some of the measurements (high pressure, to check the bin-breaks for features)
 d_type = 'pure' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
@@ -153,19 +153,27 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
 
     plot_residual_offset = 1.05
     fit_order = 300
+    fit_order_simple = 20
     fit_cutoff = 0.999 # fit the baseline (not transmission)
     
     # edge case that gave weird discontinuity
     if d_base[which_file] in ['300 K 600 T', '500 K 600 T'] and d_type == 'air': 
         fit_order = 300
         fit_cutoff = 0.995 # fit the baseline (not transmission)
-        
-    bl_fit = np.polynomial.chebyshev.Chebyshev.fit(wavenumbers[model2020 > fit_cutoff], transmission[model2020 > fit_cutoff], fit_order) 
     
-    bl = bl_fit(wavenumbers) # improved baseline correction for entire spectrum
-    
+    bl_fit = np.polynomial.chebyshev.Chebyshev.fit(wavenumbers[model2020 > fit_cutoff], transmission[model2020 > fit_cutoff], fit_order)      
+    bl = bl_fit(wavenumbers) # improved baseline correction for entire spectrum 
+ 
     transmission_bl = transmission / bl
+  
+    bl_fit_simple = np.polynomial.chebyshev.Chebyshev.fit(wavenumbers[model2020 > fit_cutoff], transmission[model2020 > fit_cutoff], fit_order_simple)
+    bl_simple = bl_fit_simple(wavenumbers)
+  
+    print('\n\n************ applying a small ({}th order) Chebyshev correction to the whole range ************'.format(fit_order_simple))
+    print('************ to improve Labfit Chebyshev convergence (otherwise would need unique inital guesses for each bin and file) ************\n\n')
     
+    transmission = transmission / bl_simple
+  
     if check_bins: 
         
         if d_type == 'air': line_type = '--'
@@ -229,7 +237,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
                
         wavenumbers_snip = wavenumbers[i_start_cutoff:i_stop_cutoff]
         transmission_snip = transmission[i_start_cutoff:i_stop_cutoff]
-                       
+        
         # plot what you're keeping
         
         if counter == 1: # add legend entries on the first iteration
