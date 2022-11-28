@@ -18,9 +18,9 @@ import time
 
 # %% dataset specific information
 
-save_data = True
-check_bins = False # only look at some of the measurements (high pressure, to check the bin-breaks for features)
-d_type = 'pure' # 'pure' or 'air'
+save_data = False
+check_bins = True # only look at some of the measurements (high pressure, to check the bin-breaks for features)
+d_type = 'air' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
 two_BG_temps = True # only matters if remove_bg = False (trying to put conditions in ASC), not yet prepared for two backgrounds in the ASC file
@@ -180,8 +180,9 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         else: line_type = ''
         
         plt.figure(1)
-        plt.plot(wavenumbers, 2.02 - transmission_bl, line_type)
-        plt.plot(wavenumbers, model2020, line_type)
+        plt.plot(wavenumbers, transmission_bl, line_type)
+        # plt.plot(wavenumbers, 2.02 - transmission_bl, line_type)
+        # plt.plot(wavenumbers, model2020, line_type)
         # plt.plot(bins, np.ones_like(bins)+0.01, 'X', color='k',markersize=10)
     
     if not check_bins: 
