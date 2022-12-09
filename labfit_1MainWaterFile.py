@@ -21,8 +21,6 @@ clipboard_and_style_sheet.style_sheet()
 
 from copy import deepcopy
 
-from time import sleep
-
 # %% define some dictionaries and parameters
 
 d_type = 'pure' # 'pure' or 'air'
@@ -104,7 +102,7 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 7E-25
 
-bin_name = 'B19' # name of working bin (for these calculations)
+bin_name = 'B32' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_kp # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -145,8 +143,14 @@ please = stophere
 
 # %% mini-script to get the bin started, save OG file
 
+import time
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
+
 lab.bin_ASC_cutoff(d_labfit_main, base_name, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
+
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
 lab.run_labfit(d_labfit_kernal, bin_name) # <-------------------
+print(time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime()))
 
 lab.save_file(d_labfit_main, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
 
@@ -161,16 +165,14 @@ a_features_check = [int(x) for x in list(df_calcs[df_calcs.ratio_max>0].index)]
 lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = a_features_check, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
-# print(a_features_check)
-
 # lab.plot_spectra(T,wvn,trans,res,False, False, offset, features = False) # don't plot the feature names
 
-# lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) # run REI file in labfit (DOES NOT SAVE INP)
+# lab.save_file(d_labfit_main, bin_name, d_save_name= 'reduced Chebyshev order for smaller regions', d_folder_input=d_labfit_kernal)
 
 
 #%% figure out how much to shrink features that you can't see
 
-features_shrink = [16945]
+features_shrink = [23640]
 
 print(lab.shrink_feature(df_calcs[df_calcs.index.isin(features_shrink)], cutoff_s296, T))
 
@@ -187,20 +189,18 @@ plt.title(bin_name)
 
 asdfsdfs
 
-lab.save_file(d_labfit_main, bin_name, d_save_name= 'shrunk non-visible fetaures', d_folder_input=d_labfit_kernal)
+lab.save_file(d_labfit_main, bin_name, d_save_name= 'shrunk non-visible features', d_folder_input=d_labfit_kernal)
 
 
 # %% add new features (if required)
 
-sleep(3600 * 6)
+lab.wait_for_kernal(d_labfit_kernal)
 
 iter_sniff = 10
 
 # features_new_big = []
 # feature_new_small = [6983.01, 6983.86, 6988.67, 6988.75, 6989.16, 6989.28, 6990.58, 6990.75, 6993.17, 7000.29, 7000.35]
 
-features_new_big = [6961.01, 6967.85]
-feature_new_small = []
 
 props_new_feature = deepcopy(props)
 props_new_feature['nu'][4] = 3*props['nu'][4] 
@@ -292,24 +292,23 @@ plt.plot(b23_good_s_ns, 100+offset/2*np.ones_like(b23_good_s_ns), 'mx', markersi
 plt.plot(b3_reject, 100+offset/2*np.ones_like(b3_reject), 'mo', fillstyle='none', markersize=25)
 
 
-
-asdfasdf
-
 lab.save_file(d_labfit_main, bin_name, d_save_name='added new features', d_folder_input=d_labfit_kernal)
 
 
 # %% make changes to features that don't look great to begin with
 
-features_sw = [13255, 13304, 13493, 13556, 13625, 13624, 13791, 13843, 13998, ]
-features_nu = [13255, 13304, 13493, 13556, 13625, 13624, 13791, 13843, 13998, ]
-
-features_doublets = [[13625, 13624]]
-
 lab.float_lines(d_labfit_kernal, bin_name, features_sw, props['sw'], 'rei_saved', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 lab.float_lines(d_labfit_kernal, bin_name, features_nu, props['nu'], 'inp_new', features_doublets) # INP -> INP, testing two at once (typically nu or n_self)
+lab.float_lines(d_labfit_kernal, bin_name, features_gamma, props['gamma_self'], 'inp_new', []) # INP -> INP, testing two at once (typically nu or n_self)
 
+
+adfasdfas # update special shifts and changes in SW
+
+lab.wait_for_kernal(d_labfit_kernal)
 
 lab.run_labfit(d_labfit_kernal, bin_name) # <------------------
+
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 
 feature_error = None
 iter_labfit = 10
@@ -319,6 +318,9 @@ while feature_error is None and i < iter_labfit: # run X times
     i += 1
     print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
     feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
+    
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old) # <-------------------
+
 
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
@@ -328,7 +330,9 @@ plt.title(bin_name)
 
 d_save_name = 'features that needed extra TLC before other floats'
 
-lab.save_file(d_labfit_main, bin_name, d_save_name, d_folder_input=d_labfit_kernal)
+# d_save_name = 'monster features that mess up their neighbors'
+
+if feature_error is None: lab.save_file(d_labfit_main, bin_name, d_save_name, d_folder_input=d_labfit_kernal)
 
 
 adfasdfas
@@ -337,8 +341,13 @@ a_features_check = [int(x) for x in list(df_calcs[df_calcs.ratio_max>0].index)]
 lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = a_features_check, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
-# %% mini-script to check fits for specified features (will need to snag prop_which and feature parameters from txt file)
+# %% MAIN SEGMENT (will need to snag prop_which and feature parameters from txt file)
 
+# make sure all doublets are floated (avoids errors if we pause and then run in the night)
+lab.float_lines(d_labfit_kernal, bin_name, features_test, props['nu'], 'rei_saved', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+# lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
+
+lab.wait_for_kernal(d_labfit_kernal)
 
 df_iter = {} # where we save information from the floating process
 feature_error = None # first iteration with a feature that throws an error
@@ -365,11 +374,7 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
         # try again with rejected features (ie those that failed nu+sw could pass only sw
         if continuing_features == 'use_rejected': 
             features_test = a_features_reject.copy()
-            features_doublets = a_features_doublets_reject.copy()
-            
-            # features_test.append(12105)
-            # features_test.append(12109)
-            
+            features_doublets = a_features_doublets_reject.copy()            
         
         # try again with a different property (ie sw then nu)
         elif continuing_features == 'use_attempted': 
@@ -430,9 +435,18 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
         if iter_prop == 1: iter_labfit = 2; unc_multiplier = 1.1
         # if you're not floating anything, don't bother looping through things as intensely
         elif features == []: iter_labfit = 0; unc_multiplier = 1
+        # if LWA error (didn't run) try to run one fewer times and remove offending feature
+        elif feature_error == 'no LWA' and i>1: iter_labfit = i-1; unc_multiplier = 1     
         # default number of times to iterate 
         else: iter_labfit = 10; unc_multiplier = 1
+        
+        if prop_which == 'n_delta_self' and iter_prop == 1: # don't waste time, just ditch the bad features for n_delta_self (it's a mess)
 
+            sniff_features, sniff_good_reject, sniff_bad, sniff_iter = lab.feature_sniffer(features, d_labfit_kernal, bin_name, bins, prop_which, props, props_which, 
+                                                      iter_sniff=15, unc_multiplier=1.2, d_labfit_main=d_labfit_main)
+            features_sniffed = features.copy()
+            features = sniff_features.copy()
+            
         features_reject = []; feature_error = None # reset these guys for this round of testing
      
         lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'rei_saved', features_constrain, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
@@ -448,27 +462,15 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
             print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
             feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
             
-        if feature_error == 11946 and 11947 in features: 
-            print('\n\n123\n\n')
-            feature_error = 11947
-        elif feature_error == 11946 and 11944 in features: 
-            print('\n\n321\n\n')
-            feature_error = 11944
-            
-            # if i == 9: 
-            #     [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-
-            #     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # helpful for debugging but does slow things down
-            #     asdfsdfsdf
-                
+            # [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old, plots = False) # read results into python
+                                
         if feature_error is None: # if we made if through all iterations without a feature causing an error...
             
             iter_prop += 1 # after we get 2 and ditch the "not close" ones, then we'll start the real, longer iterations
         
             # df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # helpful for debugging but does slow things down
 
-            [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], 
-                                                     d_old=d_old, plots = False) # read results into python
+            [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old, plots = False) # read results into python
             df_iter[d_save_name].append([df_compare, df_props, features]) # save output in a list (as a back up more than anything)
                     
             for prop_i in props_which: 
@@ -477,10 +479,13 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
                 
                 features_reject.extend(df_props[df_props['uc_'+prop_i_df] > props[prop_i][4] * unc_multiplier].index.values.tolist())
                 
+                if prop_i == 'gamma_self' or prop_i == 'sd_self': 
+                    
+                    features_reject.extend(df_props[(df_props[prop_i_df] < 0.05) & (df_props['uc_'+prop_i_df] > df_props[prop_i_df])].index.values.tolist())
+               
                 # try: features_reject.extend((features_reject,df_props[df_props['uc_'+prop_i_df] > props[prop_i][4]].index.values.tolist())[1])
                 # except: pass
-            
-        # if labfit wouldn't run, reject that feature
+                    
         if feature_error is not None: 
             print('feature error - Labfit did not run due to struggles with feature ' + str(feature_error))
             features_reject.append(feature_error) 
@@ -535,7 +540,7 @@ elif d_save_name == 'after only sd_self': prop_which2 = 'n_self'; prop_which3 = 
 elif d_save_name == 'after n delta self': prop_which2 = 'delta_self'
 
 # get comparative information and plot change in each parameter
-[df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, d_old, bins, bin_name, props[prop_which], props_which, props[prop_which2], props[prop_which3]) # <-------------------
+[df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old) # read results into python
 
 # plot the new spectra with old residual included
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
@@ -545,8 +550,37 @@ lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_p
 plt.title(bin_name)
 
 
-# lab.save_file(d_labfit_main, bin_name, 'ditched 9672 and 10269 N 10371+10372 widths - unstable', d_folder_input=d_labfit_kernal)
-# lab.save_file(d_labfit_main, bin_name, 'ditched 11176 SD - stuck at 0', d_folder_input=d_labfit_kernal)
+# lab.save_file(d_labfit_main, bin_name, 'added one floated width', d_folder_input=d_labfit_kernal)
+
+
+#%% re-run fits to fix something wrong
+
+iter_labfit = 3
+
+# features = [15126, 15128]
+# features_constrain = [features]
+# prop_which = 'elower'
+# lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'rei_saved', features_constrain, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+
+print('     labfit iteration #1')
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # need to run one time to send INP info -> REI
+
+i = 1 # start at 1 because we already ran things once
+while feature_error is None and i < iter_labfit: # run X times
+    i += 1
+    print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
+
+# [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old) # read results into python
+
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'ditched 18480 sw and nu and 19082 gamma', d_folder_input=d_labfit_kernal)
+
+# df_calcs.sd_self[13448]
 
 #%% ditch floats that won't impact the shifts we are wanting to focus on
 
@@ -563,7 +597,7 @@ sdfasdfsad
 
 print('     labfit iteration #1')
 feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # need to run one time to send INP info -> REI
-  
+
 iter_labfit = 5          
 i = 1 # start at 1 because we already ran things once
 while feature_error is None and i < iter_labfit: # run X times
@@ -571,26 +605,36 @@ while feature_error is None and i < iter_labfit: # run X times
     print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
     feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
 
-lab.save_file(d_labfit_main, bin_name, 'removed most floats in prep for shift floats', d_folder_input=d_labfit_kernal)
+lab.save_file(d_labfit_main, bin_name, 'ditched floats for 17415 17419 nu', d_folder_input=d_labfit_kernal)
 
 #%% feature sniffer (find which feature(s) is the problem)
 
-# prop_which = 'new'
-# features_new = [6865.27, 6868.03, 6868.73, 6870.76, 6870.99, 6872.92, 6874.18, 6875.13, 6880.33, 6881.03, 6881.23, 6881.52, 6881.64, 6882.58]
-# features_test = features_new
 
-prop_which = 'n_delta_self'
-features_test = [9738, 9739, 10046, 10165, 10230, 10274, 10340]
+prop_which = 'gamma_self'
+features_test = [19162, 19176, 19178, 19194, 19203, 19207, 19209, 19210, 19222, 19243, 19245, 19262, 19271, 19281, 
+                 19286, 19293, 19300, 19302, 19307, 19310, 19324, 19333, 19337, 19339, 19346, 19350, 19353, 19358, 
+                 19359, 19366, 19368, 19372, 19379, 19389, 19398, 19406, 19409, 19410, 19421, 19422, 19423, 19429, 
+                 19432, 19442, 19449, 19463, 19466, 19506, 19510, 19511, 19526, 19533, 19535, 19542, 19547, 19550, 
+                 19556, 19573, 19577, 19580, 19582, 19594, 19595, 19599, 19602, 19604, 19609, 19613, 19622, 19630, 
+                 19653, 19654, 19656, 19659, 19674, 19675, 19676, 19680, 19682, 19683, 19691, 19692, 19697, 19698, 
+                 19706, 19707, 19708, 19721, 19731, 19732, 19735, 19765, 19770, 19774, 19780, 19782, 19787, 19788, 
+                 19799, 19800, 19812, 19814, 19817, 19825, 19829, 19836, 19837, 19863, 19866, 19867, 19874, 19877, 
+                 19880, 19897, 19898, 19922, 19933, 19934, 19940, 19941] # B26
 
-features_doublets = []
 
-features_safe = []
-features_dangerous = []
-iter_sniff = 13
+features_test = [19981, 19984, 19985, 19998, 20002, 20006, 20007, 20012, 20041, 20049, 20050, 20059, 20064, 20076, 
+                 20096, 20112, 20113, 20115, 20130, 20141, 20160, 20163, 20180, 20181, 20182, 20190, 20200, 20222, 
+                 20225, 20228, 20231, 20243, 20246, 20250, 20251, 20268, 20271, 20272, 20276, 20283, 20286, 20288, 
+                 20307, 20312, 20315, 20320, 20325, 20326, 20328, 20336, 20337, 20344, 20345, 20349, 20354, 20358, 
+                 20361, 20371, 20385, 20404, 20411, 20418, 20429, 20436, 20437, 20464, 20465, 20468, 20469, 20470, 
+                 20475, 20480, 20498, 20527, 20529, 20535, 20545, 20547, 20550, 20566, 20573, 20577, 20579, 20581, 
+                 20583, 20585, 20586, 20587, 20596, 20597, 20601, 20611, 20624, 20626, 20631, 20632, 20637, 20666, 
+                 20667, 20672, 20685, 20714, 20721, 20724, 20725, 20727, 20739, 20752, 20753, 20765, 20769, 20779, 
+                 20790, 20795, 20800, 20803, 20806, 20807, 20812, 20813, 20814, 20815, 20818, 20821, 20824, 20826, 
+                 20827, 20835, 20837, 20843, 20845, 20861, 20863, 20864, 20869, 20871, 20873, 20874] # B27
 
-features_safe_bad = [] # features that don't throw errors, but have bad uncertainties even all by themselves (safe_but_bad was too long)
-features_reject = []
-unc_multiplier = 1.2
 
+sniff_good, sniff_good_but_unc, sniff_bad, sniff_dict = lab.feature_sniffer(features_test, d_labfit_kernal, bin_name, bins, prop_which, props, props_which, 
+                                                      iter_sniff=15, unc_multiplier=1, d_labfit_main=d_labfit_main)
 
 
