@@ -18,9 +18,9 @@ import time
 
 # %% dataset specific information
 
-save_data = False
-check_bins = True # only look at some of the measurements (high pressure, to check the bin-breaks for features)
-d_type = 'air' # 'pure' or 'air'
+save_data = True
+check_bins = False # only look at some of the measurements (high pressure, to check the bin-breaks for features)
+d_type = 'pure' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
 two_BG_temps = True # only matters if remove_bg = False (trying to put conditions in ASC), not yet prepared for two backgrounds in the ASC file
@@ -328,7 +328,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
 
             
         delta = favg / speed_of_light / 100 # speed of light in cm-1
-        delta = '%.31f' %  delta     #cm-1 ; note notation suppresses scientific notation
+        delta = '%.30f' %  delta     #cm-1 ; note notation suppresses scientific notation
         
         wavenumbers_snip -= shift
         
@@ -340,8 +340,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             transmission_snip = np.extract(mask,transmission_snip)
         
         startwn = '%.10f' % wavenumbers_snip[0]
-        endwn = '%.8f' % wavenumbers_snip[-1]
-        startwn_other = '%.7f' % wavenumbers_snip[0]
+        endwn = '%.10f' % wavenumbers_snip[-1]
+        startwn_other = '%.10f' % wavenumbers_snip[0]
         
         fname = labfitname + "_" + d_base[which_file].replace("_", "-").replace(" ", "_") + "_" + str(counter) + ".asc"
         
@@ -375,8 +375,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             translist = transmission_snip.tolist()
             
             for i in range(len(wavelist)):
-                wavelist[i] = '%.5f' %  wavelist[i]
-                translist[i] = '%.5f' % translist[i]
+                wavelist[i] = '%.10f' %  wavelist[i]
+                translist[i] = '%.10f' % translist[i]
                 file.write(wavelist[i] + "      " + translist[i] + "\n")
             file.close()
             
