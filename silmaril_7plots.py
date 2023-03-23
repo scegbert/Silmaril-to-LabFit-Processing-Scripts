@@ -1,3 +1,13 @@
+r'''
+
+silmaril7_plots
+
+plots data after processing it into a pckl'd file in silmaril6
+
+
+r'''
+
+
 
 import os
 import subprocess

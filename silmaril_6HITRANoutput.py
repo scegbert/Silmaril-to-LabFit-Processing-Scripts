@@ -1,3 +1,13 @@
+r'''
+
+silmaril6 - HITRAN output
+
+processes labfit data for output into a HITRAN file format and for processing in silmaril 7
+
+
+r'''
+
+
 
 import os
 import subprocess

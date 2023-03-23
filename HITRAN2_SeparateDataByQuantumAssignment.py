@@ -1,3 +1,13 @@
+r'''
+
+HITRAN2 separate data by quantum assignment
+
+creates different HITRAN files where each file is a different vibrational band
+
+r'''
+
+
+
 #%% -------------------------------------- load some libraries -------------------------------------- 
 
 import numpy as np

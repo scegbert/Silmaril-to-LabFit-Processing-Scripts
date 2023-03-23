@@ -1,3 +1,15 @@
+r'''
+
+labfit2 double power law testing
+
+I think this file explored large features and is also the one that helped process the large, isolated features for initial values. I think. 
+
+
+
+r'''
+
+
+
 
 import subprocess
 

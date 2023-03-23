@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+silmaril 1 - AVG conditions
+
 Created on Fri Sep 11 10:57:23 2020
 
 @author: scott

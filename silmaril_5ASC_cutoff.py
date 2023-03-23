@@ -1,3 +1,12 @@
+r'''
+
+silmaril 5 - ASC cutoff
+
+prepares transmission data for labfit .ASC file format (includes provision for saturated features that are below a specified cutoff threshold)
+
+r'''
+
+
 
 import numpy as np
 import pickle 

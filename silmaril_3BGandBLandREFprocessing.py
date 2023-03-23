@@ -1,4 +1,7 @@
 """
+
+silmaril3 - BG and BL and ref processing
+
 Created on Thu Sept 16 2020
 
 @author: scott
@@ -29,9 +32,9 @@ include_meas_refs = True # include the reference channels for other measurements
 two_background_temps = True # fit two background temperatures? (one for 4f, one for furnace)
 
 calc_fits = False # fit the background data(or use previously fit data)
-calc_background = True # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
+calc_background = False # generate the model for the fits (for background water subtraction) - False = load model (hopefully you have one saved)
 remove_spikes = True # remove digital noise spikes from background scan before filtering 
-save_results = True # save the things you calculate here? 
+save_results = False # save the things you calculate here? 
 
 d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 d_file = 'vac '
@@ -623,5 +626,13 @@ if save_results:
     f = open(d_final, 'wb')
     pickle.dump([meas_filt_all_final, meas_filt_all_final_ref, wvn_all_final], f)
     f.close() 
+
+please = dontrunthis1312
+
+d_plotstuff = os.path.join(d_folder, 'plot stuff '+ d_filter +'.pckl')
+
+f = open(d_plotstuff, 'wb')
+pickle.dump([meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final], f)
+f.close() 
 
 

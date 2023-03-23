@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+silmaril2 - concatenation
+
 Created on Tue Sep  1 16:18:21 2020
 
 @author: scott

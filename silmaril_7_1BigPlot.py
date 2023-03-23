@@ -1,3 +1,11 @@
+r'''
+
+silmaril 7-1 big plots
+
+makes the big plot of spectra (vacuum, raw, transmission, with inset)
+
+
+r'''
 
 import os
 from sys import path
@@ -15,53 +23,112 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 import clipboard_and_style_sheet
 clipboard_and_style_sheet.style_sheet()
 
+import pldspectrapy as pld
+import td_support as td
 
-#%%
+import numpy as np
+
+#%% setup things
+
+wvn2_processing = [6500, 7800] # range used when processing the data
+wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
+
+which_file = '1300 K 16 T'
+which_vacuum = 25 # vacuum scans that correspond to the file above
 
 
-# load in transmission data (measured and model)
+#%% load in transmission data (model from labfit results)
 
-d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water\1300 K 16 T bg subtraction.pckl'
-f = open(d_folder, 'rb')
-# [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
-[transmission, _, wvn, _, _, _, _, _, _, model, _, _] = pickle.load(f)
+# load in labfit stuff (transmission, wvn, residuals before and after, conditions)
+d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+
+f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
 f.close()
 
+transmission_labfit = trans_pure
 
-# load in the raw measurement data
+#%% load in transmission data (vacuum normalized from bg subtract)
+
+d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
+f = open(os.path.join(d_measurement, which_file+' bg subtraction.pckl'), 'rb')
+# [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
+[transmission, _, wvn_process, _, _, _, _, _, _, model, _, _] = pickle.load(f)
+f.close()
+
+#%% load in raw measurement data
 
 d_ref = True # there was a reference channel
 
-d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water\1300 K 16 T pre.pckl'
-f = open(d_folder, 'rb')
+f = open(os.path.join(d_measurement, which_file+' pre.pckl'), 'rb')
 # [measurement_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt, trans_raw_ref, trans_snip_ref]
-if d_ref: [measurement_w_spike, _, _, _, _, _, _, _, _, _] = pickle.load(f)
+if d_ref: [measurement_w_spike, _, _, _, frep1, frep2, ppig, fopt, _, _] = pickle.load(f)
 else: [measurement_w_spike, trans_snip, coadds, dfrep, frep1, frep2, ppig, fopt] = pickle.load(f)
 f.close()
 
+# calculate extended wavenumber axis of raw measuremnt
 spike_location_expected = 13979
 measurement = measurement_w_spike[spike_location_expected:-1] / max(measurement_w_spike[spike_location_expected:-1]) # normalize max to 1
 
-# load in the vacuum scan data
 
-d_folder = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
+hz2cm = 1 / pld.SPEED_OF_LIGHT / 100 # conversion from MHz to cm-1
 
-d_load = os.path.join(d_folder, 'BL filtered 1 0.030 with 2Ts.pckl')
-f = open(d_load, 'rb')
-# [bl_filt_all, bl_filt_all_ref, wvn_bl]
-if d_ref: [bl_filt_all, bl_filt_all_ref, wvn_bl] = pickle.load(f)
-else: [bl_filt_all, wvn_bl] = pickle.load(f)
-f.close()
+fclocking = frep2 # really it was comb 1, but for some reason this is what silmaril data wants
+favg = np.mean([frep1,frep2])
 
-vacuum_raw
-vacuum_h2o
-vacuum_smooth
+nyq_range = ppig*2 * fclocking
+nyq_num = np.round(1e6 / (ppig*2))
+
+fcw = nyq_range * nyq_num
+
+nyq_start = fcw + fopt
+
+# if nyq_side == 1:
+nyq_stop = nyq_range * (nyq_num + 0.5) + fopt # Nyquist window 1.0 - 1.5
+wvn_raw = np.arange(nyq_start, nyq_stop, favg) * hz2cm
+wvn_raw = wvn_raw[:len(measurement)]
+        
 
 
-plt.plot(wvn, transmission) # verify this is the data you want
-plt.plot(wvn, model) # verify this is the data you want
-plt.plot(wvn, measurement) # verify this is the data you want
+#%% load in vacuum scans
 
+d_vacuum = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
+
+f = open(os.path.join(d_vacuum, 'plot stuff 1 0.030 with 2Ts.pckl'), 'rb')
+# [meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final]
+[meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final] = pickle.load(f)
+f.close() 
+
+vacuum_raw = meas_spike_all_final[which_vacuum]
+vacuum_h2o = meas_bg_all_final[which_vacuum]
+vacuum_smooth = meas_filt_all_final[which_vacuum]
+
+
+#%% plot and verify this is what you want
+
+# plt.plot(wvn_process, transmission) # verify this is the data you want
+# plt.plot(wvn_process, model) # verify this is the data you want
+# plt.plot(wvn_raw, measurement) # verify this is the data you want
+
+
+[istart, istop] = td.bandwidth_select_td(wvn_raw, wvn2_data, max_prime_factor=500, print_value=False)
+meas_data = measurement[istart:istop]
+
+[istart, istop] = td.bandwidth_select_td(wvn_process, wvn2_data, max_prime_factor=500, print_value=False)
+vac_raw_data = vacuum_raw[istart:istop]
+vac_h2o_data = vacuum_h2o[istart:istop]
+vac_smooth_data = vacuum_smooth[istart:istop]
+trans_data = transmission[istart:istop]
+
+
+wvn_data = wvn_process[istart:istop]
+
+
+plt.plot(wvn_data, trans_data) # verify this is the data you want
+plt.plot(wvn_data, vac_raw_data) # verify this is the data you want
+plt.plot(wvn_data, vac_h2o_data) # verify this is the data you want
+plt.plot(wvn_data, vac_smooth_data) # verify this is the data you want
+plt.plot(wvn_data, meas_data) # verify this is the data you want
 
 
 
@@ -72,26 +139,24 @@ fig = plt.figure(figsize=(10, 7.5))
 
 gs = GridSpec(3, 2, width_ratios=[2, 1], hspace=0.015, wspace=0.005) # rows, columns
 
-wide = [6601, 7599]
+wide = [6615-14, 7650+14]
 narrow = [7094.249, 7096.01] # [7093.9, 7096.1] # [7070.62, 7071.78] # [7089.5, 7100.5]
 inset21 = [7094.81, 7095, 0.9985, 1.0019]
-
-which_norm = (wavenumbers>6656) & (wavenumbers<7540)
 
 colors = ['dodgerblue', 'firebrick', 'darkorange', 'dodgerblue', 'firebrick', 'moccasin']
 
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
 ax00.axvline(narrow[0], linewidth=1, color=colors[2])
 ax00.axvline(narrow[1], linewidth=1, color=colors[2])
-ax00.plot(wvnb,meas_rawb, color=colors[0], label='Laser Baseline (Gas Cell at Vacuum)')
-ax00.plot(wvnb,meas_bgb, color=colors[1], label='Baseline without Background $\mathregular{H_2O}$')
-ax00.plot(wvnb,meas_filtb, color=colors[2], label='Baseline after Low-pass Filter')
+ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Laser Baseline (Gas Cell at Vacuum)')
+ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline without Background $\mathregular{H_2O}$')
+ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline after Low-pass Filter')
 ax00.legend(loc = 'upper right', framealpha=1, edgecolor='black')
 
 ax01 = fig.add_subplot(gs[0,1]) # First row, second column
-ax01.plot(wvnb,meas_rawb, color=colors[0])
-ax01.plot(wvnb,meas_bgb, color=colors[1])
-ax01.plot(wvnb,meas_filtb, color=colors[2], linewidth=2)
+ax01.plot(wvn_data,vac_raw_data, color=colors[0])
+ax01.plot(wvn_data,vac_h2o_data, color=colors[1])
+ax01.plot(wvn_data,vac_smooth_data, color=colors[2], linewidth=2)
 
 
 ax10 = fig.add_subplot(gs[1,0], sharex = ax00) # Second row, first column

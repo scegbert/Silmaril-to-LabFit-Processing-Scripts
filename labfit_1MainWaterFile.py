@@ -1,3 +1,13 @@
+r'''
+
+labfit1 - main water file
+
+main file for processing things in labfit (calls labfit, sets up the files to be processed by the labfit fortran engine)
+
+
+r'''
+
+
 
 import subprocess
 

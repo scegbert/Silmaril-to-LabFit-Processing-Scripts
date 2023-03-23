@@ -1,3 +1,15 @@
+r'''
+
+HITRAN1 - compare uncertanties
+
+imports labfit fits and HITRAN uncertainty data and does some comparison
+
+not presently updated since 2021
+
+
+r'''
+
+
 
 import numpy as np
 import matplotlib.pyplot as plt

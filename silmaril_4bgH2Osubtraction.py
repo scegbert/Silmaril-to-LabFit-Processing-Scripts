@@ -1,4 +1,7 @@
 """
+
+silmaril 4 - bg H2O subtraction
+
 Created on Thu Aug 13 08:42:46 2020
 
 @author: scott
