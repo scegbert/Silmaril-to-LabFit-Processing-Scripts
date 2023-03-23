@@ -40,21 +40,21 @@ which_vacuum = 25 # vacuum scans that correspond to the file above
 #%% load in transmission data (model from labfit results)
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
-d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+# d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
-f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
-f.close()
+# f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+# [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
+# f.close()
 
-transmission_labfit = trans_pure
+# transmission_labfit = trans_pure
 
 #%% load in transmission data (vacuum normalized from bg subtract)
 
 d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
-f = open(os.path.join(d_measurement, which_file+' bg subtraction.pckl'), 'rb')
-# [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
-[transmission, _, wvn_process, _, _, _, _, _, _, model, _, _] = pickle.load(f)
-f.close()
+# f = open(os.path.join(d_measurement, which_file+' bg subtraction.pckl'), 'rb')
+# # [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
+# [transmission, _, wvn_process, _, _, _, _, _, _, model, _, _] = pickle.load(f)
+# f.close()
 
 #%% load in raw measurement data
 
@@ -87,21 +87,26 @@ nyq_start = fcw + fopt
 nyq_stop = nyq_range * (nyq_num + 0.5) + fopt # Nyquist window 1.0 - 1.5
 wvn_raw = np.arange(nyq_start, nyq_stop, favg) * hz2cm
 wvn_raw = wvn_raw[:len(measurement)]
+
+i_skip = 2293 # skip negative frequencies (and ditch noise spike)
+
+measurement = measurement[i_skip:] / max(measurement[i_skip:])
+wvn_raw = wvn_raw[i_skip:]
         
 
 
 #%% load in vacuum scans
 
-d_vacuum = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
+# d_vacuum = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
 
-f = open(os.path.join(d_vacuum, 'plot stuff 1 0.030 with 2Ts.pckl'), 'rb')
-# [meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final]
-[meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final] = pickle.load(f)
-f.close() 
+# f = open(os.path.join(d_vacuum, 'plot stuff 1 0.030 with 2Ts.pckl'), 'rb')
+# # [meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final]
+# [meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final] = pickle.load(f)
+# f.close() 
 
-vacuum_raw = meas_raw_all_final[which_vacuum]
-vacuum_h2o = meas_bg_all_final[which_vacuum]
-vacuum_smooth = meas_filt_all_final[which_vacuum]
+# vacuum_raw = meas_raw_all_final[which_vacuum]
+# vacuum_h2o = meas_bg_all_final[which_vacuum]
+# vacuum_smooth = meas_filt_all_final[which_vacuum]
 
 
 #%% plot and verify this is what you want
@@ -111,18 +116,18 @@ vacuum_smooth = meas_filt_all_final[which_vacuum]
 # plt.plot(wvn_raw, measurement) # verify this is the data you want
 
 
-[istart, istop] = td.bandwidth_select_td(wvn_raw, wvn2_data, max_prime_factor=500, print_value=False)
-meas_data = measurement[istart:istop] / max(measurement[istart:istop])
+# [istart, istop] = td.bandwidth_select_td(wvn_raw, wvn2_data, max_prime_factor=500, print_value=False)
+# meas_data = measurement[istart:istop] / max(measurement[istart:istop])
 
-[istart, istop] = td.bandwidth_select_td(wvn_process, wvn2_data, max_prime_factor=500, print_value=False)
-vac_raw_data = vacuum_raw[istart:istop] / max(vacuum_smooth[istart:istop])
-vac_h2o_data = vacuum_h2o[istart:istop] / max(vacuum_smooth[istart:istop])
-vac_smooth_data = vacuum_smooth[istart:istop] / max(vacuum_smooth[istart:istop])
+# [istart, istop] = td.bandwidth_select_td(wvn_process, wvn2_data, max_prime_factor=500, print_value=False)
+# vac_raw_data = vacuum_raw[istart:istop] / max(vacuum_smooth[istart:istop])
+# vac_h2o_data = vacuum_h2o[istart:istop] / max(vacuum_smooth[istart:istop])
+# vac_smooth_data = vacuum_smooth[istart:istop] / max(vacuum_smooth[istart:istop])
 
-trans_data = meas_data / vac_smooth_data
+# trans_data = meas_data / vac_smooth_data
 
 
-wvn_data = wvn_process[istart:istop]
+# wvn_data = wvn_process[istart:istop]
 
 
 # plt.plot(wvn_data, trans_data) # verify this is the data you want
@@ -135,171 +140,58 @@ wvn_data = wvn_process[istart:istop]
 
 #%%
 
-fig = plt.figure(figsize=(10, 7.5))
-
-gs = GridSpec(3, 2, width_ratios=[2, 1], hspace=0.015, wspace=0.005) # rows, columns
-
-wide = [6615-50, 7650+25]
-narrow = [7094.52, 7096.06]
-
-offset1 = 0.05
-offset0 = 0.05*25
+fig = plt.figure(figsize=(10, 4))
 
 # https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=6
 colors = ['#d95f02','#1b9e77','k','#7570b3','#66a61e','#e6ab02']
 
-ax00 = fig.add_subplot(gs[0,0]) # First row, first column
-ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
-ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at Vacuum')
-ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed')
-ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered')
-ax00.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+plt.plot(wvn_raw, measurement, label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+plt.ylabel('Intensity (arb.)')
+plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
-ax01 = fig.add_subplot(gs[0,1]) # First row, second column
-ax01.plot(wvn_data,vac_raw_data, color=colors[0])
-ax01.plot(wvn_data,vac_h2o_data, color=colors[1])
-ax01.plot(wvn_data,vac_smooth_data, color=colors[2], linewidth=2)
+# plt.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
+#%% scan through various widths
 
-ax10 = fig.add_subplot(gs[1,0], sharex = ax00) # Second row, first column
-ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
-ax10.plot(wvn_data, meas_data, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
-ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+# xylims = {1: [7027.87, 7028.51, 0.82, 1.01], 
+#           2: [7027.65, 7028.97, 0.82, 1.01], 
+#           3: [7026.14, 7029.86, 0.66, 1.01], 
+#           4: [7022.40, 7033.40, 0.48, 1.02], 
+#           5: [7011.50, 7043.08, 0.40, 1.03], 
+#           6: [6992.20, 7055.60, 0.35, 1.05]} #, 
+#           # 7: [6695.11, 7082.92, 0.30, 1.1], 
+#           # 8: [6899.79, 7143.48, 0.25, 1.1]} 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
+#           # 6: [6992.20, 7055.60, 0.35, 1.01]}
+          
+          
+xylims_start = [7027.87, 7028.51,  0.82, 1.01]
+xylims_stop =  [6390.00, 7896.48, -0.02, 1.04]
 
-ax11 = fig.add_subplot(gs[1,1], sharex = ax01) # Second row, second column
-ax11.plot(wvn_data, meas_data, color=colors[3])
+num = 10
+          
+for i in np.arange(0, num, 1): 
+    
+    step_xlow  = (xylims_start[0] - xylims_stop[0]) / num
+    step_xhigh = (xylims_start[1] - xylims_stop[1]) / num
+    
+    step_ylow  = (xylims_start[2] - xylims_stop[2]) / num
+    step_yhigh = (xylims_start[3] - xylims_stop[3]) / num
+    
+    fig = plt.figure(figsize=(10, 4))
 
+    plt.plot(wvn_raw, measurement, label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+    plt.ylabel('Intensity (arb.)')
+    plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+    
+    plt.xlim([xylims_start[0]+i*step_xlow, xylims_start[1]+i*step_xhigh])
+    # plt.ylim([xylims_start[2]+i*step_xlow, xylims_start[3]+i*step_xhigh])
 
-ax20 = fig.add_subplot(gs[2,0], sharex = ax00) # Third row, first column
-ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
-ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline)')
-ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+    # plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3big {}.png'.format(i),bbox_inches='tight')
 
-ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
-ax21.plot(wvn_data, trans_data, color=colors[4])
-
-#%% noise plot inset 
-
-ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
-
-ax21ins.plot(wvn_data, trans_data, color=colors[4])
-ax21ins.axis([7094.88, 7095.20, 1.0111, 1.0132])
-
-patch, pp1,pp2 = mark_inset(ax21, ax21ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
-pp1.loc2 = 4
-
-ax21ins.xaxis.set_visible(False)
-
-ax21ins.yaxis.set_label_position("right")
-ax21ins.yaxis.tick_right()
-ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-ax21ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
-
-#%% arrows pointing to inset
-
-
-ax00.arrow(narrow[1], 0.52, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax20.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-
-
-
-
-#%% set axis
-ax00.set_xlim(wide)
-ax01.set_xlim(narrow)
-
-ax01.set_ylim([0.861, 0.886])
-ax11.set_ylim([0.35, 0.99])
-ax21.set_ylim([0.41, 1.099])
-ax00.set_ylim([0,1.1])
-ax10.set_ylim([0,1.1])
-ax20.set_ylim([0,1.1])
-
-
-#%%  remove x label on upper plots (mostly covered)
-plt.setp(ax00.get_xticklabels(), visible=False) 
-plt.setp(ax01.get_xticklabels(), visible=False)
-plt.setp(ax10.get_xticklabels(), visible=False)
-plt.setp(ax11.get_xticklabels(), visible=False)
-
-
-#%% move zoomed y labels to the right
-ax01.yaxis.set_label_position("right")
-ax01.yaxis.tick_right()
-ax11.yaxis.set_label_position("right")
-ax11.yaxis.tick_right()
-ax21.yaxis.set_label_position("right")
-ax21.yaxis.tick_right()
-
-
-# %% add ticks and minor ticks all over
-ax00.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=True, right=False)
-ax00.xaxis.set_minor_locator(AutoMinorLocator(10))
-ax00.yaxis.set_minor_locator(AutoMinorLocator(10))
-
-ax10.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=True, right=False)
-ax10.xaxis.set_minor_locator(AutoMinorLocator(10))
-ax10.yaxis.set_minor_locator(AutoMinorLocator(10))
-
-ax20.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=True, right=False)
-ax20.xaxis.set_minor_locator(AutoMinorLocator(10))
-ax20.yaxis.set_minor_locator(AutoMinorLocator(10))
-
-ax01.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
-ax01.xaxis.set_minor_locator(AutoMinorLocator(5))
-ax01.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-ax11.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
-ax11.xaxis.set_minor_locator(AutoMinorLocator(5))
-ax11.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-ax21.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
-ax21.xaxis.set_minor_locator(AutoMinorLocator(5))
-ax21.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-
-#%% shading to highlight zoomed region
-alpha = 0.5
-
-ax00.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax10.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax20.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax01.axvspan(narrow[0]+offset1, narrow[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-ax11.axvspan(narrow[0]+offset1, narrow[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-ax21.axvspan(narrow[0]+offset1, narrow[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-
-
-#%% labels
-ax21.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
-ax20.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
-
-ax00.set_ylabel('Intensity (arb.)')
-ax10.set_ylabel('Intensity (arb.)')
-ax20.set_ylabel('Transmission')
-
-
-#%%
-
-h0 = 0.02
-h1 = 0.05
-v0 = 0.9
-v1 = 0.9
-
-ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
-ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
-ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
-ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
-ax20.text(h0, v0, "E", fontweight="bold", fontsize=12, transform=ax20.transAxes)
-ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
-
-
-#%% save it
-
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
 
 
