@@ -153,28 +153,13 @@ plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
 #%% scan through various widths
 
-# xylims = {1: [7027.87, 7028.51, 0.82, 1.01], 
-#           2: [7027.65, 7028.97, 0.82, 1.01], 
-#           3: [7026.14, 7029.86, 0.66, 1.01], 
-#           4: [7022.40, 7033.40, 0.48, 1.02], 
-#           5: [7011.50, 7043.08, 0.40, 1.03], 
-#           6: [6992.20, 7055.60, 0.35, 1.05]} #, 
-#           # 7: [6695.11, 7082.92, 0.30, 1.1], 
-#           # 8: [6899.79, 7143.48, 0.25, 1.1]} 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01], 
-#           # 6: [6992.20, 7055.60, 0.35, 1.01]}
-          
-          
+         
 xylims_start = [7027.87, 7028.51,  0.82, 1.01]
 xylims_stop =  [6390.00, 7896.48, -0.02, 1.04]
 
-num = 10
+num = 30
           
-for i in np.arange(0, num, 1): 
+for i in np.arange(1, num+1, 1): 
     
     step_xlow  = (xylims_start[0] - xylims_stop[0]) / num
     step_xhigh = (xylims_start[1] - xylims_stop[1]) / num
@@ -188,10 +173,10 @@ for i in np.arange(0, num, 1):
     plt.ylabel('Intensity (arb.)')
     plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
     
-    plt.xlim([xylims_start[0]+i*step_xlow, xylims_start[1]+i*step_xhigh])
-    # plt.ylim([xylims_start[2]+i*step_xlow, xylims_start[3]+i*step_xhigh])
+    plt.xlim([xylims_start[0]-i*step_xlow, xylims_start[1]-i*step_xhigh])
+    plt.ylim([xylims_start[2]-i*step_ylow, xylims_start[3]-i*step_yhigh])
 
-    # plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3big {}.png'.format(i),bbox_inches='tight')
+    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3big {}.png'.format(i),bbox_inches='tight')
 
 
 
