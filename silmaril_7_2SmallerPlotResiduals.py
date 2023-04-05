@@ -151,7 +151,7 @@ colors = ['#d95f02','#1b9e77','k','#7570b3','#66a61e','#e6ab02']
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
 ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
 ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
-ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at Vacuum')
+ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at 1300 K <1mT')
 ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed')
 ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered')
 ax00.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
@@ -199,15 +199,29 @@ ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
 
 ax21ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
 
-#%% arrows pointing to inset
+#%% 1300 K inset
 
+# ax00ins = inset_axes(ax00, width='15%', height='30%', loc='upper left', bbox_to_anchor=(0.82,-0.01,1,1), bbox_transform=ax00.transAxes)
+
+# ax00ins.axvspan(narrow[0], narrow[1], color='#ff5d00', zorder=0)
+
+# # ax00ins.plot(wvn_data, trans_data, color=colors[4])
+# ax00ins.axis([7094.88, 7095.20, 1.0111, 1.0132])
+
+# # patch, pp1,pp2 = mark_inset(ax00, ax00ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
+# # pp1.loc2 = 4
+
+# ax00ins.xaxis.set_visible(False)
+# ax00ins.yaxis.set_visible(False)
+
+# ax00ins.text(0.22, 0.3, "1300 K\n  (ref)", fontweight="bold", fontsize=8, transform=ax00ins.transAxes)
+
+
+#%% arrows pointing to inset
 
 ax00.arrow(narrow[1], 0.52, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 ax20.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-
-
-
 
 #%% set axis
 ax00.set_xlim(wide)

@@ -46,7 +46,21 @@ f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
 [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
 f.close()
 
-transmission_labfit = trans_pure
+[T_all, P_all] = np.asarray([T_pure, P_pure])
+
+T_plot = int(which_file.split()[0])
+P_plot = int(which_file.split()[2])
+
+i_plot = np.where((T_all == T_plot) & (P_all == P_plot))[0]
+    
+T = [T_all[i] for i in i_plot]
+P = [P_all[i] for i in i_plot]
+
+wvn_labfit_all = np.concatenate([wvn_pure[i] for i in i_plot])
+trans_labfit_all = np.concatenate([trans_pure[i] for i in i_plot])
+res_updated_all = np.concatenate([res_pure[i] for i in i_plot])
+res_og_all = np.concatenate([res_og_pure[i] for i in i_plot])
+
 
 #%% load in transmission data (vacuum normalized from bg subtract)
 
@@ -121,8 +135,14 @@ vac_smooth_data = vacuum_smooth[istart:istop] / max(vacuum_smooth[istart:istop])
 
 trans_data = meas_data / vac_smooth_data
 
-
 wvn_data = wvn_process[istart:istop]
+
+[istart, istop] = td.bandwidth_select_td(wvn_labfit_all, wvn2_data, max_prime_factor=500, print_value=False)
+
+wvn_labfit = wvn_labfit_all[istart:istop] # this should be the same as wvn_data (not sure why it isn't)
+trans_labfit = trans_labfit_all[istart:istop] / 100 + 0.0001 # for the inset plot (the transmissino is still rising at the edge)
+res_updated = res_updated_all[istart:istop] 
+res_og = res_og_all[istart:istop] 
 
 
 # plt.plot(wvn_data, trans_data) # verify this is the data you want
@@ -145,12 +165,13 @@ narrow = [7094.52, 7096.06]
 offset1 = 0.05
 offset0 = 0.05*25
 
-# https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=6
-colors = ['#d95f02','#1b9e77','k','#7570b3','#66a61e','#e6ab02']
+# https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=6 
+# (#fee9ac is #e6ab02 lightened, same for #e7298a -> #f5a9d0, #66a61e was darkened to #4c7c17, same for #7570b3 to #514c8e)
+colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fee9ac']
 
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
-ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
+ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
+ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
 ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at 1300 K <1mT')
 ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed')
 ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered')
@@ -163,8 +184,8 @@ ax01.plot(wvn_data,vac_smooth_data, color=colors[2], linewidth=2)
 
 
 ax10 = fig.add_subplot(gs[1,0], sharex = ax00) # Second row, first column
-ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
+ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
+ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
 ax10.plot(wvn_data, meas_data, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
 ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
@@ -173,20 +194,25 @@ ax11.plot(wvn_data, meas_data, color=colors[3])
 
 
 ax20 = fig.add_subplot(gs[2,0], sharex = ax00) # Third row, first column
-ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-1])
-ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-1])
-ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline)')
+ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
+ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
+ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline')
+ax20.plot(wvn_labfit, trans_labfit, color=colors[5], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Baseline and Chebyshevs')
 ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
 ax21.plot(wvn_data, trans_data, color=colors[4])
+ax21.plot(wvn_labfit, trans_labfit, color=colors[5])
 
 #%% noise plot inset 
 
 ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
 
-ax21ins.plot(wvn_data, trans_data, color=colors[4])
-ax21ins.axis([7094.88, 7095.20, 1.0111, 1.0132])
+ax21ins.plot(wvn_labfit, trans_labfit, color=colors[5])
+# ax21ins.plot(wvn_data, trans_data, color=colors[4])  # for partially normalized plot
+
+ax21ins.axis([7094.885, 7095.20, 0.9985, 1.00025])
+# ax21ins.axis([7094.88, 7095.20, 1.0111, 1.0132]) # for partially normalized plot
 
 patch, pp1,pp2 = mark_inset(ax21, ax21ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
 pp1.loc2 = 4
@@ -219,9 +245,9 @@ ax21ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transfor
 
 #%% arrows pointing to inset
 
-ax00.arrow(narrow[1], 0.52, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax20.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax10.arrow(narrow[1], 0.27, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax20.arrow(narrow[1], 0.41, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 
 #%% set axis
 ax00.set_xlim(wide)
@@ -278,7 +304,7 @@ ax21.yaxis.set_minor_locator(AutoMinorLocator(5))
 
 
 #%% shading to highlight zoomed region
-alpha = 0.5
+alpha = 1
 
 ax00.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
 ax10.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
