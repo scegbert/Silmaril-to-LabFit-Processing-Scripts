@@ -105,6 +105,9 @@ inp_file_conditions = []
 
 for which_file in range(len(d_base)): # check with d_base[which_file]
     
+    # which_file = 6 #####################################################################################
+    # print('\n\n\n\n\n\n\n ********************\n hard coded file alert\n ********************\n\n\n\n\n\n\n\n\n\n')
+
     file_number = int(np.ceil((file_number+.1)/100) * 100)
     cutoff_locations[d_base[which_file]] = []
         
@@ -223,8 +226,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         i_start_cutoff = np.argmax(transmission_bl[i_stop_cutoff:-1] > cutoff) + i_stop_cutoff 
         
         # first index on left side of feature where transmission is about to fall below the cutoff (first to reject)
-        i_stop_cutoff = np.argmax(transmission_bl[i_start_cutoff:-1] < cutoff) + i_start_cutoff 
-         
+        i_stop_cutoff = np.argmax(transmission_bl[i_start_cutoff:-1] < cutoff) + i_start_cutoff
+        
         # first index on right side of feature where transmission rises above cutoff (next to keep)
         i_start_cutoff_next = np.argmax(transmission_bl[i_stop_cutoff:-1] > cutoff) + i_stop_cutoff 
         
@@ -245,8 +248,11 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         if i_stop_cutoff == i_start_cutoff_next: # we've reached the end
             i_stop_cutoff = len(transmission)
                
-        wavenumbers_snip = wavenumbers[i_start_cutoff:i_stop_cutoff]
-        transmission_snip = transmission[i_start_cutoff:i_stop_cutoff]
+        # wavenumbers_snip = wavenumbers[i_start_cutoff+15:i_stop_cutoff-15] ################################################################
+        # transmission_snip = transmission[i_start_cutoff+15:i_stop_cutoff-15] ################################################################
+        
+        wavenumbers_snip = wavenumbers[i_start_cutoff:i_stop_cutoff] ################################################################
+        transmission_snip = transmission[i_start_cutoff:i_stop_cutoff] ################################################################
         
         # plot what you're keeping
         
@@ -261,7 +267,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             plt.figure(fig_keep)
             plt.plot(wavenumbers_snip, 
                      transmission_snip, label=label_keep_meas)
-            plt.plot(wavenumbers_snip, 
+            plt.plot(wavenumbers[i_start_cutoff:i_stop_cutoff], 
                      transmission_bl[i_start_cutoff:i_stop_cutoff] - model2020[i_start_cutoff:i_stop_cutoff] + plot_residual_offset, label=label_keep_residual)
             plt.legend(loc='upper right')
             
@@ -292,7 +298,8 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
           
         if wavenumbers_snip[-1] < wavenumbers[-1]: 
             bins_count[np.argmax(bins>wavenumbers_snip[-1])-1, which_file] += 1 # there is a bin break in this bin for this file
-        
+         
+            
 # %% process and save ASC file for labfit   
     
         file_number +=1 
