@@ -115,7 +115,7 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 1E-24 
 
-bin_name = 'B41' # name of working bin (for these calculations)
+bin_name = 'B12' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -468,14 +468,14 @@ bins_delta = {'B6': [4913],
 
 
 
-bin_name = 'B12'
+bin_name = 'B20'
 
 
 d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 
-d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
+d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
 d_labfit_main = r'D:\OneDrive - UCB-O365\water database' # this is where all the files are kept right now
@@ -779,7 +779,7 @@ iter_labfit = 3
 # lab.float_lines(d_labfit_kernal, bin_name,  [], props[prop_which], 'inp_new', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 
 print('     labfit iteration #1')
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
 
 i = 1 # start at 1 because we already ran things once
 while feature_error is None and i < iter_labfit: # run X times

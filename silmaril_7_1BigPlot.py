@@ -161,6 +161,7 @@ gs = GridSpec(3, 2, width_ratios=[2, 1], hspace=0.015, wspace=0.005) # rows, col
 
 wide = [6615-50, 7650+25]
 narrow = [7094.52, 7096.06]
+linewidth = 1
 
 offset1 = 0.05
 offset0 = 0.05*25
@@ -172,43 +173,56 @@ colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fe
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
 ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at 1300 K <1mT')
-ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed')
-ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered')
+ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at 1300 K <1mT', 
+          linewidth=linewidth)
+ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed', 
+          linewidth=linewidth)
+ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered', 
+          linewidth=linewidth*2)
 ax00.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax01 = fig.add_subplot(gs[0,1]) # First row, second column
-ax01.plot(wvn_data,vac_raw_data, color=colors[0])
-ax01.plot(wvn_data,vac_h2o_data, color=colors[1])
-ax01.plot(wvn_data,vac_smooth_data, color=colors[2], linewidth=2)
+ax01.plot(wvn_data,vac_raw_data, color=colors[0], 
+          linewidth=linewidth)
+ax01.plot(wvn_data,vac_h2o_data, color=colors[1], 
+          linewidth=linewidth)
+ax01.plot(wvn_data,vac_smooth_data, color=colors[2], 
+          linewidth=linewidth*2)
 
 
 ax10 = fig.add_subplot(gs[1,0], sharex = ax00) # Second row, first column
 ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax10.plot(wvn_data, meas_data, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+ax10.plot(wvn_data, meas_data, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T', 
+          linewidth=linewidth)
 ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax11 = fig.add_subplot(gs[1,1], sharex = ax01) # Second row, second column
-ax11.plot(wvn_data, meas_data, color=colors[3])
+ax11.plot(wvn_data, meas_data, color=colors[3], 
+          linewidth=linewidth)
 
 
 ax20 = fig.add_subplot(gs[2,0], sharex = ax00) # Third row, first column
 ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline')
-ax20.plot(wvn_labfit, trans_labfit, color=colors[5], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Baseline and Chebyshevs')
+ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline', 
+          linewidth=linewidth)
+ax20.plot(wvn_labfit, trans_labfit, color=colors[5], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Baseline and Chebyshevs',
+          linewidth=linewidth)
 ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
-ax21.plot(wvn_data, trans_data, color=colors[4])
-ax21.plot(wvn_labfit, trans_labfit, color=colors[5])
+ax21.plot(wvn_data, trans_data, color=colors[4], 
+          linewidth=linewidth)
+ax21.plot(wvn_labfit, trans_labfit, color=colors[5],
+          linewidth=linewidth)
 
 #%% noise plot inset 
 
 ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
 
-ax21ins.plot(wvn_labfit, trans_labfit, color=colors[5])
+ax21ins.plot(wvn_labfit, trans_labfit, color=colors[5], 
+             linewidth=linewidth)
 # ax21ins.plot(wvn_data, trans_data, color=colors[4])  # for partially normalized plot
 
 ax21ins.axis([7094.885, 7095.20, 0.9985, 1.00025])

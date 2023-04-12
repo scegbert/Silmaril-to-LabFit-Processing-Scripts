@@ -164,7 +164,7 @@ sdfsdfsdf # need to fix wvn_labfit
 
 # asdfasdfsd
 
-#%% plot and scan through various widths
+#%% plot and scan through various widths with a line for the measurement (not comb teeth)
 
 # https://colorbrewer2.org/#type=qualitative&scheme=Dark2&n=6
 # (#fee9ac is #e6ab02 lightened, same for #e7298a -> #f5a9d0, #66a61e was darkened to #4c7c17, same for #7570b3 to #514c8e)
@@ -200,13 +200,13 @@ for i in np.arange(0, num_plots, 1):
     plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 zooming 10{}.png'.format(1000-i),bbox_inches='tight')
 
 
-# plot the same stuff as above but showing the comb teeth (only for when we're zoomed in)
+#%% prepare the comb tooth spectra
 
 width_teeth = 10000 * hz2cm # 10 kHz to MHz to cm-1
 extra_points_per = 10 # how many extra points below the width the comb tooth (one comb tooth is extra_points_per wide)
 extra_points = 200000 # int((wvn_raw[1] - wvn_raw[0]) / width_teeth * extra_points_per) # replace each point with how many points? 1 -> extra_points
 
-[istart, istop] = td.bandwidth_select_td(wvn_raw, xylims_start[0:2], max_prime_factor=500, print_value=False)
+[istart, istop] = td.bandwidth_select_td(wvn_raw, [xylims_start[0]-0.1, xylims_start[1]+0.1], max_prime_factor=500, print_value=False)
 
 wvn_teeth_range = wvn_raw[istart:istop]
 measurement_teeth_range = measurement[istart:istop]
@@ -223,7 +223,7 @@ measurement_teeth_conv = gaussian_filter1d(measurement_teeth, sigma=width_teeth*
 # Normalize
 measurement_teeth_conv = measurement_teeth_conv * max(measurement_teeth) / max(measurement_teeth_conv)
 
-#%%
+#%% plot comb teeth zooming out
 
 xylims_start_teeth = [7028.164532-1E-10, 7028.164532+1E-10,  -0.03000001, 1.01]
 xylims_stop_teeth = [7027.87, 7028.51,  -0.03, 1.07]
@@ -231,7 +231,7 @@ xylims_stop_teeth = [7027.87, 7028.51,  -0.03, 1.07]
 num_plots_teeth = 300
 
 step_log = np.logspace(log_min,log_max,num_plots_teeth+1)
-step_lin = np.logspace(log_min,log_max,num_plots_teeth+1)
+step_lin = np.linspace(log_min,log_max,num_plots_teeth+1)
 
 # for i in np.arange(0, num_plots_teeth, 1): 
 
@@ -248,29 +248,70 @@ for i in np.arange(0, num_plots_teeth, 1):
     
     step_xlow  = (xylims_stop_teeth[0]-xylims_start_teeth[0]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[0]
     step_xhigh = (xylims_stop_teeth[1]-xylims_start_teeth[1]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[1]
-    step_ylow  = (xylims_stop_teeth[2]-xylims_start_teeth[2]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_start_teeth[2]
-    step_yhigh = (xylims_stop_teeth[3]-xylims_start_teeth[3]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_start_teeth[3]
+    step_ylow  = (xylims_stop_teeth[2]-xylims_start_teeth[2]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[2]
+    step_yhigh = (xylims_stop_teeth[3]-xylims_start_teeth[3]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[3]
        
     plt.xlim([step_xlow, step_xhigh])
     plt.ylim([step_ylow, step_yhigh])
     
-    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 zooming teeth {}.png'.format(i-1),bbox_inches='tight')
+    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 teeth {}.png'.format(i-1),bbox_inches='tight')
 
     # if i == 2: asdfasdfsd
 
-plt.plot(wvn_raw, measurement, color='k', label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 both zooming 1 black.png'.format(i),bbox_inches='tight')
 
+#%% plot teeth with line overlayed 
 
 fig = plt.figure(figsize=(10, 4))
-plt.plot(wvn_raw, measurement, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+plt.plot(wvn_teeth, measurement_teeth_conv, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+plt.plot(wvn_teeth_range, measurement_teeth_range, color='k', label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
 plt.ylabel('Intensity (arb.)')
 plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+
+i = num_plots_teeth
+
+step_xlow  = (xylims_stop_teeth[0]-xylims_start_teeth[0]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[0]
+step_xhigh = (xylims_stop_teeth[1]-xylims_start_teeth[1]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[1]
+step_ylow  = (xylims_stop_teeth[2]-xylims_start_teeth[2]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[2]
+step_yhigh = (xylims_stop_teeth[3]-xylims_start_teeth[3]) / (step_log[-1]-step_log[0]) * (step_log[i]-step_log[0]) + xylims_start_teeth[3]
 
 plt.xlim([step_xlow, step_xhigh])
 plt.ylim([step_ylow, step_yhigh])
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 both zooming 2.png'.format(i),bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 transition black.png'.format(i),bbox_inches='tight')
+
+
+
+#%% plot bridge between comb teeth and no comb teeth (zooming in)
+
+num_plots_transition = num_plots_teeth //5
+
+
+fig = plt.figure(figsize=(10, 4))
+plt.plot(wvn_teeth_range, measurement_teeth_range, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T')
+plt.ylabel('Intensity (arb.)')
+plt.xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+
+step_log = np.logspace(log_min,log_max,num_plots_transition+1)
+step_lin = np.linspace(log_min,log_max,num_plots_transition+1)
+
+for i in np.arange(0, num_plots_transition, 1): 
+
+    i+=1    
+    
+    print(i)
+    
+    # from stop of teeth to start of no teeth
+    
+    step_xlow  = (xylims_start[0]-xylims_stop_teeth[0]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_stop_teeth[0]
+    step_xhigh = (xylims_start[1]-xylims_stop_teeth[1]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_stop_teeth[1]
+    step_ylow  = (xylims_start[2]-xylims_stop_teeth[2]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_stop_teeth[2]
+    step_yhigh = (xylims_start[3]-xylims_stop_teeth[3]) / (step_lin[-1]-step_lin[0]) * (step_lin[i]-step_lin[0]) + xylims_stop_teeth[3]
+    
+    plt.xlim([step_xlow, step_xhigh])
+    plt.ylim([step_ylow, step_yhigh])
+    
+    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 transition zooming {}.png'.format(i),bbox_inches='tight')
+
 
 #%% plot various panels from big plot in a larger size for presentations
 
