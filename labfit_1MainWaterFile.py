@@ -897,6 +897,69 @@ for bin_name in bin_names:
         print('after delta self file was not found for bin ' + bin_name) # if it didn't even run delta_self, there were no features to test
 
 
+#%% run files to see impact of excluding more of saturated features (also need to identify which features this impacts)
+
+# list of bins with features below the transmission cutoff
+bin_names = [                                          'B26', 'B27', 'B28', 'B29', 
+             'B30', 'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 
+             'B40', 'B41', 'B42', 'B43', 'B44']
+
+iter_labfit = 3
+results = {}
+
+for bin_name in bin_names: 
+
+    print(bin_name)
+    print('     labfit iteration #1')
+    feature_error = lab.run_labfit(d_labfit_kp2, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+    
+    i = 1 # start at 1 because we already ran things once
+    while feature_error is None and i < iter_labfit: # run X times
+        i += 1
+        print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
+        feature_error = lab.run_labfit(d_labfit_kp2, bin_name, use_rei=True, time_limit=90) 
+
+    results[bin_name] = [feature_error, i]
+
+
+bin_names_worked = ['B26', 'B27', 'B28', 'B29', 'B30', 'B32', 'B33', 'B37', 'B40', 'B44']
+
+
+asfasdf
+
+
+
+f = open(os.path.join(d_labfit_kp2, 'cutoff locations pure - saturated 15.pckl'), 'rb')
+cutoff_locations = pickle.load(f)
+f.close() 
+
+locations_list = []
+i = 0
+for key in cutoff_locations: 
+    i+=1
+    print(key)
+    for data in cutoff_locations[key]: 
+        print(data)
+        
+        plt.plot(data[1:],[i,i])
+        plt.plot(np.mean(data[1:]),[i], 'kx')
+
+        locations_list.append(np.mean(data[1:]))
+        
+locations = np.sort(np.array(locations_list))
+diff = np.diff(locations)
+unique_idx = np.concatenate(([0], np.where(diff > 0.05)[0]+1))  # find the indices of unique elements
+unique_arr = locations[unique_idx]  # get the unique elements
+
+diff2 = np.diff(unique_arr)
+
+
+
+
+
+
+
+
 
 
 
