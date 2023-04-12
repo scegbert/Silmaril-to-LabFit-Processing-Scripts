@@ -2914,3 +2914,9 @@ plots/gif library/7-3 gif zooming all backwards 5.gif
 data - sceg/df_sceg - Copy.pckl
 
 data - sceg/spectra_pure - Copy.pckl
+
+data - HITRAN 2020 beta/
+
+data - sceg/
+
+plots/
