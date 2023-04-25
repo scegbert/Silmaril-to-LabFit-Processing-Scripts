@@ -27,8 +27,8 @@ import time
 
 # %% dataset specific information
 
-save_data = True
-check_bins = False # only look at some of the measurements (high pressure, to check the bin-breaks for features)
+save_data = False
+check_bins = True # only look at some of the measurements (high pressure, to check the bin-breaks for features)
 d_type = 'pure' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
@@ -48,7 +48,7 @@ if d_type == 'pure':
     
     if check_bins: 
         # d_base = ['300 K 16 T', '500 K 16 T', '700 K 16 T', '900 K 16 T', '1100 K 16 T', '1300 K 16 T']
-        d_base = ['300 K _5 T', '300 K 16 T', '700 K 1 T', '700 K 16 T', '1100 K 1 T', '1100 K 16 T']
+        d_base = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T']
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
     file_number = 1000 # counter to start the save files at (skipped 2000 due to first round)

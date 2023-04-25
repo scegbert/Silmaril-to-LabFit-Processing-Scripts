@@ -666,6 +666,64 @@ plt.legend()
 
 
 
+# %% table of results (number of fits, vibrational bands, etc.)
+
+
+props_which = ['uc_nu','uc_sw','uc_gamma_self','uc_n_self','uc_sd_self','uc_delta_self','uc_n_delta_self', 'uc_elower']
+
+count = np.zeros((50,len(props_which)+3))
+count_name = []
+
+j = 0
+
+for local_iso_id_iter in df_sceg_align.local_iso_id.unique(): 
+    
+    df_sceg_iso = df_sceg_align[df_sceg_align.local_iso_id == local_iso_id_iter]
+       
+    for vp_iter in df_sceg_iso.vp.unique(): 
+        
+        df_sceg_vp = df_sceg_iso[df_sceg_iso.vp == vp_iter]
+        
+        for i, prop in enumerate(props_which): 
+            
+            count[j,i] = len(df_sceg_vp[df_sceg_vp[prop] > 0])
+            
+        if count[j,:].any(): 
+            
+            # iso, vp, vpp, J min, J max, 
+            
+            count_name.append(vp_iter + '-' + df_sceg_vp.vpp.mode()[0])
+            
+            
+            if count_name[j] == '-': asdfasdfasdf
+            
+            print(count_name[j])
+            
+            count[j,-1] = max(df_sceg_vp.Jpp)
+            count[j,-2] = min(df_sceg_vp.Jpp)
+            
+            count[j,-3] = local_iso_id_iter
+        
+            print(count[j,:])
+                        
+            j+=1
+                
+                
+            
+            
+df_sceg_new = df_sceg[df_sceg.index > 100000]
+
+for i, prop in enumerate(props_which): 
+
+    count[-1,i] = len(df_sceg_new[df_sceg_new[prop] > 0])
+            
+
+
+
+
+
+
+
 
 
 

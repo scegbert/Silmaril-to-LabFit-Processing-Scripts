@@ -115,7 +115,7 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 1E-24 
 
-bin_name = 'B40' # name of working bin (for these calculations)
+bin_name = 'B35' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -956,39 +956,51 @@ diff2 = np.diff(unique_arr)
 
 #%% run files and slowly remove high pressure measurements with saturated features
 
-iter_labfit = 3
+# a_res_updated = {}
+# a_df_calcs_updated = {}
+# a_df_calcs_snippet_updated = {}
 
-print('     labfit iteration #1')
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+a_res_fixed = {}
+a_df_calcs_fixed = {}
+a_df_calcs_snippet_fixed = {}
 
-i = 1 # start at 1 because we already ran things once
-while feature_error is None and i < iter_labfit: # run X times
-    i += 1
-    print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=90) 
+first = False
+iter_labfit = 10
 
-[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=None) # <-------------------
+for i in range(iter_labfit): 
+    print(i)
+
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+    
+    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=None) # <-------------------
+    
+    if first == True and i == 0: 
+        df_calcs_keepers = df_calcs.copy()
+        df_calcs_floated = df_calcs[df_calcs.uc_sw>0].copy()
+    
+    df_calcs_next = df_calcs[df_calcs_keepers.uc_sw>0].copy()
+    df_calcs_snippet = df_calcs_next[df_calcs_floated.ratio_300 > 1]
+
+    a_res_fixed[i] = res.copy()
+    a_df_calcs_fixed[i] = df_calcs.copy()
+    a_df_calcs_snippet_fixed[i] = df_calcs_snippet.copy()
 
 
-# df_calcs_all = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16 = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16_8 = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16_8_4 = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16_8_4_16500 = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16_8_4_16500_8500 = df_calcs[df_calcs.uc_sw>0].copy()
-# df_calcs_no16_8_4_3_16500_8500 = df_calcs[df_calcs.uc_sw>0].copy()
-df_calcs_no16_8_4_3_2_16500_8500_1 = df_calcs[df_calcs.uc_sw>0].copy()
+# res_fixed = a_res_fixed[0]
+# res_updated = a_res_updated[0]
+# res_og = a_res_og[0]
+#%% continuation, breaking it up for ease of use
+
+features_fix = a_df_calcs_og[0][a_df_calcs_og[0].sw>1e-21].index.tolist()
+
+lab.plot_spectra(T,wvn,trans,res_fixed,res_updated, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = features_fix, axis_labels=False) # <-------------------
+plt.title(bin_name)
 
 
-# a_df_calcs_all = df_calcs_all[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16 = df_calcs_no16[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16_8 = df_calcs_no16_8[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16_8_4 = df_calcs_no16_8_4[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16_8_4_16500 = df_calcs_no16_8_4_16500[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16_8_4_16500_8500 = df_calcs_no16_8_4_16500_8500[df_calcs_all.ratio_300 > 1]
-# a_df_calcs_no16_8_4_3_16500_8500 = df_calcs_no16_8_4_3_16500_8500[df_calcs_all.ratio_300 > 1]
-a_df_calcs_no16_8_4_3_2_16500_8500_1 = df_calcs_no16_8_4_3_2_16500_8500_1[df_calcs_all.ratio_300 > 1]
+
+
+
 
 
 
