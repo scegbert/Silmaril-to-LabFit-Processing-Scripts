@@ -954,7 +954,7 @@ unique_arr = locations[unique_idx]  # get the unique elements
 diff2 = np.diff(unique_arr)
 
 
-#%% run files and slowly remove high pressure measurements with saturated features
+#%% run files and slowly remove high pressure measurements with saturated features (test)
 
 # a_res_updated = {}
 # a_df_calcs_updated = {}
@@ -990,14 +990,13 @@ for i in range(iter_labfit):
 # res_fixed = a_res_fixed[0]
 # res_updated = a_res_updated[0]
 # res_og = a_res_og[0]
-#%% continuation, breaking it up for ease of use
 
 features_fix = a_df_calcs_og[0][a_df_calcs_og[0].sw>1e-21].index.tolist()
 
 lab.plot_spectra(T,wvn,trans,res_fixed,res_updated, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = features_fix, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
-
+#%%
 
 
 
