@@ -15,6 +15,9 @@ import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
 
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+
 import os
 from sys import path
 path.append(os.path.abspath('..')+'\\modules')
@@ -366,12 +369,33 @@ plt.colorbar(sc, label=label_c)
 plt.show()
 
 
-# for fit_order in [30,31,32]:
-#     a = np.log10(df_plot['plot_x']*np.power(10,20))
-#     b = np.polyfit(a, df_plot['plot_y'], fit_order)
-#     c = np.poly1d(b)
-#     d = c(a)
-#     plt.plot(df_plot['plot_x'], d, 'r')
+# plot inset 
+
+ax_ins = inset_axes(ax, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax.transAxes)
+
+for i, ierr in enumerate(np.sort(sw_error.unique())): 
+    
+    ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
+                     c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
+                     label=HT_errors[ierr])
+    df_plot.sort_values(by=['sw'], inplace=True)
+
+ax_ins.plot(wvn_labfit, trans_labfit, color=colors[5], 
+             linewidth=linewidth)
+
+ax_ins.axis([7094.885, 7095.20, 0.9985, 1.00025])
+
+patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
+pp1.loc2 = 4
+
+ax_ins.xaxis.set_visible(False)
+
+ax_ins.yaxis.set_label_position("right")
+ax_ins.yaxis.tick_right()
+ax_ins.yaxis.set_minor_locator(AutoMinorLocator(5))
+
+ax_ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
+
 
 
 
@@ -402,7 +426,7 @@ limited = ['6']
 
 # for vp in df_plot.vp.unique():     
 
-I# if len(df_plot[df_plot.vp == vp]) > 140: 
+# if len(df_plot[df_plot.vp == vp]) > 140: 
 
 plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)

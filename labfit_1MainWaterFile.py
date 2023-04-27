@@ -825,183 +825,52 @@ while feature_error is None and i < iter_labfit: # run X times
 
 lab.save_file(d_labfit_main, bin_name, 'ditched floats', d_folder_input=d_labfit_kernal)
 
-#%% feature sniffer (find which feature(s) is the problem)
-
-lab.wait_for_kernal(d_labfit_kernal, minutes = 6) # delay longer than normal to save for last
-
-# prop_which = 'n_self'
-
-# features_test = [21652, 21691, 21699, 21739, 21772, 21778, 21873, 21920, 21929, 21933, 21937, 21979, 21991, 22025, 
-#                  22060, 22158, 22167, 22246, 22256, 22269, 22319, 22327, 22337, 22366, 22372, 22389, 22422, 22431, 
-#                  22455, 22466, 22491]
-
-sniff_good, sniff_good_but_unc, sniff_bad, sniff_dict = lab.feature_sniffer(features_test, d_labfit_kernal, bin_name, bins, prop_which, props, props_which, 
-                                                      iter_sniff=15, unc_multiplier=1, d_labfit_main=d_labfit_main)
+#%% make new OG files that actually match HITRAN values
 
 
+good_files= []
+bad_files = []
 
+base_name_HITRAN = 'p2020'
 
-
-
-
-# %% compare non-OG files
-
-[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=None) # <-------------------
-
-lab.plot_spectra(T,wvn,trans,res,res6, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, axis_labels=False) # <-------------------
-plt.title(bin_name)
-
-
-# %% redo temp. dep. of the self shift with improved exponent guess
-
-
-d_folder_output = r'D:\OneDrive - UCB-O365\water database'
-
-n_delta_old = r'0.0000000  0.00000000    0.00000    0.00000    0.' # kernal to replace
-n_delta_new = r'0.0000000  1.00000000    0.00000    0.00000    0.' # kernal that has been replaced
-
-
-for bin_name in bin_names: 
-
-    d_folder_bin = os.path.join(d_folder_output, bin_name)
+for bin_name in bins:
     
-    i = 0
-    file_extension = ''
-    file_name= ''
+    if bin_name not in ['all']: 
     
-    try: 
-        while file_extension != '.rei' or 'after delta self' not in file_name: # find file where we worked on delta_self
-            i-=1
-            file_name = os.listdir(d_folder_bin)[i]
-            file_extension = file_name[-4:]
+        print(bin_name)
             
-        file_name = os.listdir(d_folder_bin)[i-4] # go back 4 more to get the file right before the delta_self file
-        if file_name[-4:] != '.rei': throw = anerrorplease # make sure it's an rei file
+        lab.bin_ASC_cutoff(d_labfit_main, base_name_HITRAN, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
+        result = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # only let Labfit try running for one minute
         
-        # rei_all_old = open(os.path.join(d_folder_bin, file_name), "r").read() # load in the rei file right before delta_self
+        if result != 'timeout':
+            print('     good\n')
+            good_files.append(bin_name)
+        else: 
+            print('     bad\n')
+            bad_files.append(bin_name)
+        
+        
+
+#%% save the new HITRAN og files in their folders
+
+d_labfit_folders = r'D:\OneDrive - UCB-O365\water database'
+failed = []
+
+for bin_name in bins:
+
+    if bin_name not in ['all']:     
+    
+        try: 
+            lab.save_file(d_labfit_folders, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
+            
+        except: 
+            try: 
                 
-        # rei_all_new = rei_all_old.replace(n_delta_old, n_delta_new) # update n_delta
-        
-        # [num_file, _] = lab.newest_rei(d_folder_bin, bin_name) # get the newest file number for saving
-        
-        # d_save_name = 'updating n_delta_self initial value from 0 to 1'
-        # d_output = os.path.join(d_folder_bin, bin_name + '-' + str(num_file+1).zfill(3) + '-' + d_save_name + '.rei') # avoid over writing existing files by adding 1 to file name
+                lab.save_file(os.path.join(d_labfit_folders,'done'), bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
+    
+            except: 
                 
-        # open(d_output, 'w').write(rei_all_new)
-        
-        # print('file saved as: ' + bin_name + '-' + str(num_file+1).zfill(3) + '-' + d_save_name)
-        
-    except: 
-                
-        print('after delta self file was not found for bin ' + bin_name) # if it didn't even run delta_self, there were no features to test
-
-
-#%% run files to see impact of excluding more of saturated features (also need to identify which features this impacts)
-
-# list of bins with features below the transmission cutoff
-bin_names = [                                          'B26', 'B27', 'B28', 'B29', 
-             'B30', 'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 
-             'B40', 'B41', 'B42', 'B43', 'B44']
-
-iter_labfit = 3
-results = {}
-
-for bin_name in bin_names: 
-
-    print(bin_name)
-    print('     labfit iteration #1')
-    feature_error = lab.run_labfit(d_labfit_kp2, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+                failed.append(bin_name)
     
-    i = 1 # start at 1 because we already ran things once
-    while feature_error is None and i < iter_labfit: # run X times
-        i += 1
-        print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-        feature_error = lab.run_labfit(d_labfit_kp2, bin_name, use_rei=True, time_limit=90) 
-
-    results[bin_name] = [feature_error, i]
-
-
-bin_names_worked = ['B26', 'B27', 'B28', 'B29', 'B30', 'B32', 'B33', 'B37', 'B40', 'B44']
-
-
-asfasdf
-
-
-
-f = open(os.path.join(d_labfit_kp2, 'cutoff locations pure - saturated 15.pckl'), 'rb')
-cutoff_locations = pickle.load(f)
-f.close() 
-
-locations_list = []
-i = 0
-for key in cutoff_locations: 
-    i+=1
-    print(key)
-    for data in cutoff_locations[key]: 
-        print(data)
-        
-        plt.plot(data[1:],[i,i])
-        plt.plot(np.mean(data[1:]),[i], 'kx')
-
-        locations_list.append(np.mean(data[1:]))
-        
-locations = np.sort(np.array(locations_list))
-diff = np.diff(locations)
-unique_idx = np.concatenate(([0], np.where(diff > 0.05)[0]+1))  # find the indices of unique elements
-unique_arr = locations[unique_idx]  # get the unique elements
-
-diff2 = np.diff(unique_arr)
-
-
-#%% run files and slowly remove high pressure measurements with saturated features (test)
-
-# a_res_updated = {}
-# a_df_calcs_updated = {}
-# a_df_calcs_snippet_updated = {}
-
-a_res_fixed = {}
-a_df_calcs_fixed = {}
-a_df_calcs_snippet_fixed = {}
-
-first = False
-iter_labfit = 10
-
-for i in range(iter_labfit): 
-    print(i)
-
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
-    
-    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=None) # <-------------------
-    
-    if first == True and i == 0: 
-        df_calcs_keepers = df_calcs.copy()
-        df_calcs_floated = df_calcs[df_calcs.uc_sw>0].copy()
-    
-    df_calcs_next = df_calcs[df_calcs_keepers.uc_sw>0].copy()
-    df_calcs_snippet = df_calcs_next[df_calcs_floated.ratio_300 > 1]
-
-    a_res_fixed[i] = res.copy()
-    a_df_calcs_fixed[i] = df_calcs.copy()
-    a_df_calcs_snippet_fixed[i] = df_calcs_snippet.copy()
-
-
-# res_fixed = a_res_fixed[0]
-# res_updated = a_res_updated[0]
-# res_og = a_res_og[0]
-
-features_fix = a_df_calcs_og[0][a_df_calcs_og[0].sw>1e-21].index.tolist()
-
-lab.plot_spectra(T,wvn,trans,res_fixed,res_updated, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = features_fix, axis_labels=False) # <-------------------
-plt.title(bin_name)
-
-#%%
-
-
-
-
-
-
 
 

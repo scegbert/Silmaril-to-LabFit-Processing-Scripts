@@ -91,8 +91,9 @@ for which_file in which_files:
 
 #%%
 
-wide = [6615-50, 7650+25]
-narrow = [7094.52, 7096.06]
+# wide = [6615-50, 7650+25]
+# wide = [6740, 6860]
+wide = [6770.25, 6773.4]
 linewidth = 1
 
 offset1 = 0.05
@@ -102,36 +103,29 @@ colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',     '#e6
 # colors = ['#FFD700','#FF7F50','#EE82EE','#4169E1', '#00BFFF','#00FFFF',     '#e6ab02']
 
 
-which_files_partial = ['300 K 16 T', '500 K 16 T', '700 K 16 T', '900 K 16 T', '1100 K 16 T', '1300 K 16 T']
+num_files = 1
+
+
+which_files_partial = which_files[:num_files][::-1]
 
 fig = plt.figure(figsize=(12, 4))
-gs = GridSpec(2, 2, width_ratios=[2, 1]) #, hspace=0.015, wspace=0.005) # rows, columns
+gs = GridSpec(2, 1, height_ratios=[3, 1], hspace=0.015, wspace=0.005) # rows, columns
 
 for which_file in which_files_partial: 
     
     i = which_files.index(which_file)
     
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
-    ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
-    ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
     ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
-    ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=9)
+    ax00.legend(loc = 'lower left', framealpha=1, edgecolor='black', fontsize=9)
     
-    ax01 = fig.add_subplot(gs[0,1]) # First row, second column
-    ax01.plot(wvn[i],trans[i], color=colors[i], 
-              linewidth=linewidth)
-    
-    ax10 = fig.add_subplot(gs[1,0]) # Second row, first column
-    ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
-    ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
+   
+    ax10 = fig.add_subplot(gs[1,0], sharex=ax00) # Second row, first column
     ax10.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
     # ax10.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=9)
     
-    ax11 = fig.add_subplot(gs[1,1]) # Second row, second column
-    ax11.plot(wvn[i],res_updated[i], color=colors[i], 
-              linewidth=linewidth)
 
 
 #%% arrows pointing to inset
@@ -141,24 +135,13 @@ for which_file in which_files_partial:
 
 #%% set axis
 ax00.set_xlim(wide)
-ax01.set_xlim(narrow)
 
-ax01.set_ylim([0.861, 0.886])
-ax11.set_ylim([-0.1,0.1])
-ax00.set_ylim([0,1.1])
-ax10.set_ylim([-0.1,0.1])
+ax00.set_ylim([0.902,1.003])
+ax10.set_ylim([-0.011,0.011])
 
 
 #%%  remove x label on upper plots (mostly covered)
 plt.setp(ax00.get_xticklabels(), visible=False) 
-plt.setp(ax01.get_xticklabels(), visible=False)
-
-
-#%% move zoomed y labels to the right
-ax01.yaxis.set_label_position("right")
-ax01.yaxis.tick_right()
-ax11.yaxis.set_label_position("right")
-ax11.yaxis.tick_right()
 
 
 # %% add ticks and minor ticks all over
@@ -170,29 +153,11 @@ ax10.tick_params(axis='both', which='both', direction='in', top=False, bottom=Tr
 ax10.xaxis.set_minor_locator(AutoMinorLocator(10))
 ax10.yaxis.set_minor_locator(AutoMinorLocator(10))
 
-ax01.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
-ax01.xaxis.set_minor_locator(AutoMinorLocator(5))
-ax01.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-ax11.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
-ax11.xaxis.set_minor_locator(AutoMinorLocator(5))
-ax11.yaxis.set_minor_locator(AutoMinorLocator(5))
-
-
-#%% shading to highlight zoomed region
-alpha = 1
-
-ax00.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax10.axvspan(narrow[0]-offset0, narrow[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax01.axvspan(narrow[0]+offset1, narrow[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-ax11.axvspan(narrow[0]+offset1, narrow[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-
 
 #%% labels
-ax11.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 ax10.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
-ax00.set_ylabel('Intensity (arb.)')
+ax00.set_ylabel('Measured\nTransmission')
 ax10.set_ylabel('Meas-Model')
 
 
@@ -203,13 +168,12 @@ h1 = 0.05
 v0 = 0.9
 v1 = 0.9
 
-ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
-ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
-ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
-ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
+# ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
+# ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
 
 
 #%% save it
 
-# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 updated with {}.svg'.format(num_files),
+            bbox_inches='tight')
 

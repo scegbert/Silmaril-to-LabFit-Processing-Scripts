@@ -85,7 +85,7 @@ df_sw = pd.merge(df_sw, df_paul[['sw', 'uc_sw', 'quanta_index']], on='quanta_ind
 df_sw = df_sw.rename(columns={'sw':'sw_paul', 'uc_sw':'uc_sw_paul'})
 
 # merg in 2016
-df_sw = pd.merge(df_sw, df_HT2016[['sw', 'quanta_index']], on='quanta_index', how='inner')
+df_sw = pd.merge(df_sw, df_HT2016[['sw', 'quanta_index', 'iref']], on='quanta_index', how='inner', suffixes=('_2020', '_2016'))
 df_sw = df_sw.rename(columns={'sw':'sw_2016'})
 
 # merge in HITRAN 2010
@@ -93,7 +93,10 @@ df_sw = pd.merge(df_sw, df_HT2010[df_HT2010.local_iso_id==1][['sw', 'quanta_inde
 df_sw = df_sw.rename(columns={'sw':'sw_2010'})
 
 
-df_sw['sw_ref'] = df_sw.iref.str[2:4]
+df_sw['sw_ref_2020'] = df_sw.iref_2020.str[2:4]
+df_sw['sw_ref_2016'] = df_sw.iref_2016.str[2:4]
+
+
 
 #%% plots plots plots plots plots plots - everybody!
 
@@ -183,12 +186,12 @@ plt.legend()
 
 plt.figure()
 
-df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref == '63']
+df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref_2020 == '63']
 
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_sceg-df_sw_plot1.sw_2020)/df_sw_plot1.sw_2020, 'x', markersize=30, label='Sceg - Hodges')
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_2016-df_sw_plot1.sw_2020)/df_sw_plot1.sw_2020, '1', markersize=30, label='HITRAN 2016 - Hodges')
 
-df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref == '72']
+df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref_2020 == '72']
 
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_sceg-df_sw_plot1.sw_2020)/df_sw_plot1.sw_2020, 'x', markersize=10, label='Sceg - Conway')
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_2016-df_sw_plot1.sw_2020)/df_sw_plot1.sw_2020, 'k1', markersize=10, label='HITRAN 2016 - Conway')
@@ -210,12 +213,12 @@ plt.legend()
 
 plt.figure()
 
-df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref == '63']
+df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref_2020 == '63']
 
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_sceg-df_sw_plot1.sw_2020), 'x', markersize=30, label='Sceg - Hodges')
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_2016-df_sw_plot1.sw_2020), '1', markersize=30, label='HITRAN 2016 - Hodges')
 
-df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref == '72']
+df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref_2020 == '72']
 
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_sceg-df_sw_plot1.sw_2020), 'x', markersize=10, label='Sceg - Conway')
 plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_2016-df_sw_plot1.sw_2020), 'k1', markersize=10, label='HITRAN 2016 - Conway')
@@ -239,8 +242,32 @@ iso['2020_diff'] = (df_sw.sw_sceg-df_sw.sw_2020)/df_sw.sw_2020 * 100
 
 
 
+#%% better plots plot wrt reference
 
 
+
+
+plt.figure()
+
+for sw_ref in df_sw_plot.sw_ref_2016.unique(): 
+    
+    df_sw_plot1 = df_sw_plot[df_sw_plot.sw_ref_2016 == sw_ref]
+    
+    if sw_ref == '63': sw_ref_label = 'Hodges'
+    if sw_ref == '18': sw_ref_label = 'Toth'
+    if sw_ref == '33': sw_ref_label = 'Lodi'
+    
+    plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_sceg-df_sw_plot1.sw_2016)/df_sw_plot1.sw_2016, 'x', markersize=30, label='Sceg - {}'.format(sw_ref_label))
+    # plt.plot(df_sw_plot1.sw_2020, (df_sw_plot1.sw_2016-df_sw_plot1.sw_2016)/df_sw_plot1.sw_2016, '1', markersize=30, label='HITRAN 2016 - {}'.format(sw_ref))
+    
+plt.hlines(0,1e-21, 2e-20)
+
+plt.xscale('log')
+
+plt.ylabel('SW (DATA - HITRAN 2016) / HITRAN 2016')
+plt.xlabel('SW HITRAN 2020')
+plt.ylim(ylim)
+plt.legend()
 
 
 
