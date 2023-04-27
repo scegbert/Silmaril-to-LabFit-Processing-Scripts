@@ -14,6 +14,8 @@ import subprocess
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import AutoMinorLocator
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
@@ -192,109 +194,6 @@ if not df_sceg_align.equals(df_sceg_align2): throw = errorplease # these should 
 please = stophere
 
 
-# %% quantum explorations
-
-
-# d_ht2020 = r'C:\Users\scott\Documents\1-WorkStuff\code\scottcode\silmaril pure water\data - HITRAN 2020\H2O.par'
-# df_ht2020 = db.par_to_df(d_ht2020) # currently shifted by one from df_sceg (labfit indexes from 1) 8181 HT <=> 8182 LF
-
-# # v_bands = ['(200)<-(000)', '(111)<-(010)', '(101)<-(000)', '(031)<-(010)', '(021)<-(000)'] # J=Kc doublets
-# v_bands = [['(101)<-(000)',0], ['(021)<-(000)',1], ['(200)<-(000)',2]] # most common vibrational transitions
-# ka_all = [[0,0, 'o','solid'], [0,1, 'x','dotted'], [1,0, '+','dashed'], [1,1, '1','dashdot']]
-
-# props_which = [['nu','Line Position, $\\nu$ [cm$^{-1}$]'],
-#                ['sw','Line Strength, S$_{296}$ [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'],
-#                ['gamma_self','Self-Broadened Half Width, $\gamma_{self}$ [cm$^{-1}$/atm]'],
-#                ['n_self','Temp. Dep. of Self-Broadened Half Width, n$_{self}$'],
-#                ['sd_self','Self Broadening Speed Dependence, a$_{w}$=$\Gamma_{2}$/$\Gamma_{0}$'],
-#                ['delta_self','Self Pressure Shift, $\delta_{self}$(T$_{0}$) [cm$^{-1}$/atm]'],
-#                ['n_delta_self','Temp. Dep. of Self Shift, $\delta^{\'}_{self}$ [cm$^{-1}$/(atm$\cdot$K]'],
-#                ['gamma_air','Air-Broadened Half Width, $\gamma_{air}$ [cm$^{-1}$/atm]'],
-#                ['n_air','Temp. Dep. of Air-Broadened Half Width, n$_{air}$'],
-#                ['sd_air','Air Broadening Speed Dependence, a_${w}$=$\Gamma_{2}$/$\Gamma_{0}$'],
-#                ['delta_air','Air Pressure Shift, $\delta_{air}$(T$_{0}$) [cm$^{-1}$/atm]'],
-#                ['n_delta_air','Temp. Dep. of Air Shift, $\delta^{\'}_{air}$ [cm$^{-1}$/(atm$\cdot$K]']]
-
-
-# for v_band, k in v_bands: 
-    
-#     label1 = v_band 
-
-#     for ka in ka_all: 
-
-#         if v_bands.index([v_band, k]) == 0: label2 = 'Kc=J, Ka\'='+str(ka[0])+', Ka\'\'='+str(ka[1])
-#         else: label2 = ''
-                
-#         df_sceg2 = df_sceg.copy()
-#         keep_boolean = ((~df_sceg2.index.isin(features_doublets)) & (df_sceg2.index.isin(features_clean)) # no doublets, only clean features
-#                          & (df_sceg2.index < 100000) # no nea features
-#                          & (df_sceg2.Jpp == df_sceg2.Kcpp) & (df_sceg2.Jp == df_sceg2.Kcp) # kc
-#                          & (df_sceg2.Kapp == ka[0]) & (df_sceg2.Kap == ka[1]) # ka
-#                          & (df_sceg2.v_all == v_band)) # vibrational band
-                         
-#         df_sceg2 = df_sceg2[keep_boolean]
-#         df_og2 = df_og[keep_boolean]
-        
-#         j=1
-        
-#         for prop, plot_y_label in props_which:
-            
-#             # don't bother with these guys ['elower','quanta','nu','sw']
-        
-#             df_plot = df_sceg2[df_sceg2['uc_'+prop] > 0]
-#             df_plot_og = df_ht2020.loc[df_plot.index-1]
-            
-#             # print(prop)
-#             # print('    ' + str(len(df_sceg[df_sceg['uc_'+prop] > 0]))) # number of total features that were fit
-            
-#             plot_x = df_plot.m # + (df_plot.Kapp/df_plot.Jpp)/2
-#             plot_y = df_plot[prop]
-#             plot_y_unc = df_plot['uc_'+prop]
-                        
-#             plt.figure(3*j-2, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             # plt.plot(plot_x,plot_y,marker='x', markerfacecolor='None',linestyle='None', color=colors[0])
-#             plt.plot(plot_x,plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label1)
-#             # plt.plot(plot_x,plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label2) # plot for the legend
-#             # plt.plot(plot_x,plot_y,marker='None', markerfacecolor='None',linestyle=ka[3], color=colors[k],  label=label2) # plot for the legend
-#             plt.errorbar(plot_x,df_plot[prop], yerr=plot_y_unc, color=colors[0], ls='none')
-#             try: 
-#                 plot_y_og = df_plot_og[prop]
-#                 plt.plot(plot_x,plot_y_og,linestyle=ka[3], color=colors[k])
-#             except: pass
-            
-#             plt.xlabel('m') # ' + Ka\'\'/J\'\'/2')
-#             plt.ylabel(plot_y_label)
-#             # plt.legend(edgecolor='k')       
-            
-
-#             #for i in df_plot.index:
-#             #    i = int(i)
-#             #    plt.annotate(str(i),(plot_x[i], plot_y[i]))
-
-#             r'''
-#             plt.figure(3*j-1, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             plt.plot(abs(plot_x),plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label1)
-#             plt.plot(abs(plot_x),plot_y_og,linestyle=ka[3], color=colors[k])
-#             plt.errorbar(abs(plot_x),df_plot[prop], yerr=plot_y_unc, color=colors[k], ls='none')
-#             plt.xlabel('|m| + Ka\'\'/J\'\'/2')
-#             plt.ylabel(plot_y_label)
-#             plt.legend(edgecolor='k')        
-#             r'''     
-#             r'''
-#             plt.figure(3*j, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             plt.plot(plot_x,plot_y-plot_y_og,marker=ka[2],linestyle='None',  color=colors[k], label=label1)
-#             plot_unc_y = df_plot.uc_delta_air
-#             plt.errorbar(plot_x,plot_y-plot_y_og, yerr=plot_y_unc,  color=colors[k], ls='none')
-#             plt.xlabel('m + Ka\'\'/J\'\'/2')
-#             plt.ylabel('('+prop+' Labfit) - ('+prop+' HITRAN 2020)')
-#             plt.legend(edgecolor='k')    
-#             r'''
-            
-#             j+=1
-        
-#         label1 = ''
-
-
 
 # %% percent change SW with E lower
 
@@ -311,7 +210,7 @@ label_x = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2
 df_plot['plot_x'] = df_plot.sw
 plot_x = df_plot['plot_x']
 
-label_y = 'Relative Change in Line Strength, S$_{296}$ \n (updated - HT2020) / HT2020' # ' \n [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
+label_y = 'Relative Change in Line Strength, S$_{296}$ \n (updated - HITRAN) / HITRAN' # ' \n [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
 df_plot['plot_y'] = (df_plot.sw - df_plot_og.sw) / df_plot_og.sw 
 plot_y = df_plot['plot_y']
 
@@ -319,7 +218,7 @@ plot_y_unc = df_plot.uc_sw
 label_c = 'Lower State Energy [cm$^{-1}$]'
 plot_c = df_plot.elower
 
-plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.figure(figsize=(10, 5), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
 plt.ylabel(label_y)
 
@@ -329,11 +228,15 @@ plt.errorbar(plot_x,plot_y, yerr=plot_y_unc, color='k', ls='none', zorder=1)
 limited = ['6']
 
 
+
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
+    
+    label = HT_errors[ierr]
+    if ierr == '7': label=''
     
     sc = plt.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                     label=HT_errors[ierr])
+                     label=label)
     df_plot.sort_values(by=['sw'], inplace=True)
     
     
@@ -344,58 +247,78 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     
     print(' {} total, {} within uncertainty'.format(len(plot_x[sw_error == ierr]), within_HT))
 
-
-
 plt.legend()
+
 ax = plt.gca()
 legend = ax.get_legend()
 legend_dict = {handle.get_label(): handle for handle in legend.legendHandles}
 
+
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
     
-    legend_dict[HT_errors[ierr]].set_color(colors[i])
-    
-    if ierr != '3': 
+    if ierr not in ['7', '6', '5', '3']: 
+        
         plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
                     linestyles=linestyles[i], color=colors[i])
         plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
                     linestyles=linestyles[i], color=colors[i])
         
+        
+    if ierr not in ['7']: 
+        legend_dict[HT_errors[ierr]].set_color(colors[i])
+        df_plot.sort_values(by=['sw'], inplace=True)
+
+
+
+
 plt.xlim(min(plot_x)/buffer, max(plot_x)*buffer)
 plt.xscale('log')
 
 plt.colorbar(sc, label=label_c)
-
 plt.show()
 
 
+
+asdfasdfsadf
+
 # plot inset 
 
-ax_ins = inset_axes(ax, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax.transAxes)
+# ax_ins = inset_axes(ax, width='40%', height='50%', loc='upper center', bbox_to_anchor=(0.05,0,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax, width='50%', height='35%', loc='center right', bbox_to_anchor=(0,-0.05,1,1), bbox_transform=ax.transAxes)
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
     
-    ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
-                     c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                     label=HT_errors[ierr])
-    df_plot.sort_values(by=['sw'], inplace=True)
-
-ax_ins.plot(wvn_labfit, trans_labfit, color=colors[5], 
-             linewidth=linewidth)
-
-ax_ins.axis([7094.885, 7095.20, 0.9985, 1.00025])
+    if ierr not in ['7']: 
+    
+        ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
+                         c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
+                         label=HT_errors[ierr])
+        df_plot.sort_values(by=['sw'], inplace=True)
+        
+        legend_dict[HT_errors[ierr]].set_color(colors[i])
+        
+        if ierr not in ['3', '7']: 
+            plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
+                        linestyles=linestyles[i], color=colors[i])
+            plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
+                        linestyles=linestyles[i], color=colors[i])
+        
 
 patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
-pp1.loc2 = 4
+pp1.loc1 = 3
+pp2.loc1 = 4
 
-ax_ins.xaxis.set_visible(False)
 
-ax_ins.yaxis.set_label_position("right")
-ax_ins.yaxis.tick_right()
-ax_ins.yaxis.set_minor_locator(AutoMinorLocator(5))
+# updates for entire plot
 
-ax_ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
 
+plt.xlim(2e-26, 2.5e-20)
+plt.ylim(-0.12, 0.12)
+
+plt.xscale('log')
+
+
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
