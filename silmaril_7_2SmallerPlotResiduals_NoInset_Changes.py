@@ -96,10 +96,20 @@ for which_file in which_files:
 # y_lim_bottom = [-0.011,0.011]
 # fig = plt.figure(figsize=(12, 4))
 
-wide = [6938.16, 6939.09] 
-y_lim_top = [0.972,1.003]
-y_lim_bottom = [-0.009,0.004]
-fig = plt.figure(figsize=(8, 6))
+wide = [6771.3, 6772.1] # <---- overview plot mini
+y_lim_top = [0.902,1.003]
+y_lim_bottom = [-0.019,0.019]
+fig = plt.figure(figsize=(4, 4))
+
+# wide = [6938.16, 6939.09] # line strength changes
+# y_lim_top = [0.972,1.003]
+# y_lim_bottom = [-0.009,0.004]
+# fig = plt.figure(figsize=(8, 6))
+
+# wide = [6718.01, 6719.5] # new feature
+# y_lim_top = [0.95,1.003]
+# y_lim_bottom = [-0.019,0.004]
+# fig = plt.figure(figsize=(8, 6))
 
 
 linewidth = 1

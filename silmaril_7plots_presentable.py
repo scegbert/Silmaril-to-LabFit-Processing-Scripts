@@ -200,7 +200,7 @@ please = stophere
 buffer = 1.3
 
 df_plot = df_sceg_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
-df_plot_og = df_HT2020_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
+df_plot_og = df_HT2016_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
 
 df_plot_ht = df_HT2020_HT_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
 sw_error = df_plot_ht.ierr.str[1]
@@ -279,8 +279,6 @@ plt.show()
 
 
 
-asdfasdfsadf
-
 # plot inset 
 
 # ax_ins = inset_axes(ax, width='40%', height='50%', loc='upper center', bbox_to_anchor=(0.05,0,1,1), bbox_transform=ax.transAxes)
@@ -357,7 +355,7 @@ plt.ylabel(label_y)
 
 # plt.title(vp)
 
-for i_err, err in enumerate(limited): #np.sort(sw_error.unique())): 
+for i_err, err in enumerate(np.sort(sw_error.unique())): 
     
     which = (sw_error == err) #&(df_plot.vp == vp)
     
@@ -406,128 +404,93 @@ plt.show()
 
 
 
+# %% feature widths
 
 
-#%% plot of pure water spectra with residuals
+#-----------------------
+plot_which_y = 'gamma_self'
+label_y = plot_which_y
 
-wvn_range = [6615, 7650] # 6621 to 7645
-
-plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-
-[T_all, P_all] = np.asarray([T_pure, P_pure])
-
-
-# T_plot = 300
-# P_plots = [16, 8, 4, 3, 2, 1.5, 1, 0.5]
-
-T_plots = [300, 500, 700, 900, 1100, 1300]
-P_plot = 16
+plot_which_x = 'n_self'
+label_x = plot_which_x
 
 
-for T_plot in T_plots:
-# for P_plot in P_plots:
-    
-    # j = P_plots.index(P_plot)
-    j = T_plots.index(T_plot)
-    print(j)
-    i_plot = np.where((T_all == T_plot) & (P_all == P_plot))[0]
-        
-    T = [T_all[i] for i in i_plot]
-    P = [P_all[i] for i in i_plot]
-    wvn = np.concatenate([wvn_pure[i] for i in i_plot])
-    trans = np.concatenate([trans_pure[i] for i in i_plot])
-    res = np.concatenate([res_pure[i] for i in i_plot])
-    res_og = np.concatenate([res_og_pure[i] for i in i_plot])
-    
-    istart = np.argmin(abs(wvn - wvn_range[0])) # won't work if you didn't put wvn in the first position
-    istop = np.argmin(abs(wvn - wvn_range[1]))
-        
-    plt.plot(wvn[istart:istop], trans[istart:istop], color=colors_grad[j], label=str(T_plot) + ', ' + str(P_plot))
-    plt.plot(wvn[istart:istop], res[istart:istop]+105, color=colors_grad[j])
-    plt.plot(wvn[istart:istop], res_og[istart:istop]+110, color=colors_grad[j])
-    plt.plot(wvn[istart:istop], res[istart:istop]-res_og[istart:istop]+115, color=colors_grad[j])
+#-----------------------
+# plot_which_y = 'n_delta_self'
+# label_y = 'Temp. Dep. of Pressure Shift'
 
-plt.title('pure ' + str(T_plot))
+# plot_which_x = 'delta_self'
+# label_x = 'Pressure Shift'
 
 
+#-----------------------
+# plot_which_y = 'delta_self'
+# label_y = 'Pressure Shift'
 
-# %% new features and features below NF
+# plot_which_x = 'm'
+# label_x = 'm'
 
-plot_which_y = 'sw'
-plot_which_y_extra = ''
-label_y = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
 
-plot_which_x = 'elower'
-label_x = 'Lower State Energy [cm$^{-1}$]'
+plot_unc_y_bool = True
 
-df_plot = df_sceg[df_sceg.index > 10000]
+plot_labels = False
+plot_logx = False
 
-plot_x = df_plot[plot_which_x]
-plot_y = df_plot[plot_which_y + plot_which_y_extra]
+plot_unc_x_bool = False
+
 
 plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
 plt.ylabel(label_y)
 
-plt.plot(plot_x, plot_y, 'kx', label = 'other features')
 
-if plot_clean: 
+i=0
+# for vp in df_sceg.vp.unique(): 
+Jpp_all = df_sceg.Jpp.unique()
+Jpp_all.sort()
+for Jpp in Jpp_all: 
     
-    df_plot_clean = df_plot[df_plot.index.isin(features_clean)]
-    plot_x_clean = df_plot_clean[plot_which_x]
-    plot_y_clean = df_plot_clean[plot_which_y + plot_which_y_extra]
+    # df_plot = df_sceg[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg.vp == vp)]
+    df_plot = df_sceg[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg.Jpp == Jpp)]
     
-    plt.plot(plot_x_clean, plot_y_clean, 'rx', label = 'isolated features')
-    plt.legend()
     
-if plot_doublets: 
+    plot_x = df_plot[plot_which_x]
+    plot_y = df_plot[plot_which_y]
+     
+    if len(df_plot) > 5: 
     
-    df_plot_doublets = df_plot[df_plot.index.isin(features_doublets)]
-    plot_x_doublet = df_plot_doublets[plot_which_x]
-    plot_y_doublet = df_plot_doublets[plot_which_y + plot_which_y_extra]
+        plt.plot(plot_x, plot_y, 'x', label = Jpp)
     
-    plt.plot(plot_x_doublet, plot_y_doublet, 'g+', label = 'doublets')
-    plt.legend()
-
-if plot_unc_x: 
-    plot_unc_x = df_plot['uc_'+plot_which_x]
-    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color='k', ls='none')
-if plot_unc_y: 
-    plot_unc_y = df_plot['uc_'+plot_which_y]
-    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color='k', ls='none')
-
-if plot_labels:
-    for j in df_plot.index:
-        j = int(j)
-        plt.annotate(str(j),(plot_x[j], plot_y[j]))
-
+        if plot_unc_x_bool: 
+            plot_unc_x = df_plot['uc_'+plot_which_x]
+            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none')
+        if plot_unc_y_bool: 
+            plot_unc_y = df_plot['uc_'+plot_which_y]
+            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none')
+        
+        if plot_labels:
+            for j in df_plot.index:
+                j = int(j)
+                plt.annotate(str(j),(plot_x[j], plot_y[j]))
+    
+        if plot_which_y == 'delta_self': 
+            
+            df_plot2 = df_plot[(df_plot['uc_'+plot_which_y] > -1)&(df_plot['uc_n_delta_self'] > -1)]
+            
+            plot_x = df_plot2[plot_which_x]
+            plot_y = df_plot2[plot_which_y]
+            
+            plt.plot(plot_x, plot_y, 'o', color=colors[i+1], markersize=3, label = 'with temp. dep.')
+        
+        i+=1
+        
+    
 if plot_logx: 
     plt.xscale('log')
+    
+# plt.legend()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%%
-#%%
-#%%
-#%%
-
-# this is the new stuff after re-processing the data
 
 
 # %% temp dependence of shift (settings from previous plots)
