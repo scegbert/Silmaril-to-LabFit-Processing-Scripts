@@ -440,7 +440,7 @@ bins_delta = {'B6': [4913],
 			 'B29': [21652, 21691, 21739, 21873, 21991, 22269, 22372, 22431, 22491],
 			 'B30': [22535, 22552, 22611, 22620, 22642, 22645, 22654, 22659, 22707, 22719, 22809, 22845, 22855, 22863, 22893, 22954, 23026, 23069, 23120, 23161, 23184, 23200, 23218, 23225, 23250, 23277, 23279, 23302, 23311, 23325, 23360, 23374, 23378, 23402, 23428, 23435, 23437], 
              'B31': [23499, 23507, 23610, 23615, 23714, 23854, 23877, 23916, 23942, 24128],
-			 'B32': [24240, 24279, 24281, 24301, 24313, 24324, 24329, 24421, 24435, 24484, 24506, 24512, 24541, 24566, 24575, 24605, 24642, 24703, 24795, 24802, 24854, 24864, 24933, 24951],
+			 'B32': [24240, 24279, 24281, 24301, 24324, 24329, 24421, 24435, 24484, 24506, 24512, 24541, 24566, 24575, 24605, 24642, 24703, 24795, 24802, 24854, 24864, 24933, 24951],
 			 'B33': [25065, 25093, 25143, 25151, 25176, 25210, 25233, 25239, 25246, 25333, 25394, 25446, 25459, 25483, 25495, 25502, 25509, 25534, 25549, 25552, 25573, 25625, 25695, 25710, 25720, 25732, 25820],
 			 'B34': [25931, 25935, 26046, 26067, 26109, 26134, 26190, 26263, 26337, 26365, 26425, 26463, 26481, 26487, 26555, 26578, 26611],
 			 'B35': [26664, 26691, 26745, 26750, 26804, 26810, 26905, 26908, 27034, 27107, 27181, 27194, 27207, 27227, 27244, 27268, 27282, 27291, 27307, 27334, 27343, 27348, 27376, 27442, 27468, 27475, 27487],
@@ -468,14 +468,14 @@ bins_delta = {'B6': [4913],
 
 
 
-bin_name = 'B20'
+bin_name = 'B22'
 
 
 d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 
-d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
+d_labfit_kernal = d_labfit_kp # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
 d_labfit_main = r'D:\OneDrive - UCB-O365\water database' # this is where all the files are kept right now
@@ -757,7 +757,7 @@ done = butnoplot
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)
 
 # lab.save_file(d_labfit_main, bin_name, 'ditched unstable width floats', d_folder_input=d_labfit_kernal)
@@ -771,6 +771,8 @@ plt.title(bin_name)
 #%% re-run fits to fix something wrong
 
 iter_labfit = 3
+
+res1 = res.copy()
 
 # prop_which = 'gamma_self'
 # lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'inp_new', features_constrain, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
@@ -789,7 +791,7 @@ while feature_error is None and i < iter_labfit: # run X times
 
 # [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old) # read results into python
 
-[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
+# [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
 lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
@@ -798,6 +800,14 @@ plt.title(bin_name)
 
 if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'final - updated', d_folder_input=d_labfit_kernal)
 # if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'ditched SD 36303 36306', d_folder_input=d_labfit_kernal)
+
+
+asdfsadfsadf
+
+lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+
 
 
 #%% ditch floats that won't impact the shifts we are wanting to focus on

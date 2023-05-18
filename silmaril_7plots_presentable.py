@@ -404,39 +404,26 @@ plt.show()
 
 
 
-# %% feature widths
+# %% feature widths vs temp dependence (matching Paul's style)
 
 
 #-----------------------
-plot_which_y = 'gamma_self'
-label_y = plot_which_y
+plot_which_y = 'n_self'
+label_y = 'Temperature Exponent\n(n$_{self}$)'
 
-plot_which_x = 'n_self'
-label_x = plot_which_x
+plot_which_x = 'gamma_self'
+label_x = 'Self-Broadening Coefficient ($\mathregular{cm^{-1}/atm}$))'
 
+label_c = 'J"' # 'Angular Momentum of Ground State (J")'
 
-#-----------------------
-# plot_which_y = 'n_delta_self'
-# label_y = 'Temp. Dep. of Pressure Shift'
-
-# plot_which_x = 'delta_self'
-# label_x = 'Pressure Shift'
-
-
-#-----------------------
-# plot_which_y = 'delta_self'
-# label_y = 'Pressure Shift'
-
-# plot_which_x = 'm'
-# label_x = 'm'
-
+df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg['uc_'+plot_which_y] > -1)&
+                        (df_sceg['uc_'+plot_which_x] < 0.05)&(df_sceg['uc_'+plot_which_y] < 0.05)].sort_values(by=['Jpp'])
 
 plot_unc_y_bool = True
+plot_unc_x_bool = True
 
 plot_labels = False
 plot_logx = False
-
-plot_unc_x_bool = False
 
 
 plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
@@ -444,52 +431,108 @@ plt.xlabel(label_x)
 plt.ylabel(label_y)
 
 
-i=0
-# for vp in df_sceg.vp.unique(): 
-Jpp_all = df_sceg.Jpp.unique()
-Jpp_all.sort()
-for Jpp in Jpp_all: 
-    
-    # df_plot = df_sceg[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg.vp == vp)]
-    df_plot = df_sceg[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg.Jpp == Jpp)]
-    
-    
-    plot_x = df_plot[plot_which_x]
-    plot_y = df_plot[plot_which_y]
-     
-    if len(df_plot) > 5: 
-    
-        plt.plot(plot_x, plot_y, 'x', label = Jpp)
-    
-        if plot_unc_x_bool: 
-            plot_unc_x = df_plot['uc_'+plot_which_x]
-            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none')
-        if plot_unc_y_bool: 
-            plot_unc_y = df_plot['uc_'+plot_which_y]
-            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none')
-        
-        if plot_labels:
-            for j in df_plot.index:
-                j = int(j)
-                plt.annotate(str(j),(plot_x[j], plot_y[j]))
-    
-        if plot_which_y == 'delta_self': 
-            
-            df_plot2 = df_plot[(df_plot['uc_'+plot_which_y] > -1)&(df_plot['uc_n_delta_self'] > -1)]
-            
-            plot_x = df_plot2[plot_which_x]
-            plot_y = df_plot2[plot_which_y]
-            
-            plt.plot(plot_x, plot_y, 'o', color=colors[i+1], markersize=3, label = 'with temp. dep.')
-        
-        i+=1
-        
+
+plot_x = df_plot[plot_which_x]
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot.Jpp
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[0], c=plot_c, cmap='gist_rainbow', zorder=2, linewidth=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
     
 if plot_logx: 
     plt.xscale('log')
     
 # plt.legend()
 
+
+cbar = plt.colorbar(sc, label=label_c, orientation='vertical') # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
+cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
+
+
+
+
+p = np.polyfit(plot_x, plot_y, 1)
+plot_y_fit = np.poly1d(p)(plot_x)
+
+
+import scipy.stats as ss
+slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
+
+# plt.plot([0.2, 0.5],[1.5344*.2+0.0502, 1.5344*.5+0.0502], 'r', label='Schroeder Fit Line', linewidth=2)
+# plt.plot(plot_x[(plot_x>0.07)&(plot_x<0.55)], plot_y_fit[(plot_x>0.07)&(plot_x<0.55)], 'k', label='Updated Fit Line', linewidth=2)
+
+# plt.legend(loc='upper left')
+
+
+plt.show()
+
+plt.ylim(-.59,1.24)
+plt.xlim(0.05,0.6)
+
+# %% feature widths
+
+
+#-----------------------
+plot_which_y = 'gamma_self'
+label_y = 'Self-Width (γ$_{self}$)'
+
+plot_which_x = 'Jpp'
+label_x = 'Temperature Dependence of the Self-Width (n$_{self}$)'
+
+label_c = 'Angular Momentum of Ground State (J")'
+
+df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)&(df_sceg['uc_'+plot_which_y] < 0.05)].sort_values(by=['Jpp'])
+
+plot_unc_y_bool = True
+plot_unc_x_bool = True
+
+plot_labels = False
+plot_logx = False
+
+
+plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+
+
+plot_x = df_plot[plot_which_x]
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot.Jpp
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[i], c=plot_c, cmap='viridis', zorder=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
+if plot_logx: 
+    plt.xscale('log')
+    
+# plt.legend()
+
+plt.colorbar(sc, label=label_c)
+plt.show()
+
+# plt.xlim(-.59,1.24)
+# plt.ylim(0.05,0.6)
 
 
 

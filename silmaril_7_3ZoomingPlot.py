@@ -46,7 +46,7 @@ which_vacuum = 25 # vacuum scans that correspond to the file above
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure, res_HT_pure] = pickle.load(f)
 f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
@@ -589,6 +589,8 @@ v1 = 0.9
 
 #-----------------------------------------------------------------------------------
 #
+
+asdfasdfasdfsd
 
 fig1.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 big vacuum with inset.svg',bbox_inches='tight')
 fig2.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-3 big measurement with inset.svg',bbox_inches='tight')
