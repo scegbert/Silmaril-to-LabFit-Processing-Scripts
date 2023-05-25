@@ -109,7 +109,7 @@ elif d_type == 'air': base_name = base_name_air + n_update_name
 
 ratio_min_plot = -2 # min S_max value to both plotting (there are so many tiny transitions we can't see, don't want to bog down)
 offset = 5 # for plotting
-plot_spectra = True
+plot_spectra = False
 df_calcs_dict = {}
 
 if d_type == 'pure': props_which = ['nu','sw','gamma_self','n_self','sd_self','delta_self','n_delta_self', 'elower']
@@ -149,10 +149,7 @@ df_paul = db.labfit_to_df(d_paul, htp=False) # open paul database
 
 
 
-for bin_name in ['B19', 'B20', 
-                 'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
-                 'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
-                 'B41', 'B42']: 
+for bin_name in bin_names: 
     if bin_name in bins_done: # sorts them according to bin_names (lazy but effective)
                 
         d_saved = os.path.join(d_sceg_load, bin_name) # where the saved file is located
@@ -238,6 +235,98 @@ f.close()
 
 please = stopfsdsaasd
 
+# %% build new labfit INP file that has updates from pure water (for air-water)
+
+lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
+
+# load in updated INP file (with the right measurements)
+inp_main = open(os.path.join(d_labfit_main, 'p2020a.inp'), "r").readlines()
+
+num_ASC = int(inp_main[0].split()[2])
+# isolate part of INP without features (ASC files only)
+inp_final = inp_main[:num_ASC*lines_per_asc + 3] 
+# list of features (index+1 = labfit index)
+features_list = np.array([float(i.split()[3]) for i in inp_main[num_ASC*lines_per_asc + 3:][0::4]])
+
+i_stop_last = 0
+
+# snag updated features from pure water measurements
+for bin_name in bin_names: 
+    if bin_name in bins_done: # sorts them according to bin_names (lazy but effective)
+    
+        d_saved = os.path.join(d_sceg_load, bin_name) # where the saved file is located
+
+        [_, use_which_file] = lab.newest_rei(d_saved, bin_name)
+            
+        rei_load = open(os.path.join(d_saved, use_which_file[:-4]+'.rei') , "r").readlines()
+        
+        wvn_range = bins[bin_name][1:3]
+        
+        i_start = np.argmin(abs(wvn_range[0] - features_list))
+        if bin_name == bins_done[0]: # if this is the first one
+            i_start = 1 # keep the first features
+        
+        i_stop = np.argmin(abs(wvn_range[1] - features_list))-1 # take off one to avoid overlap with next bin
+        if bin_name == bins_done[-1]: # if this is the last one
+            i_stop = 43477 # keep the laser features
+
+        num_ASC_bin = int(rei_load[0].split()[2])
+       
+        # isolate part of INP without features (ASC files only)
+        inp_features_bin = rei_load[num_ASC_bin*lines_per_asc + 3:]
+        
+        i_stop_actual = i_stop
+        
+        while int(inp_features_bin[i_stop_actual*4-4].split()[0]) != i_stop:
+            
+            i_stop_actual += 1
+            
+            if i_stop_actual - i_stop > 50: time = tostopplease # no bin has that many new features, you missed your target
+                
+        inp_features_bin = inp_features_bin[i_start*4-4:i_stop_actual*4]
+        
+        if int(inp_features_bin[0].split()[0]) != i_start: messed = up_start
+        if int(inp_features_bin[-4].split()[0]) != i_stop: messed = up_stop
+        
+        
+        if bin_name == bins_done[0]: # if this is the first one
+        
+            inp_features = inp_features_bin.copy()
+        
+        else: 
+        
+            inp_features.extend(inp_features_bin)
+            
+        print('name:{}     start:{}     stop:{}    delta with last:{}'.format(bin_name, i_start, i_stop, i_start-i_stop_last))
+        
+        i_stop_last = i_stop
+        
+
+inp_features_2 = inp_features.copy()
+
+# walk through feature by feature to make some changes  
+for i in range(0, len(inp_features)//4+1):
+    
+    print(i)
+    
+    # reset all floats to 1 (no float)
+    inp_features[4*i+2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n' 
+
+    # set all SD to 0.12
+    inp_features[4*i+1] = inp_features[4*i+1][:65] + '  0.12000\n'
+    
+    # set all air shifts to 0 (linear -> exp.), shift exponenets to 1.0
+    inp_features[4*i] = inp_features[4*i][:72] + '  0.0000000  1.00000000' + inp_features[4*i][95:]
+
+inp_final.extend(inp_features)
+
+inp_final[0] = inp_final[0][:33] + str(len(inp_features)//4) + inp_final[0][38:]
+
+
+open(os.path.join(d_labfit_main, 'p2020a_updated.inp'), 'w').writelines(inp_final)
+
+
+
 
 #%% export to par file - UPDATE TO INCLUDE THE NON-HITRAN PARAMETERS
 
@@ -247,8 +336,8 @@ f.close()
 
 par_name = 'H2O'
 
-df_sceg2 = df_sceg.rename(columns={"n_delta_self": "deltap_self", "uc_n_delta_self": "uc_deltap_self", 
-                                   "n_delta_air": "deltap_air", "uc_n_delta_air": "uc_deltap_air"})  # if using linear pressure shift model
+df_sceg2 = df_sceg.rename(columns={"n_delta_self": "delta_self", "uc_n_delta_self": "uc_deltap_self", 
+                                   "n_delta_air": "delta_air", "uc_n_delta_air": "uc_deltap_air"})  # if using linear pressure shift model
 
 db.df_to_par(df_sceg2, par_name, extra_params=db.SDVoigt_LinearShift, save_dir=d_sceg)
 

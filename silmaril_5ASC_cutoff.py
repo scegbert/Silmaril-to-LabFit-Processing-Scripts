@@ -27,9 +27,9 @@ import time
 
 # %% dataset specific information
 
-save_data = False
-check_bins = True # only look at some of the measurements (high pressure, to check the bin-breaks for features)
-d_type = 'pure' # 'pure' or 'air'
+save_data = True
+check_bins = False # only look at some of the measurements (high pressure, to check the bin-breaks for features)
+d_type = 'air' # 'pure' or 'air'
 
 remove_bg = True # if True, use the transmission file with the background removed, otherwise send the background information to labfit
 two_BG_temps = True # only matters if remove_bg = False (trying to put conditions in ASC), not yet prepared for two backgrounds in the ASC file
