@@ -180,7 +180,7 @@ f.close()
 # f.close()
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure, res_HT_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
 f.close()
 
 df_sceg_align, df_HT2020_align = df_sceg.align(df_HT2020, join='inner', axis=0)

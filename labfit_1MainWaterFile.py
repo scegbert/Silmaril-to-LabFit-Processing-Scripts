@@ -412,83 +412,6 @@ plt.title(bin_name)
 # %% MAIN SEGMENT (will need to snag prop_which and feature parameters from txt file)
 
 
-###############
-
-bins_delta = {'B6': [4913],  
-			 'B7': [5450, 5509],
-			 'B8': [5655, 5665, 5763, 5850, 6004], 
-			 'B9': [6283, 6305, 6360, 6373, 6382, 6618, 6643, 6647], 
-			 'B10': [6872, 6917, 6919, 6981, 7013, 7021, 7094, 7114, 7183, 7284, 7328, 7335, 7414, 7442, 7466, 7469], 
-			 'B11': [7649, 7677, 7749, 7807, 7823, 7830, 7905, 7912, 8051, 8085, 8123, 8138, 8220, 8244, 8268], 
-			 'B12': [8291, 8297, 8404, 8450, 8581, 8582, 8609, 8623, 8632, 8637, 8639, 8658, 8686, 8724, 8752, 8764, 8793, 8841, 8889], 
-			 'B13': [8942, 8948, 9037, 9057, 9066, 9068, 9097, 9177, 9259, 9286, 9298, 9402, 9452, 9460, 9486, 9491, 9532, 9566, 9579, 9594, 9626], 
-			 'B14': [9715, 9738, 9739, 9751, 9803, 9809, 9866, 9887, 9908, 9918, 9972, 10032, 10046, 10072, 10088, 10151, 10165, 10169, 10227, 10230, 10268, 10274, 10340, 10350, 10372], 
-			 'B15': [10456, 10470, 10477, 10495, 10559, 10624, 10684, 10716, 10779, 10790, 10827, 10875, 10890, 10934, 10948, 10954], 
-			 'B16': [10983, 11028, 11052, 11056, 11063, 11124, 11152, 11208, 11221, 11247, 11353, 11487, 11708, 11716, 11721, 11733], 
-			 'B17': [11819, 11929, 11956, 12006, 12048, 12070, 12252, 12464, 12510], 
-			 'B18': [12589, 12590, 12611, 12647, 12707, 12732, 12837, 12856, 12864, 12865, 12871, 12881, 12884, 12893, 12895, 12916, 12922, 12923, 12933, 12940, 12943, 12952, 13000, 13021, 13023, 13034, 13048, 13073, 13114, 13121], 
-			 'B19': [13256, 13271, 13286, 13288, 13298, 13304, 13383, 13413, 13509, 13525, 13543, 13545, 13550, 13589, 13610, 13634, 13646, 13673, 13764, 13775, 13822, 13824, 13848, 13867, 13873, 13886, 13921, 13950, 13965, 13981, 14005], 
-			 'B20': [14045, 14060, 14089, 14093, 14110, 14127, 14139, 14153, 14169, 14172, 14179, 14227, 14275, 14286, 14304, 14436, 14459, 14473, 14475, 14509, 14547, 14566, 14591, 14624, 14664, 14740, 14742, 14817, 14845], 
-             'B21': [14886, 14932, 14946, 14958, 14960, 15028, 15035, 15052, 15077, 15093, 15097, 15114, 15118, 15135, 15144, 15146, 15154, 15155, 15164, 15194, 15206, 15228, 15248, 15305, 15326, 15357, 15394, 15438, 15443, 15456, 15460, 15487, 15535, 15577, 15596, 15640], 
-			 'B22': [15722, 15725, 15744, 15807, 15812, 15841, 15917, 15926, 15983, 15986, 15987, 16049, 16147, 16160, 16162, 16168, 16182, 16217, 16223, 16259, 16295, 16298, 16315, 16326, 16416, 16512, 16518, 16525, 16551, 16558, 16572], 
-			 'B23': [16667, 16681, 16731, 16735, 16739, 16774, 16842, 16849, 16866, 16916, 17112, 17170, 17225, 17277, 17290, 17295, 17300, 17304, 17309, 17339, 17364, 17383, 17423, 17428, 17454, 17457, 17461, 17468], 
-			 'B24': [17521, 17545, 17570, 17611, 17633, 17649, 17660, 17677, 17744, 17757, 17766, 17856, 17910, 17955, 17965, 17976, 18011, 18013, 18036, 18088, 18094, 18095, 18103, 18213], 
-			 'B25': [18339, 18351, 18362, 18394, 18398, 18406, 18478, 18491, 18532, 18542, 18555, 18611, 18617, 18633, 18649, 18652, 18668, 18741, 18742, 18754, 18763, 18794, 18851, 18885, 18904, 18905, 18974, 19055, 19073, 19084, 19091, 19101, 19114, 19134], 
-			 'B26': [19207, 19222, 19262, 19281, 19286, 19310, 19333, 19339, 19346, 19368, 19389, 19398, 19406, 19432, 19463, 19526, 19556, 19595, 19604, 19691, 19707, 19721, 19765, 19780, 19787, 19799, 19825, 19829, 19863, 19880, 19898], 
-			 'B27': [19981, 20012, 20076, 20096, 20130, 20163, 20180, 20225, 20250, 20268, 20276, 20283, 20286, 20307, 20312, 20315, 20320, 20349, 20354, 20385, 20429, 20470, 20535, 20550, 20573, 20585, 20626, 20672, 20752, 20765, 20795, 20803, 20812, 20821, 20835, 20861, 20864], 
-			 'B28': [20910, 20957, 21006, 21019, 21035, 21075, 21116, 21176, 21189, 21230, 21242, 21271, 21298, 21331, 21353, 21361, 21394, 21404, 21430, 21455, 21459, 21480, 21484, 21526, 21555, 21556, 21562, 21572, 21586],
-			 'B29': [21652, 21691, 21739, 21873, 21991, 22269, 22372, 22431, 22491],
-			 'B30': [22535, 22552, 22611, 22620, 22642, 22645, 22654, 22659, 22707, 22719, 22809, 22845, 22855, 22863, 22893, 22954, 23026, 23069, 23120, 23161, 23184, 23200, 23218, 23225, 23250, 23277, 23279, 23302, 23311, 23325, 23360, 23374, 23378, 23402, 23428, 23435, 23437], 
-             'B31': [23499, 23507, 23610, 23615, 23714, 23854, 23877, 23916, 23942, 24128],
-			 'B32': [24240, 24279, 24281, 24301, 24324, 24329, 24421, 24435, 24484, 24506, 24512, 24541, 24566, 24575, 24605, 24642, 24703, 24795, 24802, 24854, 24864, 24933, 24951],
-			 'B33': [25065, 25093, 25143, 25151, 25176, 25210, 25233, 25239, 25246, 25333, 25394, 25446, 25459, 25483, 25495, 25502, 25509, 25534, 25549, 25552, 25573, 25625, 25695, 25710, 25720, 25732, 25820],
-			 'B34': [25931, 25935, 26046, 26067, 26109, 26134, 26190, 26263, 26337, 26365, 26425, 26463, 26481, 26487, 26555, 26578, 26611],
-			 'B35': [26664, 26691, 26745, 26750, 26804, 26810, 26905, 26908, 27034, 27107, 27181, 27194, 27207, 27227, 27244, 27268, 27282, 27291, 27307, 27334, 27343, 27348, 27376, 27442, 27468, 27475, 27487],
-			 'B36': [27592, 27622, 27646, 27657, 27698, 27730, 27775, 27782, 27804, 27839, 27847, 28032, 28117, 28124, 28152, 28162, 28173, 28187, 28196, 28205, 28246, 28276, 28303], 
-			 'B37': [28429, 28492, 28497, 28511, 28517, 28535, 28543, 28594, 28609, 28647, 28724, 28736, 28749, 28805, 28820, 28824, 28836, 28844, 28850, 28972, 29027, 29054, 29069, 29100, 29134, 29143, 29174, 29177, 29235, 29265, 29287, 29308, 29323, 29343], 
-			 'B38': [29396, 29433, 29465, 29468, 29511, 29524, 29550, 29559, 29589, 29604, 29649, 29689, 29694, 29696, 29716, 29721, 29743, 29840, 29855, 29903, 29907, 29912, 29937, 29946, 30005, 30022, 30033, 30152, 30162, 30174, 30190, 30206, 30227, 30244, 30272, 30278], 
-			 'B39': [30364, 30400, 30425, 30434, 30455, 30474, 30495, 30520, 30579, 30598, 30630, 30631, 30639, 30692, 30697, 30717, 30753, 30759, 30771, 30781, 30851, 30880, 30953, 30999, 31006, 31051, 31076, 31135, 31174, 31240], 
-			 'B40': [31330, 31355, 31379, 31467, 31504, 31552, 31553, 31555, 31556, 31565, 31591, 31654, 31669, 31680, 31741, 31761, 31778, 31821, 31848, 31873, 31880, 31992, 31996, 32034, 32054, 32056],
-             'B41': [32116, 32145, 32164, 32204, 32215, 32244, 32253, 32267, 32277, 32287, 32308, 32374, 32382, 32435, 32453, 32506, 32566, 32634, 32707, 32732, 32757, 32762, 32767, 32786, 32795, 32805, 32847, 32870, 32893], 
-			 'B42': [32940, 32943, 32958, 33067, 33094, 33133, 33172, 33177, 33197, 33209, 33229, 33233, 33275, 33330, 33334, 33347, 33354, 33406, 33449, 33503, 33536, 33596, 33603, 33612], 
-			 'B43': [33706, 33757, 33765, 33786, 33801, 33811, 33843, 33858, 33912, 33939, 33941, 33956, 34011, 34018, 34020, 34111, 34128, 34147, 34228, 34243, 34245, 34320, 34323, 34360], 
-			 'B44': [34403, 34413, 34491, 34508, 34521, 34537, 34564, 34569, 34592, 34593, 34596, 34617, 34662, 34763, 34814, 34834, 34892, 34917, 34962, 34977, 34992, 34995, 35005, 35034, 35036], 
-			 'B45': [35070, 35195, 35251, 35293, 35348, 35414, 35446, 35554, 35562, 35563, 35584, 35597, 35676, 35704], 
-			 'B46': [35745, 35753, 35844, 35850, 35870, 35887, 35926, 35998, 36029, 36081, 36113, 36143, 36172, 36194, 36300, 36323, 36333], 
-			 'B47': [36383, 36387, 36400, 36406, 36502, 36562, 36618, 36627, 36779, 36834, 36893], 
-			# 'B48' - nothing
-			 'B49': [37634, 37651, 37820, 37992], 
-			 'B50': [38119],
-             'B51': [38711], 
-			# 'B52' - nothing
-			# 'B53' - nothing
-			# 'B54' - nothing
-			# 'B55' - nothing
-            }
-
-
-
-bin_name = 'B22'
-
-
-d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
-d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
-d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
-
-d_labfit_kernal = d_labfit_kp # d_labfit_main # d_labfit_kp # d_labfit_kp2
-
-
-d_labfit_main = r'D:\OneDrive - UCB-O365\water database' # this is where all the files are kept right now
-features_doublets = []
-prop_whiches = [['delta_self', False, False, 'after delta self - updated',              False, False],
-				['n_delta_self', False, False, 'after n delta self - updated', 'use_accepted', False]]
-
-features_test = bins_delta[bin_name]
-
-d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
-
-###############
-
 # make sure all doublets are floated (avoids errors if we pause and then run in the night)
 lab.float_lines(d_labfit_kernal, bin_name, features_test, props['nu'], 'rei_saved', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 # lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
@@ -499,6 +422,7 @@ df_iter = {} # where we save information from the floating process
 feature_error = None # first iteration with a feature that throws an error
 feature_error2 = None # second iteration with the same feature throwing an error (something is up, time to stop)
 already_reduced_i = False # if we reduce to avoid error, indicate here
+already_sniffed = False
 
 # features_test = features to try fitting
 # features_doublets = doublets to try constraining
@@ -583,6 +507,7 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
     
     df_iter[d_save_name] = [[features_test.copy(), features_doublets.copy()]]; 
     
+    already_sniffed = False
     
     while len(features_reject) > 0 or feature_error is not None or iter_prop <= 2 or already_reduced_i is True: # until an iteration doesn't reject any features (or feature_error repeats itself)
         
@@ -604,14 +529,17 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
             iter_labfit_reduced = iter_labfit
             unc_multiplier = 1        
             
-            if already_reduced_i: please = stop_here
             already_reduced_i = True
 
         # if we timed out immidately, let's sniff stuff out
-        elif (feature_error == 'no LWA' or feature_error == 'timeout') and i==1: 
-                       
+        elif (feature_error == 'no LWA' or feature_error == 'timeout') and (
+                    i==1 or (already_reduced_i and not already_sniffed)): 
+            
+            already_sniffed = True     
+            already_reduced_i = False
+            
             sniff_features, sniff_good_reject, sniff_bad, sniff_iter = lab.feature_sniffer(features, d_labfit_kernal, bin_name, bins, prop_which, props, props_which, prop_which2,
-                                                      iter_sniff=15, unc_multiplier=1.2, d_labfit_main=d_labfit_main)
+                                                      iter_sniff=10, unc_multiplier=1.2, d_labfit_main=d_labfit_main)
             features_sniffed = features.copy()
             features = sniff_features.copy()
             
@@ -767,15 +695,43 @@ plt.title(bin_name)
 [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props['gamma_self'], props['n_self'], props['sd_self'], d_old=d_old) # read results into python
 
 
+#%% setup for rerunning last check out
+
+
+bin_name = 'B22'
+
+d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
+d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
+d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+
+# d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
+
+d_labfit_main = r'D:\OneDrive - UCB-O365\water database\done' # this is where all the files are kept right now
+d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
+
+
+lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+
+prop_which = 'delta_self'
+prop_which2 = 'n_delta_self'
+
+[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name + d_labfit_kernal[-13:])
+
 
 #%% re-run fits to fix something wrong
 
-iter_labfit = 3
+
+iter_labfit = 2
 
 res1 = res.copy()
 
 # prop_which = 'gamma_self'
-# lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'inp_new', features_constrain, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+# lab.float_lines(d_labfit_kernal, bin_name, features_test, props[prop_which], 'inp_new', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 
 # prop_which = 'sw'
 # lab.float_lines(d_labfit_kernal, bin_name,  [], props[prop_which], 'inp_new', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
@@ -794,11 +750,12 @@ while feature_error is None and i < iter_labfit: # run X times
 # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+# lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)
 
 
-if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'final - updated', d_folder_input=d_labfit_kernal)
+if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'final - updated - again', d_folder_input=d_labfit_kernal)
 # if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'ditched SD 36303 36306', d_folder_input=d_labfit_kernal)
 
 

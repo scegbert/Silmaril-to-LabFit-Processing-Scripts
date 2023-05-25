@@ -14,6 +14,11 @@ import subprocess
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import AutoMinorLocator
+
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 import os
 from sys import path
@@ -163,11 +168,10 @@ colors_grad = ['firebrick','orangered','goldenrod','forestgreen','teal','royalbl
 
 
 
-# %% read in results, re-write quantum assignments in a way that is useful
-
+# %% read in results
 
 f = open(os.path.join(d_sceg,'df_sceg.pckl'), 'rb')
-[df_sceg, df_HT2020, df_HT2020_HT, df_paul] = pickle.load(f)
+[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
 f.close()
 
 # f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
@@ -175,125 +179,60 @@ f.close()
 # f.close()
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure, res_HT_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
 f.close()
+
+#%% align HITRAN 2020 to database (easy, since they have the same features)
 
 df_sceg_align, df_HT2020_align = df_sceg.align(df_HT2020, join='inner', axis=0)
 df_sceg_align2, df_HT2020_HT_align = df_sceg_align.align(df_HT2020_HT, join='inner', axis=0)
 
 if not df_sceg_align.equals(df_sceg_align2): throw = errorplease # these should be the same dataframe if everything lines up
 
-# df_sceg['sw1300'] = lab.strength_T(1300, df_sceg.elower, df_sceg.nu) * df_sceg.sw
-# df_HT2020['sw1300'] = lab.strength_T(1300, df_HT2020.elower, df_HT2020.nu) * df_HT2020.sw
+del df_sceg_align2
+
+#%% align HITRAN 2020, 2016, and Paul to database (hard, have different features)
+
+
+df_sceg['quanta_index'] = df_sceg.quanta.replace(r'\s+', ' ', regex=True)
+df_sceg['iso_quanta_index'] = df_sceg.local_iso_id + df_sceg.quanta_index
+
+
+df_paul['quanta_index'] = df_paul.quanta.str.replace('\s{2,}', ' ') # fix weird quanta formatting - remove double spaces
+df_paul.quanta_index = df_paul.quanta_index.str.slice_replace(0,2,'') # fix weird quanta formatting - remove leading 0
+df_paul.quanta_index = df_paul.quanta_index.str # fix weird quanta formatting - remove trailing space
+# negative signs are still messed up, but we could ignore those for most things - they aren't actually assigned
+df_paul['iso_quanta_index'] = '1' + df_sceg.quanta_index.astype(str).str.rstrip() # all iso 1
+
+
+df_HT2020_HT['iso_quanta_index'] = df_HT2020_HT.local_iso_id.astype(str) + ' ' + df_HT2020_HT.quanta_index
+df_HT2016_HT['iso_quanta_index'] = df_HT2016_HT.local_iso_id.astype(str) + ' ' + df_HT2016_HT.quanta_index
+
+df_all_sw = df_HT2020_HT.drop(columns = ['molec_id', 'local_iso_id' ,'gamma_air', 'gamma_self', 'n_air', 'delta_air', 'quanta', 'other', 'quanta_index'])
+
+# merge in sceg
+df_all_sw = pd.merge(df_all_sw, df_sceg[['sw','uc_sw']], how='inner', left_index=True, right_index=True, suffixes=('_2020', '_sceg'))
+df_all_sw = df_all_sw.rename(columns={'uc_sw':'uc_sw_sceg'})
+
+# merge in paul
+df_all_sw = pd.merge(df_all_sw, df_paul[['sw', 'uc_sw', 'iso_quanta_index']], on='iso_quanta_index', how='left')
+df_all_sw = df_all_sw.rename(columns={'sw':'sw_paul', 'uc_sw':'uc_sw_paul'})
+
+# merge in 2016
+df_all_sw = pd.merge(df_all_sw, df_HT2016_HT[['sw', 'iso_quanta_index', 'iref']], on='iso_quanta_index', how='inner', suffixes=('_2020', '_2016'))
+df_all_sw = df_all_sw.rename(columns={'sw':'sw_2016'})
+
+df_all_sw['sw_ref_2020'] = df_all_sw.iref_2020.str[2:4]
+df_all_sw['sw_ref_2016'] = df_all_sw.iref_2016.str[2:4]
+
 
 please = stophere
 
-
-# %% quantum explorations
-
-
-# d_ht2020 = r'C:\Users\scott\Documents\1-WorkStuff\code\scottcode\silmaril pure water\data - HITRAN 2020\H2O.par'
-# df_ht2020 = db.par_to_df(d_ht2020) # currently shifted by one from df_sceg (labfit indexes from 1) 8181 HT <=> 8182 LF
-
-# # v_bands = ['(200)<-(000)', '(111)<-(010)', '(101)<-(000)', '(031)<-(010)', '(021)<-(000)'] # J=Kc doublets
-# v_bands = [['(101)<-(000)',0], ['(021)<-(000)',1], ['(200)<-(000)',2]] # most common vibrational transitions
-# ka_all = [[0,0, 'o','solid'], [0,1, 'x','dotted'], [1,0, '+','dashed'], [1,1, '1','dashdot']]
-
-# props_which = [['nu','Line Position, $\\nu$ [cm$^{-1}$]'],
-#                ['sw','Line Strength, S$_{296}$ [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'],
-#                ['gamma_self','Self-Broadened Half Width, $\gamma_{self}$ [cm$^{-1}$/atm]'],
-#                ['n_self','Temp. Dep. of Self-Broadened Half Width, n$_{self}$'],
-#                ['sd_self','Self Broadening Speed Dependence, a$_{w}$=$\Gamma_{2}$/$\Gamma_{0}$'],
-#                ['delta_self','Self Pressure Shift, $\delta_{self}$(T$_{0}$) [cm$^{-1}$/atm]'],
-#                ['n_delta_self','Temp. Dep. of Self Shift, $\delta^{\'}_{self}$ [cm$^{-1}$/(atm$\cdot$K]'],
-#                ['gamma_air','Air-Broadened Half Width, $\gamma_{air}$ [cm$^{-1}$/atm]'],
-#                ['n_air','Temp. Dep. of Air-Broadened Half Width, n$_{air}$'],
-#                ['sd_air','Air Broadening Speed Dependence, a_${w}$=$\Gamma_{2}$/$\Gamma_{0}$'],
-#                ['delta_air','Air Pressure Shift, $\delta_{air}$(T$_{0}$) [cm$^{-1}$/atm]'],
-#                ['n_delta_air','Temp. Dep. of Air Shift, $\delta^{\'}_{air}$ [cm$^{-1}$/(atm$\cdot$K]']]
+# df_sceg['sw1300'] = lab.strength_T(1300, df_sceg.elower, df_sceg.nu) * df_sceg.sw
+# df_HT2020['sw1300'] = lab.strength_T(1300, df_HT2020.elower, df_HT2020.nu) * df_HT2020.sw
 
 
-# for v_band, k in v_bands: 
-    
-#     label1 = v_band 
-
-#     for ka in ka_all: 
-
-#         if v_bands.index([v_band, k]) == 0: label2 = 'Kc=J, Ka\'='+str(ka[0])+', Ka\'\'='+str(ka[1])
-#         else: label2 = ''
-                
-#         df_sceg2 = df_sceg.copy()
-#         keep_boolean = ((~df_sceg2.index.isin(features_doublets)) & (df_sceg2.index.isin(features_clean)) # no doublets, only clean features
-#                          & (df_sceg2.index < 100000) # no nea features
-#                          & (df_sceg2.Jpp == df_sceg2.Kcpp) & (df_sceg2.Jp == df_sceg2.Kcp) # kc
-#                          & (df_sceg2.Kapp == ka[0]) & (df_sceg2.Kap == ka[1]) # ka
-#                          & (df_sceg2.v_all == v_band)) # vibrational band
-                         
-#         df_sceg2 = df_sceg2[keep_boolean]
-#         df_og2 = df_og[keep_boolean]
-        
-#         j=1
-        
-#         for prop, plot_y_label in props_which:
-            
-#             # don't bother with these guys ['elower','quanta','nu','sw']
-        
-#             df_plot = df_sceg2[df_sceg2['uc_'+prop] > 0]
-#             df_plot_og = df_ht2020.loc[df_plot.index-1]
-            
-#             # print(prop)
-#             # print('    ' + str(len(df_sceg[df_sceg['uc_'+prop] > 0]))) # number of total features that were fit
-            
-#             plot_x = df_plot.m # + (df_plot.Kapp/df_plot.Jpp)/2
-#             plot_y = df_plot[prop]
-#             plot_y_unc = df_plot['uc_'+prop]
-                        
-#             plt.figure(3*j-2, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             # plt.plot(plot_x,plot_y,marker='x', markerfacecolor='None',linestyle='None', color=colors[0])
-#             plt.plot(plot_x,plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label1)
-#             # plt.plot(plot_x,plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label2) # plot for the legend
-#             # plt.plot(plot_x,plot_y,marker='None', markerfacecolor='None',linestyle=ka[3], color=colors[k],  label=label2) # plot for the legend
-#             plt.errorbar(plot_x,df_plot[prop], yerr=plot_y_unc, color=colors[0], ls='none')
-#             try: 
-#                 plot_y_og = df_plot_og[prop]
-#                 plt.plot(plot_x,plot_y_og,linestyle=ka[3], color=colors[k])
-#             except: pass
-            
-#             plt.xlabel('m') # ' + Ka\'\'/J\'\'/2')
-#             plt.ylabel(plot_y_label)
-#             # plt.legend(edgecolor='k')       
-            
-
-#             #for i in df_plot.index:
-#             #    i = int(i)
-#             #    plt.annotate(str(i),(plot_x[i], plot_y[i]))
-
-#             r'''
-#             plt.figure(3*j-1, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             plt.plot(abs(plot_x),plot_y,marker=ka[2], markerfacecolor='None',linestyle='None', color=colors[k],  label=label1)
-#             plt.plot(abs(plot_x),plot_y_og,linestyle=ka[3], color=colors[k])
-#             plt.errorbar(abs(plot_x),df_plot[prop], yerr=plot_y_unc, color=colors[k], ls='none')
-#             plt.xlabel('|m| + Ka\'\'/J\'\'/2')
-#             plt.ylabel(plot_y_label)
-#             plt.legend(edgecolor='k')        
-#             r'''     
-#             r'''
-#             plt.figure(3*j, figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
-#             plt.plot(plot_x,plot_y-plot_y_og,marker=ka[2],linestyle='None',  color=colors[k], label=label1)
-#             plot_unc_y = df_plot.uc_delta_air
-#             plt.errorbar(plot_x,plot_y-plot_y_og, yerr=plot_y_unc,  color=colors[k], ls='none')
-#             plt.xlabel('m + Ka\'\'/J\'\'/2')
-#             plt.ylabel('('+prop+' Labfit) - ('+prop+' HITRAN 2020)')
-#             plt.legend(edgecolor='k')    
-#             r'''
-            
-#             j+=1
-        
-#         label1 = ''
-
-
-
-# %% percent change SW with E lower
+# %% percent change SW with E lower - referenced to HITRAN 2020
 
 buffer = 1.3
 
@@ -316,21 +255,26 @@ plot_y_unc = df_plot.uc_sw
 label_c = 'Lower State Energy [cm$^{-1}$]'
 plot_c = df_plot.elower
 
-plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.figure(figsize=(10, 5), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
 plt.ylabel(label_y)
 
 plt.errorbar(plot_x,plot_y, yerr=plot_y_unc, color='k', ls='none', zorder=1)
 
 
-limited = ['6']
+# limited = ['6']
 
+
+# legend for each uncertainty code
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
     
+    label = HT_errors[ierr]
+    if ierr == '7': label=''
+    
     sc = plt.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                     label=HT_errors[ierr])
+                     label=label)
     df_plot.sort_values(by=['sw'], inplace=True)
     
     
@@ -341,37 +285,115 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     
     print(' {} total, {} within uncertainty'.format(len(plot_x[sw_error == ierr]), within_HT))
 
-
-
 plt.legend()
+
 ax = plt.gca()
 legend = ax.get_legend()
 legend_dict = {handle.get_label(): handle for handle in legend.legendHandles}
 
+
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
     
-    legend_dict[HT_errors[ierr]].set_color(colors[i])
-    
-    if ierr != '3': 
+    if ierr not in ['7', '6', '5', '3']: 
+        
         plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
                     linestyles=linestyles[i], color=colors[i])
         plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
                     linestyles=linestyles[i], color=colors[i])
         
+        
+    if ierr not in ['7']: 
+        legend_dict[HT_errors[ierr]].set_color(colors[i])
+        df_plot.sort_values(by=['sw'], inplace=True)
+
+
+
+
 plt.xlim(min(plot_x)/buffer, max(plot_x)*buffer)
 plt.xscale('log')
 
 plt.colorbar(sc, label=label_c)
+plt.show()
 
+# plot inset 
+
+# # ax_ins = inset_axes(ax, width='40%', height='50%', loc='upper center', bbox_to_anchor=(0.05,0,1,1), bbox_transform=ax.transAxes)
+# ax_ins = inset_axes(ax, width='50%', height='35%', loc='center right', bbox_to_anchor=(0,-0.05,1,1), bbox_transform=ax.transAxes)
+
+# for i, ierr in enumerate(np.sort(sw_error.unique())): 
+    
+#     if ierr not in ['7']: 
+    
+#         ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
+#                           c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
+#                           label=HT_errors[ierr])
+#         df_plot.sort_values(by=['sw'], inplace=True)
+        
+#         legend_dict[HT_errors[ierr]].set_color(colors[i])
+        
+#         if ierr not in ['3', '7']: 
+#             plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
+#                         linestyles=linestyles[i], color=colors[i])
+#             plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0])/100,min(plot_x), max(plot_x),
+#                         linestyles=linestyles[i], color=colors[i])
+        
+
+# patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
+# pp1.loc1 = 3
+# pp2.loc1 = 4
+
+
+# updates for entire plot
+
+
+plt.xlim(2e-26, 2.5e-20)
+plt.ylim(-0.12, 0.12)
+
+plt.xscale('log')
+
+
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+
+
+# %% percent change SW with E lower - referenced to HITRAN 2016, 2020, or paul
+
+buffer = 1.3
+
+df_plot = df_all_sw[df_all_sw.uc_sw_sceg > 0].sort_values(by=['elower'])
+                                                                   
+
+label_x = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
+df_plot['plot_x'] = df_plot.sw_sceg
+plot_x = df_plot['plot_x']
+
+label_y = 'Relative Change in Line Strength, S$_{296}$ \n (updated - HT2016) / HT2016' # ' \n [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
+df_plot['plot_y'] = (df_plot.sw_sceg - df_plot.sw_2016) / df_plot.sw_2016
+plot_y = df_plot['plot_y']
+
+plot_y_unc = df_plot.uc_sw_sceg
+label_c = 'Lower State Energy [cm$^{-1}$]'
+plot_c = df_plot.elower
+
+plt.figure(figsize=(10, 5), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+plt.errorbar(plot_x,plot_y, yerr=plot_y_unc, color='k', ls='none', zorder=1)
+
+
+sc = plt.scatter(plot_x, plot_y, marker=markers[0], c=plot_c, cmap='viridis', zorder=2)
+df_plot.sort_values(by=['sw_sceg'], inplace=True)
+
+plt.xlim(min(plot_x)/buffer, max(plot_x)*buffer)
+plt.xscale('log')
+
+plt.colorbar(sc, label=label_c)
 plt.show()
 
 
-# for fit_order in [30,31,32]:
-#     a = np.log10(df_plot['plot_x']*np.power(10,20))
-#     b = np.polyfit(a, df_plot['plot_y'], fit_order)
-#     c = np.poly1d(b)
-#     d = c(a)
-#     plt.plot(df_plot['plot_x'], d, 'r')
+
+plt.xscale('log')
+
 
 
 
@@ -402,7 +424,7 @@ limited = ['6']
 
 # for vp in df_plot.vp.unique():     
 
-I# if len(df_plot[df_plot.vp == vp]) > 140: 
+# if len(df_plot[df_plot.vp == vp]) > 140: 
 
 plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
@@ -410,7 +432,7 @@ plt.ylabel(label_y)
 
 # plt.title(vp)
 
-for i_err, err in enumerate(limited): #np.sort(sw_error.unique())): 
+for i_err, err in enumerate(np.sort(sw_error.unique())): 
     
     which = (sw_error == err) #&(df_plot.vp == vp)
     
@@ -459,131 +481,310 @@ plt.show()
 
 
 
+# %% feature widths vs temp dependence (matching Paul's style)
 
 
-#%% plot of pure water spectra with residuals
+#-----------------------
+plot_which_y = 'n_self'
+label_y = 'Temperature Exponent\n(n$_{self}$)'
 
-wvn_range = [6615, 7650] # 6621 to 7645
+plot_which_x = 'gamma_self'
+label_x = 'Self-Broadening Coefficient ($\mathregular{cm^{-1}/atm}$))'
 
-plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+label_c = 'J"' # 'Angular Momentum of Ground State (J")'
 
-[T_all, P_all] = np.asarray([T_pure, P_pure])
+df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_x] > -1)&(df_sceg['uc_'+plot_which_y] > -1)&
+                        (df_sceg['uc_'+plot_which_x] < 0.05)&(df_sceg['uc_'+plot_which_y] < 0.05)].sort_values(by=['Jpp'])
 
+plot_unc_y_bool = True
+plot_unc_x_bool = True
 
-# T_plot = 300
-# P_plots = [16, 8, 4, 3, 2, 1.5, 1, 0.5]
+plot_labels = False
+plot_logx = False
 
-T_plots = [300, 500, 700, 900, 1100, 1300]
-P_plot = 16
-
-
-for T_plot in T_plots:
-# for P_plot in P_plots:
-    
-    # j = P_plots.index(P_plot)
-    j = T_plots.index(T_plot)
-    print(j)
-    i_plot = np.where((T_all == T_plot) & (P_all == P_plot))[0]
-        
-    T = [T_all[i] for i in i_plot]
-    P = [P_all[i] for i in i_plot]
-    wvn = np.concatenate([wvn_pure[i] for i in i_plot])
-    trans = np.concatenate([trans_pure[i] for i in i_plot])
-    res = np.concatenate([res_pure[i] for i in i_plot])
-    res_og = np.concatenate([res_og_pure[i] for i in i_plot])
-    
-    istart = np.argmin(abs(wvn - wvn_range[0])) # won't work if you didn't put wvn in the first position
-    istop = np.argmin(abs(wvn - wvn_range[1]))
-        
-    plt.plot(wvn[istart:istop], trans[istart:istop], color=colors_grad[j], label=str(T_plot) + ', ' + str(P_plot))
-    plt.plot(wvn[istart:istop], res[istart:istop]+105, color=colors_grad[j])
-    plt.plot(wvn[istart:istop], res_og[istart:istop]+110, color=colors_grad[j])
-    plt.plot(wvn[istart:istop], res[istart:istop]-res_og[istart:istop]+115, color=colors_grad[j])
-
-plt.title('pure ' + str(T_plot))
-
-
-
-# %% new features and features below NF
-
-plot_which_y = 'sw'
-plot_which_y_extra = ''
-label_y = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
-
-plot_which_x = 'elower'
-label_x = 'Lower State Energy [cm$^{-1}$]'
-
-df_plot = df_sceg[df_sceg.index > 10000]
-
-plot_x = df_plot[plot_which_x]
-plot_y = df_plot[plot_which_y + plot_which_y_extra]
 
 plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
 plt.ylabel(label_y)
 
-plt.plot(plot_x, plot_y, 'kx', label = 'other features')
 
-if plot_clean: 
-    
-    df_plot_clean = df_plot[df_plot.index.isin(features_clean)]
-    plot_x_clean = df_plot_clean[plot_which_x]
-    plot_y_clean = df_plot_clean[plot_which_y + plot_which_y_extra]
-    
-    plt.plot(plot_x_clean, plot_y_clean, 'rx', label = 'isolated features')
-    plt.legend()
-    
-if plot_doublets: 
-    
-    df_plot_doublets = df_plot[df_plot.index.isin(features_doublets)]
-    plot_x_doublet = df_plot_doublets[plot_which_x]
-    plot_y_doublet = df_plot_doublets[plot_which_y + plot_which_y_extra]
-    
-    plt.plot(plot_x_doublet, plot_y_doublet, 'g+', label = 'doublets')
-    plt.legend()
 
-if plot_unc_x: 
+plot_x = df_plot[plot_which_x]
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot.Jpp
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[0], c=plot_c, cmap='gist_rainbow', zorder=2, linewidth=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
     plot_unc_x = df_plot['uc_'+plot_which_x]
-    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color='k', ls='none')
-if plot_unc_y: 
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
     plot_unc_y = df_plot['uc_'+plot_which_y]
-    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color='k', ls='none')
-
-if plot_labels:
-    for j in df_plot.index:
-        j = int(j)
-        plt.annotate(str(j),(plot_x[j], plot_y[j]))
-
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
 if plot_logx: 
     plt.xscale('log')
+    
+# plt.legend()
+
+
+cbar = plt.colorbar(sc, label=label_c, orientation='vertical') # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
+cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
 
 
 
 
+p = np.polyfit(plot_x, plot_y, 1)
+plot_y_fit = np.poly1d(p)(plot_x)
+
+
+import scipy.stats as ss
+slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
+
+# plt.plot([0.2, 0.5],[1.5344*.2+0.0502, 1.5344*.5+0.0502], 'r', label='Schroeder Fit Line', linewidth=2)
+# plt.plot(plot_x[(plot_x>0.07)&(plot_x<0.55)], plot_y_fit[(plot_x>0.07)&(plot_x<0.55)], 'k', label='Updated Fit Line', linewidth=2)
+
+# plt.legend(loc='upper left')
+
+
+plt.show()
+
+plt.ylim(-.59,1.24)
+plt.xlim(0.05,0.6)
+
+# %% feature widths
+
+
+#-----------------------
+plot_which_y = 'gamma_self'
+label_y = 'Self-Width (γ$_{self}$)'
+
+plot_which_x = 'm'
+label_x = 'm'
+
+label_c = 'Angular Momentum of Ground State (J")'
+
+df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)&(df_sceg['uc_sd_self'] > -1)] # floating all width parameters
+
+plot_unc_y_bool = True
+
+plot_labels = False
+plot_logx = False
+
+
+plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+
+
+plot_x = df_plot[plot_which_x]
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot.Jpp
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[i], c=plot_c, cmap='viridis', zorder=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
+if plot_logx: 
+    plt.xscale('log')
+    
+# plt.legend()
+
+plt.colorbar(sc, label=label_c)
+plt.show()
+
+# plt.xlim(-.59,1.24)
+# plt.ylim(0.05,0.6)
 
 
 
 
+# %% feature widths - Linda plot
+
+
+#-----------------------
+plot_which_y = 'gamma_self'
+label_y = 'Self-Width (γ$_{self}$)'
+
+plot_which_x = 'Km + 0.1(Jm-Km)'
+label_x = 'Km + 0.1(Jm-Km)'
+
+label_c = 'Angular Momentum of Ground State (J")'
+
+df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)&(df_sceg['uc_sd_self'] > -1)] # floating all width parameters
+
+plot_unc_y_bool = True
+plot_unc_x_bool = False
+
+plot_labels = False
+plot_logx = False
+
+
+plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+
+
+plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot[['Jp', 'Jpp']].max(axis=1)
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[i], c=plot_c, cmap='viridis', zorder=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
+if plot_logx: 
+    plt.xscale('log')
+    
+# plt.legend()
+
+plt.colorbar(sc, label=label_c)
+plt.show()
+
+# plt.xlim(-.59,1.24)
+# plt.ylim(0.05,0.6)
+
+
+
+# %% feature shifts - Linda plot
+
+
+#-----------------------
+plot_which_y = 'delta_self'
+label_y = 'Self-Width (γ$_{self}$)'
+
+plot_which_x = 'Km + 0.1(Jm-Km)'
+label_x = 'Km + 0.1(Jm-Km)'
+
+label_c = 'Angular Momentum of Ground State (J")'
+
+df_plot = df_sceg_align[(df_sceg['uc_delta_self'] > -1)&(df_sceg['uc_n_delta_self'] > -1)] # floating all width parameters
+
+plot_unc_y_bool = True
+plot_unc_x_bool = False
+
+plot_labels = False
+plot_logx = False
+
+
+plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+
+
+plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot[['Jp', 'Jpp']].max(axis=1)
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[i], c=plot_c, cmap='viridis', zorder=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
+if plot_logx: 
+    plt.xscale('log')
+    
+# plt.legend()
+
+plt.colorbar(sc, label=label_c)
+plt.show()
+
+# plt.xlim(-.59,1.24)
+# plt.ylim(0.05,0.6)
+
+
+
+# %% feature shift
+
+#-----------------------
+plot_which_y = 'delta_self'
+label_y = 'self shift'
+
+plot_which_x = 'n_delta_self'
+label_x = 'n delta'
+
+label_c = 'Angular Momentum of Ground State (J")'
+
+df_plot = df_sceg_align[(df_sceg['uc_delta_self'] > -1)&(df_sceg['uc_n_delta_self'] > -1)] # floating all width parameters
+
+plot_unc_y_bool = True
+plot_unc_x_bool = False
+
+plot_labels = False
+plot_logx = False
+
+
+plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x)
+plt.ylabel(label_y)
+
+
+
+plot_x = df_plot[plot_which_x]
+plot_y = df_plot[plot_which_y]
+plot_c = df_plot['Jpp']
+
+
+ 
+sc = plt.scatter(plot_x, plot_y, marker=markers[i], c=plot_c, cmap='viridis', zorder=2)
+             # label=HT_errors_nu[err])
+
+if plot_unc_x_bool: 
+    plot_unc_x = df_plot['uc_'+plot_which_x]
+    plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, ls='none', color='k', zorder=1)
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+       
+    
+if plot_logx: 
+    plt.xscale('log')
+    
+# plt.legend()
+
+plt.colorbar(sc, label=label_c)
+plt.show()
+
+# plt.xlim(-.59,1.24)
+# plt.ylim(0.05,0.6)
 
 
 
 
-
-
-
-
-
-
-
-#%%
-#%%
-#%%
-#%%
-
-# this is the new stuff after re-processing the data
-
-
-# %% temp dependence of shift (settings from previous plots)
+# %% temp dependence of shift
 
 #-----------------------
 plot_which_y = 'n_delta_self'
@@ -662,6 +863,8 @@ if plot_logx:
     plt.xscale('log')
     
 plt.legend()
+
+
 
 
 

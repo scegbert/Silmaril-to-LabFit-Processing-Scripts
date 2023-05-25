@@ -108,20 +108,26 @@ if d_type == 'pure': base_name = base_name_pure + n_update_name
 elif d_type == 'air': base_name = base_name_air + n_update_name
 
 ratio_min_plot = -2 # min S_max value to both plotting (there are so many tiny transitions we can't see, don't want to bog down)
-offset = 2 # for plotting
+offset = 5 # for plotting
+plot_spectra = True
+df_calcs_dict = {}
 
 if d_type == 'pure': props_which = ['nu','sw','gamma_self','n_self','sd_self','delta_self','n_delta_self', 'elower']
 elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','delta_air','n_delta_air', 'elower'] # note that SD_self is really SD_air 
 
 cutoff_s296 = 1E-24 
 
-d_sceg_load = r'D:\OneDrive - UCB-O365\water database'
+d_sceg_load = r'D:\OneDrive - UCB-O365\water database\done'
 bins_done = sorted(os.listdir(d_sceg_load), key=bin_names.index)
 
 d_paul = r'C:\Users\scott\Documents\1-WorkStuff\Labfit\working folder\paul nate og\PaulData_SD_Avgn_AKn2'
 d_sceg_save = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
-d_HT = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2020\H2O.par'
+d_HT2020 = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2020\H2O.par'
+d_HT2016 = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2016\H2O.par'
+
+
+
 
 please = stopherebeforeyougettoofar
 
@@ -132,13 +138,21 @@ d_sceg_bin_og = os.path.join(d_sceg_bin, os.listdir(d_sceg_bin)[1][:-4])
 
 df_HT2020 = db.labfit_to_df(d_sceg_bin_og, htp=False) # open og (HITRAN) database - faster to do it all in the beginning
 
-df_HT2020_HT = db.par_to_df(d_HT)
+df_HT2020_HT = db.par_to_df(d_HT2020)
 df_HT2020_HT.index = df_HT2020_HT.index +1
+
+df_HT2016_HT = db.par_to_df(d_HT2016)
+df_HT2016_HT.index = df_HT2016_HT.index +1
+
 
 df_paul = db.labfit_to_df(d_paul, htp=False) # open paul database
 
 
-for bin_name in bin_names: 
+
+for bin_name in ['B19', 'B20', 
+                 'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
+                 'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
+                 'B41', 'B42']: 
     if bin_name in bins_done: # sorts them according to bin_names (lazy but effective)
                 
         d_saved = os.path.join(d_sceg_load, bin_name) # where the saved file is located
@@ -151,41 +165,46 @@ for bin_name in bin_names:
 
         print('name:{}     load:{}     og:{}'.format(bin_name, d_load, d_load_og))
 
+        df_bin = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
+
+        [T, P, wvn, trans, res, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load) # get the spectra
+        [_, _,   _,  _, res_og, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_og) # get the original spectra
+
+
+        if plot_spectra: 
+            
+            if d_load[-3:] != '-og':
+            
+                df_calcs = lab.information_df('', bin_name, bins, cutoff_s296, T, df_external_load=df_bin) # <-------------------
+                lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_self'], axis_labels=False) # <-------------------
+                plt.title(bin_name)
+                
+                df_calcs_dict[bin_name] = df_calcs.copy()
+
         if bin_name == bins_done[0]: # if this is the first one
             
             if d_type == 'air': pass
-                # df_sceg_air = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim database
-                # [T_air, P_air, wvn_air, trans_air, res_air, _, _, _] = lab.labfit_to_spectra(d_labfit_kp, bins, bin_name) # get the spectra
-                # [    _,     _,       _,         _, res_og_air, _, _, _] = lab.labfit_to_spectra('', bins, bin_name, og=True, d_load=d_saved) # get the spectra
-                
+
             else:
                 
-                df_sceg_pure = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
-                [T_pure, P_pure, wvn_pure, trans_pure, res_pure, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load) # get the spectra
-                [    _,     _,       _,          _, res_og_pure, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_og) # get the original spectra
+                df_sceg_pure = df_bin.copy()
+                
+                T_pure = T.copy()
+                P_pure = P.copy()
+                wvn_pure = wvn.copy()
+                trans_pure = trans.copy()
+                res_pure = res.copy()
+                res_og_pure = res_og.copy()
+
 
         else: # add on to existing dataframe
 
-            df_bin = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
-
             if d_type == 'air': pass
-                # df_sceg_air = df_sceg_air.append(df_bin) # this is assuming we want both air and pure water
-                
-                # [T, P, wvn, trans, res, _, _, _] = lab.labfit_to_spectra(d_labfit_kp, bins, bin_name) # get the spectra
-                # [    _,     _,       _,         _, res_og, _, _, _] = lab.labfit_to_spectra('', bins, bin_name, og=True, d_load=d_saved) # get the spectra
-                # T_air.extend(T)
-                # P_air.extend(P)
-                # wvn_air.extend(wvn)
-                # trans_air.extend(trans)
-                # res_air.extend(res)
-                # res_og_air.extend(res_og)
-                
+
             else: 
-                df_sceg_pure = df_sceg_pure.append(df_bin) 
-
-                [T, P, wvn, trans, res, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load) # get the spectra
-                [_, _,   _,  _, res_og, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_og) # get the original spectra
-
+                
+                df_sceg_pure = df_sceg_pure.append(df_bin)
+                
                 T_pure.extend(T)
                 P_pure.extend(P)
                 wvn_pure.extend(wvn)
@@ -193,72 +212,10 @@ for bin_name in bin_names:
                 res_pure.extend(res)
                 res_og_pure.extend(res_og)
                 
-        if d_type == 'air': pass # redo everthing for the pure water data
-            
-            # bin_name_pure = bin_name[:-1]
-            # bins_pure = {key[:-1]: value for key, value in bins.items()}
-            
-            # d_saved = os.path.join(folder_done, bin_name, 'pure - linear')
-            
-            # if not os.path.isfile(os.path.join(d_labfit_kp, bin_name_pure+'.lwa')): # if the file is in done but we haven't pulled it into KP and run it yet...
-                
-            #     [_, use_which_file] = lab.newest_rei(d_saved, bin_name_pure)
-            #     use_which = os.path.join(folder_done, bin_name, 'pure - linear', use_which_file)[:-4]
-            
-            #     lab.float_lines(d_labfit_kp, bin_name_pure, [], 'nu', use_which) # don't float anything, just grab the file
-            #     lab.run_labfit(d_labfit_kp, bin_name_pure) # <------------------
-        
-            # if bin_name == bins_done[0]: # if this is the first one
-                
-            #     d_load = os.path.join(d_labfit_kp, bin_name_pure)
-            #     df_sceg_pure = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database (use wvn_range from above)
-            #     [T_pure, P_pure, wvn_pure, trans_pure, res_pure, _, _, _] = lab.labfit_to_spectra(d_labfit_kp, bins_pure, bin_name_pure) # get the spectra
-            #     [    _,     _,       _,             _, res_og_pure, _, _, _] = lab.labfit_to_spectra('', bins_pure, bin_name_pure, og=True, d_load=d_saved) # get the spectra
-                
-            # else: 
-            
-            #     d_load = os.path.join(d_labfit_kp, bin_name_pure)
-            #     df_bin = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
-    
-            #     df_sceg_pure = df_sceg_pure.append(df_bin)
-                
-            #     [T, P, wvn, trans, res, _, _, _] = lab.labfit_to_spectra(d_labfit_kp, bins_pure, bin_name_pure) # get the spectra
-            #     [_, _,   _,     _, res_og, _, _, _] = lab.labfit_to_spectra('', bins_pure, bin_name_pure, og=True, d_load=d_saved) # get the spectra
-            #     T_pure.extend(T)
-            #     P_pure.extend(P)
-            #     wvn_pure.extend(wvn)
-            #     trans_pure.extend(trans)
-            #     res_pure.extend(res)
-            #     res_og_pure.extend(res_og)
-                
+
+
+
 please =sdfsdfssdf
-        
-if d_type == 'air': pass
-
-    # df_sceg_air2 = df_sceg_air.rename(columns={"sd_self": "sd_air", "uc_sd_self": "uc_sd_air"}) # sd_pure for air data = sd_air
-    # df_og_all['sd_air'] = 0
-
-    # for prop_compare in props_which: 
-        
-    #     if prop_compare in props_which_pure: df_sceg_prop = df_sceg_pure
-    #     elif prop_compare in props_which_air: df_sceg_prop = df_sceg_air2
-        
-    #     if prop_compare == props_which[0]: # make the df for the first round
-    #         df_sceg = df_sceg_prop[prop_compare].copy().to_frame()
-    #         df_sceg = df_sceg[df_sceg.index<1000000]
-            
-    #         df_og = df_og_all[df_og_all.index.isin(df_sceg.index)][prop_compare].copy().to_frame()
-            
-    #     else: 
-    #         df_sceg[prop_compare] = df_sceg_prop[prop_compare]
-    #         df_og[prop_compare] = df_og_all[df_og_all.index.isin(df_sceg.index)][prop_compare]
-            
-    #     if prop_compare not in ['elower','quanta']: 
-        
-    #         df_sceg['uc_'+prop_compare] = df_sceg_prop['uc_'+prop_compare]
-
-
-
 
 
 
@@ -268,7 +225,7 @@ df_sceg = lab.information_df(False, False, False, cutoff_s296, T_pure, df_extern
 
 f = open(os.path.join(d_sceg_save,'df_sceg.pckl'), 'wb')
 # pickle.dump([df_sceg, df_HT2020, df_paul], f)
-pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_paul], f)
+pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul], f)
 f.close()
 
 # f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'wb')
@@ -279,15 +236,13 @@ f = open(os.path.join(d_sceg_save,'spectra_pure.pckl'), 'wb')
 pickle.dump([T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure], f)
 f.close()
 
+please = stopfsdsaasd
 
-
-
-please = stopfsd
 
 #%% export to par file - UPDATE TO INCLUDE THE NON-HITRAN PARAMETERS
 
 f = open(os.path.join(d_sceg,'df_sceg.pckl'), 'rb')
-[df_sceg, df_og] = pickle.load(f)
+[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
 f.close()
 
 par_name = 'H2O'

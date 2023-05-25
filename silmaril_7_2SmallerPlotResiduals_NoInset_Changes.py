@@ -40,7 +40,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure, res_HT_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
 f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
@@ -70,7 +70,6 @@ for which_file in which_files:
     wvn_labfit_all = np.concatenate([wvn_pure[i] for i in i_plot])
     trans_labfit_all = np.concatenate([trans_pure[i] for i in i_plot])
     res_updated_all = np.concatenate([res_pure[i] for i in i_plot])
-    res_og_all = np.concatenate([res_og_pure[i] for i in i_plot])
     res_HT_all = np.concatenate([res_HT_pure[i] for i in i_plot])
     
     
@@ -79,7 +78,6 @@ for which_file in which_files:
     wvn.append(wvn_labfit_all[istart:istop])
     trans.append(trans_labfit_all[istart:istop]/100)
     res_updated.append(res_updated_all[istart:istop]/100)
-    res_og.append(res_og_all[istart:istop]/100)
     res_HT.append(res_HT_all[istart:istop]/100) 
 
     # plt.plot(wvn[-1], trans[-1], label='updated')
