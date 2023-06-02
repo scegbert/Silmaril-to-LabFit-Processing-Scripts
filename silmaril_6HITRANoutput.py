@@ -328,7 +328,7 @@ open(os.path.join(d_labfit_main, 'p2020a_updated.inp'), 'w').writelines(inp_fina
 
 
 
-#%% export to par file - UPDATE TO INCLUDE THE NON-HITRAN PARAMETERS
+#%% export to par file - NEED TO UPDATE TO INCLUDE THE NON-HITRAN PARAMETERS IN HEADER FILE
 
 f = open(os.path.join(d_sceg,'df_sceg.pckl'), 'rb')
 [df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)

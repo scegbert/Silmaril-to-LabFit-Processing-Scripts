@@ -33,7 +33,7 @@ from copy import deepcopy
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -52,11 +52,11 @@ elif d_type == 'air':
 props = {}
 props['nu'] = ['nu', 'ν', 1, 23, 0.0015] 
 props['sw'] = ['sw', '$S_{296}$', 2, 24, 0.09] # 9 % percent
-props['gamma_air'] = ['gamma_air', 'γ air', 3, 25, 0.10] # ? (might be too generous for gamma only fits)
-props['elower'] = ['elower', 'E\"', 4, 34, 200] # only float this when things are weird
+props['gamma_air'] = ['gamma_air', 'γ air', 3, 25, 0.012] 
+props['elower'] = ['elower', 'E\"', 4, 34, 200] # only floating this when things are weird
 props['n_air'] = ['n_air', 'n air', 5, 26, 0.13]
-props['delta_air'] = ['delta_air', 'δ air', 6, 27, .005]
-props['n_delta_air'] = ['n_delta_air', 'n δ air', 7, 28, 0.2]
+props['delta_air'] = ['delta_air', 'δ air', 6, 27, 0.005]
+props['n_delta_air'] = ['n_delta_air', 'n δ air', 7, 28, 0.13]
 props['MW'] = ['MW', 'MW', 8, 29, 1e6]
 props['gamma_self'] = ['gamma_self', 'γ self', 9, 30, 0.10]
 props['n_self'] = ['n_self', 'n γ self', 10, 31, 0.13]
@@ -93,15 +93,14 @@ d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 
-base_name_pure = 'p2020'
-d_cutoff_locations = d_labfit_main + '\\cutoff locations pure.pckl'
 
-base_name_air = 'B2020Ja1'
+if d_type == 'pure': 
+    base_name = 'p2020' + 'n_gam' # n update name
+    d_cutoff_locations = d_labfit_main + '\\cutoff locations pure.pckl'
 
-
-n_update_name = 'n_gam'
-if d_type == 'pure': base_name = base_name_pure + n_update_name
-elif d_type == 'air': base_name = base_name_air + n_update_name
+elif d_type == 'air': 
+    base_name = 'p2020a_updated'
+    d_cutoff_locations = d_labfit_main + '\\cutoff locations air.pckl'
 
 ratio_min_plot = -2 # min S_max value to both plotting (there are so many tiny transitions we can't see, don't want to bog down)
 offset = 2 # for plotting
@@ -113,9 +112,9 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 
 
-cutoff_s296 = 1E-24 
+cutoff_s296 = 5E-24 
 
-bin_name = 'B35' # name of working bin (for these calculations)
+bin_name = 'B36a' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -197,34 +196,48 @@ df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d
 a_features_check = [int(x) for x in list(df_calcs[df_calcs.ratio_max>0].index)]
 # print(a_features_check)
 
+features_new = df_calcs[(df_calcs.ratio_max>0)&(df_calcs.index>1e6)].nu.to_frame() # list of index of new features
+df_calcs.sort_index()
+features_new['closest'] = 0
+for index in features_new.index: 
+    nu = features_new.loc[index].nu
+    features_new.closest.loc[index] = (abs(df_calcs[df_calcs.index<1e6].nu - nu + 0.1)).idxmin()
+    
+    print('{}   {}    {}'.format(index, nu, features_new.closest.loc[index]))
+
 lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = a_features_check, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
 # lab.plot_spectra(T,wvn,trans,res,False, False, offset, features = False) # don't plot the feature names
 
-# lab.save_file(d_labfit_main, bin_name, d_save_name= 'reduced Chebyshev order for smaller regions', d_folder_input=d_labfit_kernal)
+#%% remove some features from the features_test 
 
+
+features_keep = [x for x in features_test if x not in features_ditch]
 
 # %% fix giant features if the residual is throwing off neighbors
 
-lab.float_lines(d_labfit_kernal, bin_name, features_start, props['sw'], 'rei_saved', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
-lab.float_lines(d_labfit_kernal, bin_name, features_start, props['nu'], 'inp_new', []) # INP -> INP, testing two at once (typically nu or n_self)
-lab.float_lines(d_labfit_kernal, bin_name, features_start, props['gamma_self'], 'inp_new', []) # INP -> INP, testing two at once (typically nu or n_self)
+prop_which = 'delta_air'
+lab.float_lines(d_labfit_kernal, bin_name, features_delta_air, props[prop_which], 'rei_saved', [], 
+                d_folder_input=d_labfit_main, nudge_delta_air=True, features_new=features_new) # float lines, most recent saved REI in -> INP out
+# lab.float_lines(d_labfit_kernal, bin_name, features_delta_air, props['n_delta_air'], 'inp_new', [], d_folder_input=d_labfit_main, nudge_delta_air=True) # float lines, most recent saved REI in -> INP out
 
-lab.wait_for_kernal(d_labfit_kernal)
 
-lab.run_labfit(d_labfit_kernal, bin_name) # <------------------
+# lab.wait_for_kernal(d_labfit_kernal, minutes=1)
+
+print('     labfit iteration #1') 
+lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # <------------------
 
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 
 feature_error = None
-iter_labfit = 2
+iter_labfit = 10
 
 i = 1 # start at 1 because we already ran things once
 while feature_error is None and i < iter_labfit: # run X times
     i += 1
     print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=60) 
     
     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old) # <-------------------
 
@@ -232,7 +245,7 @@ while feature_error is None and i < iter_labfit: # run X times
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = features_start, axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], features = features_delta_air, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
 d_save_name = 'monster features that mess up their neighbors'
@@ -413,7 +426,8 @@ plt.title(bin_name)
 
 
 # make sure all doublets are floated (avoids errors if we pause and then run in the night)
-lab.float_lines(d_labfit_kernal, bin_name, features_test, props['nu'], 'rei_saved', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+lab.float_lines(d_labfit_kernal, bin_name, features_test, props['nu'], 'rei_saved', features_doublets, 
+                d_folder_input=d_labfit_main, features_new=features_new) # float lines, most recent saved REI in -> INP out
 # lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
 
 lab.wait_for_kernal(d_labfit_kernal)
@@ -532,14 +546,17 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
             already_reduced_i = True
 
         # if we timed out immidately, let's sniff stuff out
-        elif (feature_error == 'no LWA' or feature_error == 'timeout') and (
-                    i==1 or (already_reduced_i and not already_sniffed)): 
+        elif ((feature_error == 'no LWA' or feature_error == 'timeout') and (
+                    i==1 or (already_reduced_i and not already_sniffed))) or (
+                        already_reduced_i and len(features_reject) == 0 and already_sniffed is False): 
             
             already_sniffed = True     
             already_reduced_i = False
             
-            sniff_features, sniff_good_reject, sniff_bad, sniff_iter = lab.feature_sniffer(features, d_labfit_kernal, bin_name, bins, prop_which, props, props_which, prop_which2,
-                                                      iter_sniff=10, unc_multiplier=1.2, d_labfit_main=d_labfit_main)
+            sniff_features, sniff_good_reject, sniff_bad, sniff_iter = lab.feature_sniffer(features, d_labfit_kernal, bin_name, bins, prop_which, 
+                                                                                           props, props_which, prop_which2,iter_sniff=10, 
+                                                                                           unc_multiplier=1.2, d_labfit_main=d_labfit_main, 
+                                                                                           features_new=features_new)
             features_sniffed = features.copy()
             features = sniff_features.copy()
             
@@ -556,8 +573,8 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
             iter_labfit = 10
             unc_multiplier = 1   
             
-        # default number of times to iterate 
-        else: 
+         
+        else: # we've already tried running things, sniffing things, all the things
             
             if already_reduced_i and len(features_reject) == 0: # if you just ran a short version but didn't find anything
                 please = stophere # you're going in circles
@@ -573,9 +590,12 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
         #-- section to use if labfit crashed ------------------------------------------------------------------------
         
         
-        lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'rei_saved', features_constrain, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
-        if prop_which2 is not False: lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which2], 'inp_new', features_constrain) # INP -> INP, testing two at once (typically nu or n_self)
-        if prop_which3 is not False: lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which3], 'inp_new', features_constrain) # INP -> INP, testing two at once (typically sd_self)
+        lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which], 'rei_saved', features_constrain, 
+                d_folder_input=d_labfit_main, features_new=features_new) # float lines, most recent saved REI in -> INP out
+        if prop_which2 is not False: lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which2], 'inp_new', features_constrain,
+                                                     features_new=features_new) # INP -> INP, testing two at once (typically nu or n_self)
+        if prop_which3 is not False: lab.float_lines(d_labfit_kernal, bin_name, features, props[prop_which3], 'inp_new', features_constrain, 
+                                                     features_new=features_new) # INP -> INP, testing two at once (typically sd_self)
         
         print('     labfit iteration #1')
         feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # need to run one time to send INP info -> REI        
@@ -595,23 +615,37 @@ for [prop_which, prop_which2, prop_which3, d_save_name, continuing_features, rat
         if feature_error is None: # if we made if through all iterations without a feature causing an error...
                     
             # df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # helpful for debugging but does slow things down
-
-            [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old, plots = False) # read results into python
-            df_iter[d_save_name].append([df_compare, df_props, features]) # save output in a list (as a back up more than anything)
+            try: 
+                [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old, plots = False) # read results into python
+    
+                df_iter[d_save_name].append([df_compare, df_props, features]) # save output in a list (as a back up more than anything)
+                        
+                for prop_i in props_which: 
+                    if prop_i == 'sw': prop_i_df = 'sw_perc' # we want to look at the fractional change
+                    else: prop_i_df = prop_i
                     
-            for prop_i in props_which: 
-                if prop_i == 'sw': prop_i_df = 'sw_perc' # we want to look at the fractional change
-                else: prop_i_df = prop_i
-                
-                features_reject.extend(df_props[df_props['uc_'+prop_i_df] > props[prop_i][4] * unc_multiplier].index.values.tolist())
-                
-                if prop_i == 'gamma_self' or prop_i == 'sd_self': 
+                    features_reject.extend(df_props[df_props['uc_'+prop_i_df] > props[prop_i][4] * unc_multiplier].index.values.tolist())
                     
-                    features_reject.extend(df_props[(df_props[prop_i_df] < 0.05) & (df_props['uc_'+prop_i_df] > df_props[prop_i_df])].index.values.tolist())
+                    if prop_i == 'gamma_self' or prop_i == 'sd_self': 
+                        
+                        features_reject.extend(df_props[(df_props[prop_i_df] < 0.05) & (df_props['uc_'+prop_i_df] > df_props[prop_i_df])].index.values.tolist())
+                   
+            except: 
                
-                # try: features_reject.extend((features_reject,df_props[df_props['uc_'+prop_i_df] > props[prop_i][4]].index.values.tolist())[1])
-                # except: pass
-                    
+                rei_all = open(os.path.join(d_labfit_kernal, bin_name)+'.rei', "r").readlines()
+                features_bad = [int(line.split()[0]) for line in rei_all if '*******' in line]
+                
+                for feature in features_bad: 
+                    if feature in features: 
+                        print('{} threw an error and was removed'.format(feature))
+                    else: 
+                        print('{} threw an error and could not be removed'.format(feature))
+                        throw = errorplease
+                
+                features_reject.extend(features_bad)
+                
+                if len(features_bad) == 0: please = stophere # we didn't find anything and didn't set feature error to 0
+
         if feature_error is not None: 
             print('feature error - Labfit did not run due to struggles with feature ' + str(feature_error))
             
@@ -674,6 +708,9 @@ elif d_save_name == 'after only sd_self': prop_which2 = 'n_self'; prop_which3 = 
 elif d_save_name == 'after n delta self': prop_which2 = 'delta_self'
 elif d_save_name == 'after n delta self - updated': prop_which2 = 'delta_self'
 
+if d_save_name == 'after only sd_air': prop_which2 = 'n_air'; prop_which3 = 'gamma_air'
+elif d_save_name == 'after n delta air': prop_which2 = 'delta_self'
+
 
 done = butnoplot
 
@@ -685,10 +722,13 @@ done = butnoplot
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)
 
-# lab.save_file(d_labfit_main, bin_name, 'ditched unstable width floats', d_folder_input=d_labfit_kernal)
+
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which3], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
 
 #%% check widths for weird things
 
