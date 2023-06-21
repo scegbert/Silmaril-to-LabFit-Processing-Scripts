@@ -37,7 +37,7 @@ import td_support as td
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -117,7 +117,8 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 1E-24 
 
-d_sceg_load = r'D:\OneDrive - UCB-O365\water database\done'
+if d_type == 'pure': d_sceg_load = r'H:\water database\pure water'
+elif d_type == 'air': d_sceg_load = r'H:\water database\air water'
 bins_done = sorted(os.listdir(d_sceg_load), key=bin_names.index)
 
 d_paul = r'C:\Users\scott\Documents\1-WorkStuff\Labfit\working folder\paul nate og\PaulData_SD_Avgn_AKn2'
@@ -145,7 +146,7 @@ df_HT2016_HT = db.par_to_df(d_HT2016)
 df_HT2016_HT.index = df_HT2016_HT.index +1
 
 
-df_paul = db.labfit_to_df(d_paul, htp=False) # open paul database
+df_paul = db.labfit_to_df(d_paul, htp=False) # open paul databaseI
 
 
 
@@ -180,58 +181,112 @@ for bin_name in bin_names:
 
         if bin_name == bins_done[0]: # if this is the first one
             
-            if d_type == 'air': pass
-
-            else:
-                
-                df_sceg_pure = df_bin.copy()
-                
-                T_pure = T.copy()
-                P_pure = P.copy()
-                wvn_pure = wvn.copy()
-                trans_pure = trans.copy()
-                res_pure = res.copy()
-                res_og_pure = res_og.copy()
+            df_sceg_all = df_bin.copy()
+            
+            T_all = T.copy()
+            P_all = P.copy()
+            wvn_all = wvn.copy()
+            trans_all = trans.copy()
+            res_all = res.copy()
+            res_og_all = res_og.copy()
 
 
         else: # add on to existing dataframe
 
-            if d_type == 'air': pass
-
-            else: 
-                
-                df_sceg_pure = df_sceg_pure.append(df_bin)
-                
-                T_pure.extend(T)
-                P_pure.extend(P)
-                wvn_pure.extend(wvn)
-                trans_pure.extend(trans)
-                res_pure.extend(res)
-                res_og_pure.extend(res_og)
-                
+            
+            df_sceg_all = df_sceg_all.append(df_bin)
+            
+            T_all.extend(T)
+            P_all.extend(P)
+            wvn_all.extend(wvn)
+            trans_all.extend(trans)
+            res_all.extend(res)
+            res_og_all.extend(res_og)
+            
 
 
 
-please =sdfsdfssdf
+# please =sdfsdfssdf
 
 
 
-# %% re-write quantum assignments in a way that is useful before saving
+# %% save data
 
-df_sceg = lab.information_df(False, False, False, cutoff_s296, T_pure, df_external_load=df_sceg_pure)
+df_sceg = lab.information_df(False, False, False, cutoff_s296, T_all, df_external_load=df_sceg_all)
 
-f = open(os.path.join(d_sceg_save,'df_sceg.pckl'), 'wb')
-# pickle.dump([df_sceg, df_HT2020, df_paul], f)
+if d_type == 'pure': f = open(os.path.join(d_sceg_save,'df_sceg_pure.pckl'), 'wb')
+elif d_type == 'air': f = open(os.path.join(d_sceg_save,'df_sceg_air.pckl'), 'wb')
 pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul], f)
 f.close()
 
-# f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'wb')
-# pickle.dump([T_air, P_air, wvn_air, trans_air, res_air, res_og_air], f)
-# f.close()
-
-f = open(os.path.join(d_sceg_save,'spectra_pure.pckl'), 'wb')
-pickle.dump([T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure], f)
+if d_type == 'pure': f = open(os.path.join(d_sceg_save,'spectra_pure.pckl'), 'wb')
+elif d_type == 'air': f = open(os.path.join(d_sceg_save,'spectra_air.pckl'), 'wb')
+pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_og_all], f)
 f.close()
+
+please = stopfsdsaasd
+
+
+# %% load both databases and combine
+
+# load pure water database
+f = open(os.path.join(d_sceg_save,'df_sceg_pure.pckl'), 'rb')
+[df_sceg_pure, _, _, _, _] = pickle.load(f)
+f.close()
+
+# load pure water database
+f = open(os.path.join(d_sceg_save,'df_sceg_air.pckl'), 'rb')
+[df_sceg_air, _, _, _, _] = pickle.load(f)
+f.close()
+
+# rename SD in air data to SD_air
+df_sceg_air = df_sceg_air.rename(columns={"sd_self": "sd_air", "uc_sd_self": "uc_sd_air"}) 
+# remove things we don't need from air data
+df_sceg_air2 = df_sceg_air.drop(columns=['y_self', 'uc_y_self', 
+                                        'beta_g_self', 'uc_beta_g_self', 
+                                        'n_delta_self', 'uc_n_delta_self',
+                                        'delta_self', 'uc_delta_self', 
+                                        'n_self', 'uc_n_self',
+                                        'gamma_self', 'uc_gamma_self', 
+                                        'mass', 'uc_mass', 
+                                        'elower', 'uc_elower', 
+                                        'sw', 'uc_sw', 
+                                        'nu', 'uc_nu', 
+                                        'molec_id'])
+
+# remove things we don't need from pure water data
+df_sceg_pure2 = df_sceg_pure.drop(columns=['y_self', 'uc_y_self', 
+                                        'beta_g_self', 'uc_beta_g_self', 
+                                        'n_delta_air', 'uc_n_delta_air',
+                                        'delta_air', 'uc_delta_air', 
+                                        'n_air', 'uc_n_air',
+                                        'gamma_air', 'uc_gamma_air', 
+                                        'uc_mass'])
+
+df_sceg_pure3 = df_sceg_pure2.drop([1070201.0, 1081203.0], axis=0) # not sure how we missed those in the air data
+
+df_sceg = df_sceg_pure2.merge(df_sceg_air2, left_index=True, right_index=True)
+
+df_sceg = df_sceg.append(df_sceg_pure2.loc[1070201])
+df_sceg = df_sceg.append(df_sceg_pure2.loc[1081203])
+
+del df_sceg_pure3, df_sceg_pure2, df_sceg_air2
+
+
+asdfasdfasdf
+
+
+
+
+
+
+f = open(os.path.join(d_sceg_save,'df_sceg_all.pckl'), 'wb')
+pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul], f)
+f.close()
+
+# f = open(os.path.join(d_sceg_save,'spectra_air.pckl'), 'wb')
+# pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_og_all], f)
+# f.close()
 
 please = stopfsdsaasd
 

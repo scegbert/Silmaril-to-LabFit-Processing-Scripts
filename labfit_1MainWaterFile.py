@@ -114,8 +114,8 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 5E-24 
 
-bin_name = 'B36a' # name of working bin (for these calculations)
-d_labfit_kernal = d_labfit_kp2 # d_labfit_main # d_labfit_kp # d_labfit_kp2
+bin_name = 'B34a' # name of working bin (for these calculations)
+d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
 
@@ -191,12 +191,17 @@ for ASC_sniffer in which_ASC_files:
 
 # %% start list of things to float, plot stuff
 
+
+lab.bin_ASC_cutoff(d_labfit_main, base_name, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
+
+lab.run_labfit(d_labfit_kernal, bin_name) # <-------------------
+
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old) # <-------------------
 a_features_check = [int(x) for x in list(df_calcs[df_calcs.ratio_max>0].index)]
 # print(a_features_check)
 
-features_new = df_calcs[(df_calcs.ratio_max>0)&(df_calcs.index>1e6)].nu.to_frame() # list of index of new features
+features_new = df_calcs[(df_calcs.ratio_max>-1)&(df_calcs.index>1e6)].nu.to_frame() # list of index of new features
 df_calcs.sort_index()
 features_new['closest'] = 0
 for index in features_new.index: 
@@ -709,10 +714,10 @@ elif d_save_name == 'after n delta self': prop_which2 = 'delta_self'
 elif d_save_name == 'after n delta self - updated': prop_which2 = 'delta_self'
 
 if d_save_name == 'after only sd_air': prop_which2 = 'n_air'; prop_which3 = 'gamma_air'
-elif d_save_name == 'after n delta air': prop_which2 = 'delta_self'
+elif d_save_name == 'after n delta air': prop_which2 = 'delta_air'
 
 
-done = butnoplot
+# done = butnoplot
 
 
 # get comparative information and plot change in each parameter
@@ -726,8 +731,6 @@ lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_p
 plt.title(bin_name)
 
 
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which3], props[prop_which2], axis_labels=False) # <-------------------
-plt.title(bin_name)
 
 
 #%% check widths for weird things
