@@ -155,12 +155,12 @@ res_og = res_og_all[istart:istop]
 
 #%%
 
-fig = plt.figure(figsize=(10, 7.5))
+fig = plt.figure(figsize=(14.4, 7))
 
 gs = GridSpec(3, 2, width_ratios=[2, 1], hspace=0.015, wspace=0.005) # rows, columns
 
 wide = [6615-50, 7650+25]
-narrow = [7094.52, 7096.06]
+narrow = [7094.39, 7096.19]
 linewidth = 1
 
 offset1 = 0.05
@@ -219,7 +219,7 @@ ax21.plot(wvn_labfit, trans_labfit, color=colors[5],
 
 #%% noise plot inset 
 
-ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.15,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
+ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.22,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
 
 ax21ins.plot(wvn_labfit, trans_labfit, color=colors[5], 
              linewidth=linewidth)

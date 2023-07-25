@@ -35,6 +35,8 @@ import pldspectrapy as pld
 import td_support as td
 
 
+
+
 # %% define some dictionaries and parameters
 
 d_type = 'air' # 'pure' or 'air'
@@ -241,52 +243,33 @@ f.close()
 
 # rename SD in air data to SD_air
 df_sceg_air = df_sceg_air.rename(columns={"sd_self": "sd_air", "uc_sd_self": "uc_sd_air"}) 
+
 # remove things we don't need from air data
-df_sceg_air2 = df_sceg_air.drop(columns=['y_self', 'uc_y_self', 
-                                        'beta_g_self', 'uc_beta_g_self', 
-                                        'n_delta_self', 'uc_n_delta_self',
-                                        'delta_self', 'uc_delta_self', 
-                                        'n_self', 'uc_n_self',
-                                        'gamma_self', 'uc_gamma_self', 
-                                        'mass', 'uc_mass', 
-                                        'elower', 'uc_elower', 
-                                        'sw', 'uc_sw', 
-                                        'nu', 'uc_nu', 
-                                        'molec_id'])
+df_sceg_air2 = df_sceg_air[['gamma_air', 'uc_gamma_air', 
+                            'n_air', 'uc_n_air',
+                            'sd_air', 'uc_sd_air',
+                            'delta_air', 'uc_delta_air',
+                            'n_delta_air', 'uc_n_delta_air']]
 
 # remove things we don't need from pure water data
-df_sceg_pure2 = df_sceg_pure.drop(columns=['y_self', 'uc_y_self', 
-                                        'beta_g_self', 'uc_beta_g_self', 
-                                        'n_delta_air', 'uc_n_delta_air',
-                                        'delta_air', 'uc_delta_air', 
-                                        'n_air', 'uc_n_air',
-                                        'gamma_air', 'uc_gamma_air', 
-                                        'uc_mass'])
+df_sceg_pure2 = df_sceg_pure[['molec_id', 'local_iso_id', 'quanta', 
+                              'nu', 'uc_nu',
+                              'sw', 'uc_sw',
+                              'elower', 'uc_elower', 
+                              'gamma_self', 'uc_gamma_self',
+                              'n_self', 'uc_n_self',
+                              'sd_self', 'uc_sd_self',
+                              'delta_self', 'uc_delta_self', 
+                              'n_delta_self', 'uc_n_delta_self']]
 
-df_sceg_pure3 = df_sceg_pure2.drop([1070201.0, 1081203.0], axis=0) # not sure how we missed those in the air data
+
 
 df_sceg = df_sceg_pure2.merge(df_sceg_air2, left_index=True, right_index=True)
 
-df_sceg = df_sceg.append(df_sceg_pure2.loc[1070201])
-df_sceg = df_sceg.append(df_sceg_pure2.loc[1081203])
-
-del df_sceg_pure3, df_sceg_pure2, df_sceg_air2
-
-
-asdfasdfasdf
-
-
-
-
-
 
 f = open(os.path.join(d_sceg_save,'df_sceg_all.pckl'), 'wb')
-pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul], f)
+pickle.dump([df_sceg], f)
 f.close()
-
-# f = open(os.path.join(d_sceg_save,'spectra_air.pckl'), 'wb')
-# pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_og_all], f)
-# f.close()
 
 please = stopfsdsaasd
 
@@ -385,41 +368,106 @@ open(os.path.join(d_labfit_main, 'p2020a_updated.inp'), 'w').writelines(inp_fina
 
 #%% export to par file - NEED TO UPDATE TO INCLUDE THE NON-HITRAN PARAMETERS IN HEADER FILE
 
-f = open(os.path.join(d_sceg,'df_sceg.pckl'), 'rb')
-[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
+f = open(os.path.join(d_sceg_save,'df_sceg_all.pckl'), 'rb')
+[df_sceg] = pickle.load(f)
 f.close()
 
 par_name = 'H2O'
 
-df_sceg2 = df_sceg.rename(columns={"n_delta_self": "delta_self", "uc_n_delta_self": "uc_deltap_self", 
-                                   "n_delta_air": "delta_air", "uc_n_delta_air": "uc_deltap_air"})  # if using linear pressure shift model
+# needs to match the header file that you are loading in
+extra_params = {"n_self": "%7.4f", 
+            	"sd_self": "%9.6f",    
+            	"delta_self": "%9.6f",
+                "n_delta_self": "%7.4f",
+            	"sd_air": "%9.6f", 
+            	"n_delta_air": "%7.4f"}
 
-db.df_to_par(df_sceg2, par_name, extra_params=db.SDVoigt_LinearShift, save_dir=d_sceg)
 
-pld.db_begin('data - sceg')  # load the linelists into Python (keep out of the for loop)
+db.df_to_par(df_sceg, par_name, extra_params=extra_params, save_dir=d_sceg_save, print_name=False)
 
-mod, pars = td.spectra_single_lmfit()
-wvn = np.arange(6660,7202,0.005) # wavenumber range
+
+# need to fix error where the file adds " 1 12 ...." instead of just " 12 ..." at the beginning of each line
+# did a find and replace and resolved the issue
+# becomes apparent when hapi won't read in the file (lines parsed = 0)
+
+
+#%% test the line list that you just saved
+
+
+pld.db_begin('data - sceg')  
+
+
+which_file = '1300 K 600 T'
+
+d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
+d_load = os.path.join(d_meas, which_file + ' bg subtraction.pckl')   
+
+f = open(d_load, 'rb')
+# what you get (first two): trans_BGremoved = (meas / bl) - H2O_bg, trans_BGincluded = (meas / bl) 
+[trans_BGremoved, _, wavenumbers, T_meas, P_meas, y_h2o_meas, pathlength, _, fitresults, model2020, _, _] = pickle.load(f)
+f.close() 
+
+[istart, istop] = td.bandwidth_select_td(wavenumbers, [6650,7550], max_prime_factor=5)
+
+wvn = wavenumbers[istart:istop]
+trans_meas = trans_BGremoved[istart:istop]
+
+TD_meas = np.fft.irfft(-np.log(trans_meas))
+  
+mod, pars = td.spectra_single_lmfit(sd=True)
 
 pars['mol_id'].value = 1 # water = 1 (hitran molecular code)
-pars['pathlength'].value = 1 # pathlength in cm
+pars['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
+pars['pressure'].set(value = P_meas / 760, vary = True, max=3) # pressure in atm (converted from Torr)
+pars['molefraction'].set(value = y_h2o_meas, vary = True) # mole fraction
 
-pars['pressure'].value = 10/760 # pressure in atm (converted from Torr)
-pars['molefraction'].value = 1 # mole fraction
+pars['temperature'].set(value = 300, vary = True) # temperature in K
+TD_model_300 = mod.eval(xx=wvn, params=pars, name='H2O') # used to check baseline decision
+trans_model_300 = np.exp(-np.real(np.fft.rfft(TD_model_300)))
 
-pars['temperature'].value = 300 # temperature in K
-model_TD = mod.eval(xx=wvn, params=pars, name='H2O')
-model_trans300 = np.exp(-np.real(np.fft.rfft(model_TD)))
+pars['temperature'].set(value = T_meas, vary = True) # temperature in K
+TD_model_1300 = mod.eval(xx=wvn, params=pars, name='H2O') # used to check baseline decision
+trans_model_1300 = np.exp(-np.real(np.fft.rfft(TD_model_1300)))
 
-pars['temperature'].value = 1000 # temperature in K
-model_TD = mod.eval(xx=wvn, params=pars, name='H2O')
-model_trans1000 = np.exp(-np.real(np.fft.rfft(model_TD)))
+weight = td.weight_func(len(wvn), 40, etalons = [])
 
-pars['temperature'].value = 2000 # temperature in K
-model_TD = mod.eval(xx=wvn, params=pars, name='H2O')
-model_trans2000 = np.exp(-np.real(np.fft.rfft(model_TD)))
+trans_meas_baseline = np.exp(-np.real(np.fft.rfft(TD_meas - (1-weight) * (TD_meas - trans_model_1300))))
+plt.plot(wvn, trans_meas)
+plt.plot(wvn, trans_model_1300)
+plt.plot(wvn, trans_model_300)
+plt.plot(wvn, trans_meas_baseline)
 
-plt.plot(wvn, model_trans300, label='300')
-plt.plot(wvn, model_trans1000, label='1000')
-plt.plot(wvn, model_trans2000, label='2000')
-plt.legend()
+plt.figure()
+plt.plot(wvn, trans_model_1300)
+plt.plot(wvn, trans_model_300)
+plt.plot(wvn, trans_meas_baseline)
+plt.plot(wvn, trans_meas_baseline - trans_model_1300 + 1.01)
+
+
+            
+fit_results = mod.fit(TD_meas, xx=wvn, params=pars, weights=weight, name='H2O')
+td.plot_fit(wvn, fit_results, plot_td = True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

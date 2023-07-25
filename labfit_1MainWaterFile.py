@@ -114,7 +114,7 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 5E-24 
 
-bin_name = 'B34a' # name of working bin (for these calculations)
+bin_name = 'B7a' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -125,7 +125,9 @@ d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
 
-d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
+# d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
+d_old_holder = r'H:\water database\air water'
+d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 # use_rei = True
 
@@ -841,7 +843,7 @@ lab.save_file(d_labfit_main, bin_name, 'ditched floats', d_folder_input=d_labfit
 good_files= []
 bad_files = []
 
-base_name_HITRAN = 'p2020'
+base_name_HITRAN = 'p2020HT'
 
 for bin_name in bins:
     
@@ -863,7 +865,7 @@ for bin_name in bins:
 
 #%% save the new HITRAN og files in their folders
 
-d_labfit_folders = r'D:\OneDrive - UCB-O365\water database'
+d_labfit_folders = r'H:\water database\air water'
 failed = []
 
 for bin_name in bins:
@@ -872,7 +874,7 @@ for bin_name in bins:
     
         try: 
             lab.save_file(d_labfit_folders, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
-            
+            ####### - change module to save as HITRAN
         except: 
             try: 
                 
