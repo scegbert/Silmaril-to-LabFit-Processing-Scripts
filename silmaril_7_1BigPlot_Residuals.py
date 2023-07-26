@@ -92,7 +92,7 @@ for which_file in which_files:
 #%%
 
 wide = [6615-25, 7650+25]
-narrow1 = [7022.5, 7023.67]
+narrow1 = [7046.58, 7047.9]
 narrow2 = [6717.91, 6719.41]
 
 
@@ -108,11 +108,11 @@ fig = plt.figure(figsize=(14.4, 5))
 
 linewidth = 1
 
-offset1 = 0.05
-offset0 = 0.05*25
+offset1 = 0.03
+offset0 = offset1*25
 
-colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',     '#e6ab02', '#fee9ac']
-colors = ['#ff0000',     '#e6ab02', '#fee9ac']
+# colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',      '#e6ab02', '#fee9ac']
+colors = ['#ff0000',      '#514c8e','#a3a0cc',         '#e6ab02', '#fee9ac']
 # colors = ['#FFD700','#FF7F50','#EE82EE','#4169E1', '#00BFFF','#00FFFF',     '#e6ab02']
 
 
@@ -177,12 +177,12 @@ for which_file in which_files_partial:
     ax20.axvline(narrow1[0]-offset0, linewidth=1, color=colors[-2])
     ax20.axvline(narrow1[1]+offset0, linewidth=1, color=colors[-2])
     
-    ax00.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-2])
-    ax00.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-2])
-    ax10.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-2])
-    ax10.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-2])
-    ax20.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-2])
-    ax20.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-2])
+    ax00.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-4])
+    ax00.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-4])
+    ax10.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-4])
+    ax10.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-4])
+    ax20.axvline(narrow2[0]-offset0, linewidth=1, color=colors[-4])
+    ax20.axvline(narrow2[1]+offset0, linewidth=1, color=colors[-4])
     
     
 
@@ -283,9 +283,17 @@ alpha = 1
 ax00.axvspan(narrow1[0]-offset0, narrow1[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
 ax10.axvspan(narrow1[0]-offset0, narrow1[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
 ax20.axvspan(narrow1[0]-offset0, narrow1[1]+offset0, alpha=alpha, color=colors[-1], zorder=0)
-ax01.axvspan(narrow1[0]+offset1, narrow1[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-ax11.axvspan(narrow1[0]+offset1, narrow1[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
-ax21.axvspan(narrow1[0]+offset1, narrow1[1]-offset1*1.2, alpha=alpha, color=colors[-1], zorder=0)
+ax01.axvspan(narrow1[0]+offset1, narrow1[1]-offset1, alpha=alpha, color=colors[-1], zorder=0)
+ax11.axvspan(narrow1[0]+offset1, narrow1[1]-offset1, alpha=alpha, color=colors[-1], zorder=0)
+ax21.axvspan(narrow1[0]+offset1, narrow1[1]-offset1, alpha=alpha, color=colors[-1], zorder=0)
+
+
+ax00.axvspan(narrow2[0]-offset0, narrow2[1]+offset0, alpha=alpha, color=colors[-3], zorder=0)
+ax10.axvspan(narrow2[0]-offset0, narrow2[1]+offset0, alpha=alpha, color=colors[-3], zorder=0)
+ax20.axvspan(narrow2[0]-offset0, narrow2[1]+offset0, alpha=alpha, color=colors[-3], zorder=0)
+ax02.axvspan(narrow2[0]+offset1, narrow2[1]-offset1, alpha=alpha, color=colors[-3], zorder=0)
+ax12.axvspan(narrow2[0]+offset1, narrow2[1]-offset1, alpha=alpha, color=colors[-3], zorder=0)
+ax22.axvspan(narrow2[0]+offset1, narrow2[1]-offset1, alpha=alpha, color=colors[-3], zorder=0)
 
 
 #%% labels
@@ -295,14 +303,12 @@ ax00.set_ylabel('Measured\nTransmission')
 ax10.set_ylabel('Meas-\nHITRAN')
 ax20.set_ylabel('Meas-\nUpdated')
 
-
-
 #%%
 
 h0 = 0.02
 # h1 = 0.05
 # v0 = 0.9
-v1 = 0.75
+v1 = 0.8
 
 ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
 ax01.text(h0, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
@@ -311,5 +317,5 @@ ax02.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax02.transAxes)
 
 #%% save it
 
-# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1 big residual.svg', bbox_inches='tight')
 
