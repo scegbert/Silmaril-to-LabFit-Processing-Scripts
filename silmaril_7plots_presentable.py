@@ -160,7 +160,7 @@ HT_errors_nu = {'0': '0 (>1E0)',
 # %% other stuff to put at the top here
 
 
-markers = ['1','2','3', '+', 'x']
+markers = ['1','2','3','+','x', '.', '.', '.']
 linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
 
 colors = ['dodgerblue', 'firebrick', 'darkorange', 'darkgreen', 'purple', 'moccasin']
@@ -171,8 +171,8 @@ colors_grad = ['firebrick','orangered','goldenrod','forestgreen','teal','royalbl
 # %% read in results, re-write quantum assignments in a way that is useful
 
 
-f = open(os.path.join(d_sceg,'df_sceg.pckl'), 'rb')
-[df_sceg, df_HT2020, df_HT2020_HT, df_paul] = pickle.load(f)
+f = open(os.path.join(d_sceg,'df_sceg_pure.pckl'), 'rb')
+[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
 f.close()
 
 # f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
@@ -185,8 +185,14 @@ f.close()
 
 df_sceg_align, df_HT2020_align = df_sceg.align(df_HT2020, join='inner', axis=0)
 df_sceg_align2, df_HT2020_HT_align = df_sceg_align.align(df_HT2020_HT, join='inner', axis=0)
+df_sceg_align3, df_HT2016_HT_align = df_sceg_align.align(df_HT2016_HT, join='inner', axis=0)
 
-if not df_sceg_align.equals(df_sceg_align2): throw = errorplease # these should be the same dataframe if everything lines up
+
+if not df_sceg_align.equals(df_sceg_align2): throw = error2please # these should be the same dataframe if everything lines up
+if not df_sceg_align.equals(df_sceg_align3): throw = error3please # these should be the same dataframe if everything lines up
+
+# not sure if 2016 is lined up correctly (haven't verified since updating silmaril 6)
+
 
 # df_sceg['sw1300'] = lab.strength_T(1300, df_sceg.elower, df_sceg.nu) * df_sceg.sw
 # df_HT2020['sw1300'] = lab.strength_T(1300, df_HT2020.elower, df_HT2020.nu) * df_HT2020.sw
@@ -200,7 +206,7 @@ please = stophere
 buffer = 1.3
 
 df_plot = df_sceg_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
-df_plot_og = df_HT2016_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
+df_plot_og = df_HT2020_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
 
 df_plot_ht = df_HT2020_HT_align[df_sceg_align.uc_sw > 0].sort_values(by=['elower'])
 sw_error = df_plot_ht.ierr.str[1]
@@ -306,21 +312,25 @@ patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorde
 pp1.loc1 = 3
 pp2.loc1 = 4
 
-
-# updates for entire plot
-
-
 plt.xlim(2e-26, 2.5e-20)
 plt.ylim(-0.12, 0.12)
 
 plt.xscale('log')
 
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
 # %% change in line center with E lower
+
+
+
+
+markers = ['1','2','3','+','x', '.', '.']
+linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid',  'solid',  'solid', ]
+colors = ['dodgerblue', 'firebrick', 'darkorange', 'darkgreen', 'purple', 'moccasin']
+
 
 buffer = 1.3
 
@@ -328,7 +338,7 @@ df_plot = df_sceg_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
 df_plot_og = df_HT2020_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
 
 df_plot_ht = df_HT2020_HT_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
-sw_error = df_plot_ht.ierr.str[1]
+nu_error = df_plot_ht.ierr.str[0]
 
 
 label_x = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
@@ -349,19 +359,19 @@ limited = ['6']
 
 # if len(df_plot[df_plot.vp == vp]) > 140: 
 
-plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
+plt.figure(figsize=(14.4, 5)) #, dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x)
 plt.ylabel(label_y)
 
 # plt.title(vp)
 
-for i_err, err in enumerate(np.sort(sw_error.unique())): 
+for i_err, err in enumerate(np.sort(nu_error.unique())): 
     
-    which = (sw_error == err) #&(df_plot.vp == vp)
+    which = (nu_error == err) #&(df_plot.vp == vp)
     
     plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
     
-    sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i], 
+    sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i_err], 
                      c=plot_c[which], cmap='viridis', zorder=2, 
                      label=HT_errors_nu[err])
     df_plot.sort_values(by=['sw'], inplace=True)
@@ -382,25 +392,75 @@ ax = plt.gca()
 legend = ax.get_legend()
 legend_dict = {handle.get_label(): handle for handle in legend.legendHandles}
 
-for i_err, err in enumerate(np.sort(sw_error.unique())): 
-    
-    # legend_dict[HT_errors_nu[err]].set_color(colors[i])
-    
+
+for i_err, err in enumerate(np.sort(nu_error.unique())): 
+       
     plt.hlines(float(HT_errors_nu[err].split(')')[0].split('<')[-1]),min(plot_x), max(plot_x),
                linestyles=linestyles[i_err], color=colors[i_err])
     plt.hlines(-float(HT_errors_nu[err].split(')')[0].split('<')[-1]),min(plot_x), max(plot_x),
                linestyles=linestyles[i_err], color=colors[i_err])
+
+
+    legend_dict[HT_errors_nu[err]].set_color(colors[i_err])
+    df_plot.sort_values(by=['sw'], inplace=True)
+
+
 
 plt.xlim(min(plot_x)/buffer, max(plot_x)*buffer)
 # plt.ylim(-0.1899, 0.1599)
 # plt.ylim(-5e-4, 5e-4)
 # plt.ylim(-0.035, 0.035)
 
+plt.xlim(2.1e-31, 2.5e-20)
+
+
 plt.xscale('log')
 
 plt.colorbar(sc, label=label_c)
 
 plt.show()
+
+
+
+
+# plot inset 
+
+ax_ins = inset_axes(ax, width='65%', height='40%', loc='lower right', bbox_to_anchor=(0,0.05,1,1), bbox_transform=ax.transAxes)
+
+for ierr, err in enumerate(np.sort(nu_error.unique())): 
+    
+    if err not in ['7']: 
+    
+        ax_ins.scatter(plot_x[nu_error == err], plot_y[nu_error == err], marker=markers[i_err], 
+                         c=plot_c[nu_error == err], cmap='viridis', zorder=2, 
+                         label=HT_errors_nu[err])
+        df_plot.sort_values(by=['sw'], inplace=True)
+        
+        legend_dict[HT_errors_nu[err]].set_color(colors[i_err])
+        
+        plt.hlines(float(HT_errors_nu[err].split(')')[0].split('<')[-1]),min(plot_x), max(plot_x),
+                   linestyles=linestyles[i_err], color=colors[i_err])
+        plt.hlines(-float(HT_errors_nu[err].split(')')[0].split('<')[-1]),min(plot_x), max(plot_x),
+                   linestyles=linestyles[i_err], color=colors[i_err])
+        
+
+patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
+pp1.loc1 = 1
+pp2.loc1 = 2
+
+plt.xscale('log')
+
+plt.xlim(2e-26, 2.25e-20)
+plt.ylim(-0.00249, 0.00249)
+
+
+
+
+
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
+
+
+
 
 
 

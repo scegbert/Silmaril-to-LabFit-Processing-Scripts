@@ -92,8 +92,8 @@ for which_file in which_files:
 #%%
 
 wide = [6615-25, 7650+25]
-narrow1 = [7046.58, 7047.9]
-narrow2 = [6717.91, 6719.41]
+narrow1 = [7046.35, 7047.93]
+narrow2 = [6717.86, 6719.36]
 
 
 y_lim_top = [0.35,1.06]

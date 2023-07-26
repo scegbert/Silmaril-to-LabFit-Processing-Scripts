@@ -438,7 +438,7 @@ for i_err, err in enumerate(np.sort(sw_error.unique())):
     
     plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
     
-    sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i], 
+    sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i_err], 
                      c=plot_c[which], cmap='viridis', zorder=2, 
                      label=HT_errors_nu[err])
     df_plot.sort_values(by=['sw'], inplace=True)
