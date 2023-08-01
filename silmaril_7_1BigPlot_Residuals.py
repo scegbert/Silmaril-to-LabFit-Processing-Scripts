@@ -45,6 +45,8 @@ f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
 
+# P_all = np.round(P_all/10,0)*10 # for air-water to round pressures to nearest 10's
+
 
 #%% plot and verify this is what you want
 
