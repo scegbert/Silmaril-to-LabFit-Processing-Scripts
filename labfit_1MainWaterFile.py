@@ -114,7 +114,7 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 5E-24 
 
-bin_name = 'B10a' # name of working bin (for these calculations)
+bin_name = 'B20' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
 
 
@@ -743,7 +743,7 @@ plt.title(bin_name)
 #%% setup for rerunning last check out
 
 
-bin_name = 'B48'
+bin_name = 'B43'
 
 d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
@@ -758,14 +758,14 @@ d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for compar
 # lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
 
-prop_which = 'delta_self'
-prop_which2 = 'n_delta_self'
+prop_which = 'sw'
+prop_which2 = 'gamma_self'
 
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-# lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-# plt.title(bin_name + d_labfit_kernal[-13:])
+lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name + d_labfit_kernal[-13:])
 
 
 #%% re-run fits to fix something wrong

@@ -300,6 +300,9 @@ ax22.axvspan(narrow2[0]+offset1, narrow2[1]-offset1, alpha=alpha, color=colors[-
 
 #%% labels
 ax20.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+ax21.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+ax22.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+
 
 ax00.set_ylabel('Measured\nTransmission')
 ax10.set_ylabel('Meas-\nHITRAN')

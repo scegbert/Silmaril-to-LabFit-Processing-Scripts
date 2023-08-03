@@ -94,20 +94,27 @@ for which_file in which_files:
 # y_lim_bottom = [-0.011,0.011]
 # fig = plt.figure(figsize=(12, 4))
 
-wide = [6771.3, 6772.1] # <---- overview plot mini
-y_lim_top = [0.902,1.003]
-y_lim_bottom = [-0.019,0.019]
-fig = plt.figure(figsize=(4, 4))
+# wide = [6771.3, 6772.1] # <---- overview plot mini
+# y_lim_top = [0.902,1.003]
+# y_lim_bottom = [-0.019,0.019]
+# fig = plt.figure(figsize=(4, 4))
 
-# wide = [6938.16, 6939.09] # line strength changes
-# y_lim_top = [0.972,1.003]
+# wide = [6938.14, 6939.05] # line strength changes
+# y_lim_top = [0.972,1.005]
 # y_lim_bottom = [-0.009,0.004]
-# fig = plt.figure(figsize=(8, 6))
+# fig = plt.figure(figsize=(7.2, 4))
+
+wide = [7377.29, 7378.36] # line strength changes #2
+wide = [7377.07, 7378.36] # line strength changes #2
+y_lim_top = [0.972,1.007]
+y_lim_bottom = [-0.008,0.003]
+fig = plt.figure(figsize=(7.2, 4))
+adjust = True # adjust residual to compensate for the large feature next to the plot (that's not what we're trying to highlight)
 
 # wide = [6718.01, 6719.5] # new feature
 # y_lim_top = [0.95,1.003]
 # y_lim_bottom = [-0.019,0.004]
-# fig = plt.figure(figsize=(8, 6))
+# fig = plt.figure(figsize=(7.2, 4))
 
 
 linewidth = 1
@@ -126,16 +133,19 @@ which_files_partial = which_files[:num_files][::-1]
 
 gs = GridSpec(3, 1, height_ratios=[3, 1, 1], hspace=0.015, wspace=0.005) # rows, columns
 
-for which_file in which_files_partial: 
-    
-    i = which_files.index(which_file)
-    
+for i, which_file in enumerate(which_files_partial): 
+        
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
     ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
-    ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=9)
+    ax00.legend(loc = 'lower left', framealpha=1, edgecolor='black', fontsize=9)
     
-   
+    
+    if adjust: 
+        if i == 0: res_HT_og = res_HT.copy()
+        if i == 1:  res_HT[i] += 0.002
+        if i == 2:  res_HT[i] += 0.003
+        
     ax10 = fig.add_subplot(gs[1,0], sharex=ax00) # Second row, first column
     ax10.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
@@ -144,8 +154,6 @@ for which_file in which_files_partial:
     ax20.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
     
-
-
 #%% arrows pointing to inset
 
 # ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
@@ -191,13 +199,25 @@ ax20.set_ylabel('Meas-Model')
 
 #%%
 
-h0 = 0.02
-h1 = 0.05
-v0 = 0.9
-v1 = 0.9
-
-# ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
-# ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
+if adjust:  
+    
+    v = 0.875
+    # ax00.text(0.17, v, '9%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    # ax00.text(0.295, v, '0%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    # ax00.text(0.625, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    # ax00.text(0.76, v, '7%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    # ax00.text(0.895, v, '5%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    
+    ax00.text(0.02, v, 'ΔS$_{296}$ vs HT20 =', fontsize=12, transform=ax00.transAxes)
+    
+    ax00.text(0.305, v, '9%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.41, v, '0%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.68, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.8, v, '7%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.91, v, '5%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    
+    
+    
 
 
 #%% save it

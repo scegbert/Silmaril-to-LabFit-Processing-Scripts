@@ -30,23 +30,33 @@ import numpy as np
 
 #%% setup things
 
+d_type = 'air' # 'pure' or 'air'
+
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
 
-which_file = '1300 K 16 T'
-which_vacuum = 25 # vacuum scans that correspond to the file above
-
+if d_type == 'pure': 
+    which_file = '1300 K 16 T'
+    which_vacuum = 25 # vacuum scans that correspond to the file above
+elif d_type == 'air': 
+    which_file = '1300 K 600 T'
+    which_vacuum = 25 # vacuum scans that correspond to the file above
 
 #%% load in transmission data (model from labfit results)
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
-f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+
+if d_type == 'pure': f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+elif d_type == 'air': f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
+
 [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
 f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
+
+if d_type == 'air': P_all = np.round(P_all/10,0)*10 # for air-water to round pressures to nearest 10's
 
 T_plot = int(which_file.split()[0])
 P_plot = int(which_file.split()[2])
@@ -64,7 +74,8 @@ res_og_all = np.concatenate([res_og_pure[i] for i in i_plot])
 
 #%% load in transmission data (vacuum normalized from bg subtract)
 
-d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
+if d_type == 'pure': d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
+elif d_type == 'air': d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
 f = open(os.path.join(d_measurement, which_file+' bg subtraction.pckl'), 'rb')
 # [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
 [transmission, _, wvn_process, _, _, _, _, _, _, model, _, _] = pickle.load(f)
@@ -354,6 +365,7 @@ ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
 
 #%% save it
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
-
-
+if d_type == 'pure':
+    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
+elif d_type == 'air':
+    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big air.svg',bbox_inches='tight')
