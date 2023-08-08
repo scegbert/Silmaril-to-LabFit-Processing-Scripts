@@ -274,9 +274,20 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
         
     label = HT_errors[ierr]
     
+        
+    delta_avg = np.mean(plot_y[sw_error == ierr])
+    delta_avg_abs = np.mean(abs(plot_y[sw_error == ierr]))
+    delta_std_abs = np.std(abs(plot_y[sw_error == ierr]))
+    
+    if ierr == '3': MAD = ' MAD = {:.0f}±{:.0f}%'.format(delta_avg_abs,delta_std_abs)   
+    elif ierr == '4': MAD = '    MAD = {:.0f}±{:.0f}%'.format(delta_avg_abs,delta_std_abs)   
+    elif ierr == '5': MAD = '      MAD = {:.0f}±{:.0f}%'.format(delta_avg_abs,delta_std_abs)   
+    elif ierr == '6':  MAD = '        MAD =   {:.0f}±{:.0f}%'.format(delta_avg_abs,delta_std_abs)   
+    else:  MAD = '        MAD = {:.0f}±{:.0f}%'.format(delta_avg_abs,delta_std_abs)   
+
     sc = plt.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                     label=label, vmin=0, vmax=6000)
+                     label=label+MAD, vmin=0, vmax=6000)
     df_plot.sort_values(by=['sw'], inplace=True)
     
     
@@ -287,10 +298,6 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
         
     print(' {} total, {} within uncertainty'.format(len(plot_x[sw_error == ierr]), within_HT))
     
-    delta_avg = np.mean(plot_y[sw_error == ierr])
-    delta_avg_abs = np.mean(abs(plot_y[sw_error == ierr]))
-    delta_std_abs = np.std(abs(plot_y[sw_error == ierr]))
-    
     print('       {}       {} ± {}'.format(delta_avg, delta_avg_abs, delta_std_abs))
     
 
@@ -300,6 +307,7 @@ ax = plt.gca()
 legend = ax.get_legend()
 legend_dict = {handle.get_label(): handle for handle in legend.legendHandles}
 
+legend_dict_keys = list(legend_dict.keys())
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
     
@@ -310,8 +318,8 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
         plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
                     linestyles=linestyles[i], color=colors[i], linewidth=2)
         
-        
-    legend_dict[HT_errors[ierr]].set_color(colors[i])
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors[ierr]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i])
     df_plot.sort_values(by=['sw'], inplace=True)
 
 
@@ -326,7 +334,7 @@ plt.show()
 ax.minorticks_on()
 
 plt.xlim(2.1e-31, 2.5e-20)
-
+plt.ylim(-150, 1999)
 
 
 # ------------ plot inset for HITRAN 2020 ------------
@@ -338,9 +346,10 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
                      label=HT_errors[ierr])
-    df_plot.sort_values(by=['sw'], inplace=True)
     
-    legend_dict[HT_errors[ierr]].set_color(colors[i])
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors[ierr]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i])
+    df_plot.sort_values(by=['sw'], inplace=True)
     
     if ierr not in ['3']: 
         plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
@@ -385,9 +394,10 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
                      label=HT_errors[ierr])
-    df_plot.sort_values(by=['sw_sceg'], inplace=True)
-    
-    legend_dict[HT_errors[ierr]].set_color(colors[i])
+
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors[ierr]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i])
+    df_plot.sort_values(by=['sw_2016'], inplace=True)
     
     if ierr not in ['3']: 
         plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
@@ -404,7 +414,7 @@ plt.xscale('log')
 ax_ins.text(.6, .13, "Updated vs HITRAN2016", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
 
 
-# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
