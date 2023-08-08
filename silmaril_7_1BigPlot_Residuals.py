@@ -36,23 +36,31 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
+d_type = 'air' # 'air'
+
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
-f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+if d_type == 'pure': 
+    f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
+elif d_type == 'air': 
+    f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
 [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
 f.close()
 
+
 [T_all, P_all] = np.asarray([T_pure, P_pure])
 
-# P_all = np.round(P_all/10,0)*10 # for air-water to round pressures to nearest 10's
+if d_type == 'air': P_all = np.round(P_all/10,0)*10 # for air-water to round pressures to nearest 10's
 
 
 #%% plot and verify this is what you want
 
 
-# which_files = ['300 K 16 T', '500 K 16 T', '700 K 16 T', '900 K 16 T', '1100 K 16 T', '1300 K 16 T']
-which_files = ['1300 K 16 T']
+if d_type == 'pure': 
+    which_files = ['1300 K 16 T']
+elif d_type == 'air': 
+    which_files = ['1300 K 600 T']
 
 
 res_HT = []
@@ -98,11 +106,21 @@ narrow1 = [7046.35, 7047.93]
 narrow2 = [6717.86, 6719.36]
 
 
-y_lim_top = [0.35,1.06]
-y_lim_bottom = [-0.075,0.075]
+if d_type == 'pure': 
+    
+    y_lim_top = [0.35,1.06]
+    y_lim_bottom = [-0.075,0.075]
+    
+    y_lim_top_narrow = [0.951,1.0049]
+    y_lim_bottom_narrow = [-0.034,0.034]
 
-y_lim_top_narrow = [0.951,1.0049]
-y_lim_bottom_narrow = [-0.034,0.034]
+elif d_type == 'air': 
+    
+    y_lim_top = [0.65,1.04]
+    y_lim_bottom = [-0.035,0.035]
+    
+    y_lim_top_narrow = [0.964,1.0049]
+    y_lim_bottom_narrow = [-0.017,0.017]
 
 
 fig = plt.figure(figsize=(14.4, 5))
@@ -191,8 +209,14 @@ for which_file in which_files_partial:
 
 #%% arrows pointing to inset
 
-ax00.arrow(narrow1[1], 0.39, 50, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax00.arrow(narrow2[1], 0.84, 100, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+if d_type == 'pure': 
+    ax00.arrow(narrow1[1], 0.39, 50, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax00.arrow(narrow2[1], 0.84, 100, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+
+elif d_type == 'air': 
+    ax00.arrow(narrow1[1], 0.67, 50, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    ax00.arrow(narrow2[1], 0.90, 100, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+
 
 #%% set axis
 ax00.set_xlim(wide)
@@ -310,10 +334,15 @@ ax20.set_ylabel('Meas-\nUpdated')
 
 #%%
 
-h0 = 0.02
-# h1 = 0.05
-# v0 = 0.9
-v1 = 0.8
+if d_type == 'pure': 
+
+    h0 = 0.02
+    v1 = 0.8
+
+elif d_type == 'air': 
+
+    h0 = 0.02
+    v1 = 0.76
 
 ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
 ax01.text(h0, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)

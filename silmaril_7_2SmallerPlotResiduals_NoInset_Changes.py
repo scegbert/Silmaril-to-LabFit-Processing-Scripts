@@ -129,12 +129,12 @@ colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',     '#e6
 num_files = 6
 
 
-which_files_partial = which_files[:num_files][::-1]
+which_files_partial = which_files[:num_files]
 
 gs = GridSpec(3, 1, height_ratios=[3, 1, 1], hspace=0.015, wspace=0.005) # rows, columns
 
 for i, which_file in enumerate(which_files_partial): 
-        
+    
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
     ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
               linewidth=linewidth)

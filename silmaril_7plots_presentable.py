@@ -271,7 +271,7 @@ limited = ['6']
 
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
-    
+        
     label = HT_errors[ierr]
     if ierr == '7': label=''
     
@@ -287,6 +287,13 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     else: within_HT = 'N/A'
         
     print(' {} total, {} within uncertainty'.format(len(plot_x[sw_error == ierr]), within_HT))
+    
+    delta_avg = np.mean(plot_y[sw_error == ierr])
+    delta_avg_abs = np.mean(abs(plot_y[sw_error == ierr]))
+    delta_std_abs = np.std(abs(plot_y[sw_error == ierr]))
+    
+    print('       {}       {} ± {}'.format(delta_avg, delta_avg_abs, delta_std_abs))
+    
 
 plt.legend(edgecolor='k', framealpha=1, loc='upper left')
 
@@ -355,7 +362,7 @@ plt.ylim(-12, 12)
 
 plt.xscale('log')
 
-ax_ins.text(.6, .13, "Updated vs HITRAN2020", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
+ax_ins.text(.6, .13, "Updated vs HITRAN(2020)", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
 
 
 # ------------ plot inset for HITRAN 2016 ------------
@@ -403,7 +410,7 @@ plt.xscale('log')
 ax_ins.text(.6, .13, "Updated vs HITRAN2016", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
 
 
-# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
@@ -425,13 +432,14 @@ df_plot_og = df_HT2020_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
 
 df_plot_ht = df_HT2020_HT_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
 nu_error = df_plot_ht.ierr.str[0]
-
+nu_ref = df_plot_ht.iref.str[0:2]
+nu_ref_dict = {}
 
 label_x = 'Line Strength, S$_{296}$ (updated) [cm$^{-1}$/(molecule$\cdot$cm$^{-2}$)]'
 df_plot['plot_x'] = df_plot.sw
 plot_x = df_plot['plot_x']
 
-label_y = 'Difference in Line Position, $\Delta\\nu$ \n (updated - HITRAN) [cm$^{-1}$]'
+label_y = 'Difference in Line Position, $\Delta\\sigma_{0}$ \n (updated - HITRAN) [cm$^{-1}$]'
 df_plot['plot_y'] = df_plot.nu - df_plot_og.nu
 plot_y = df_plot['plot_y']
 
@@ -449,23 +457,28 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
     
     which = (nu_error == err) #&(df_plot.vp == vp)
     
+    nu_ref_dict[err] = nu_ref[which]
+    
+    delta_avg = np.mean(plot_y[which])
+    delta_avg_abs = np.mean(abs(plot_y[which]))
+    delta_std_abs = np.std(abs(plot_y[which]))
+    
     plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
+    
+    if err == '1': MAD = '   MAD = {:.4f}±{:.4f}'.format(delta_avg_abs,delta_std_abs)   
+    else: MAD = ' MAD = {:.4f}±{:.4f}'.format(delta_avg_abs,delta_std_abs)
     
     sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i_err], 
                      c=plot_c[which], cmap='viridis', zorder=2, 
-                     label=HT_errors_nu[err], vmin=0, vmax=6000)
+                     label=HT_errors_nu[err] + MAD, vmin=0, vmax=6000)
     df_plot.sort_values(by=['sw'], inplace=True)
     
     within_HT = plot_y[which].abs()
     within_HT = len(within_HT[within_HT < HT_errors_nu_val[err]])
-
     
     print('{} -  {} total, {} within uncertainty'.format(err,len(plot_x[which]), within_HT))
     
-    delta_avg = np.mean(plot_y[which])
-    delta_avg_abs = np.mean(abs(plot_y[which]))
-    
-    print('       {}       {}'.format(delta_avg, delta_avg_abs))
+    print('       {}       {} ± {}'.format(delta_avg, delta_avg_abs, delta_std_abs))
 
 
 plt.plot([1e-29,1e-29], [0,0], color=colors[-1], label='DCS unc. (±1.7×10$^{-4}$)', linewidth=6)
@@ -475,15 +488,18 @@ handles, labels = plt.gca().get_legend_handles_labels()
 order = [1,2,3,4,5,6,7,0]
 
 plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order], 
-           loc='upper right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0.1)
+           loc='upper right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
 
 ax = plt.gca()
 legend = ax.get_legend()
 legend_dict = {handle.get_label(): handle for handle in legend.legendHandles}
 
+legend_dict_keys = list(legend_dict.keys())
+
 ax.minorticks_on()
 
 plt.xlim(2.1e-31, 2.5e-20)
+plt.ylim(-0.19, 0.14)
 
 plt.xscale('log')
 plt.colorbar(sc, label=label_c, pad=0.01)
@@ -500,15 +516,15 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
         plt.hlines(-HT_errors_nu_val[err],min(plot_x), max(plot_x),
                    linestyles=linestyles[i_err], color=colors[i_err], linewidth=2)
     
-    
-    legend_dict[HT_errors_nu[err]].set_color(colors[i_err])
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors_nu[err]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i_err])
     df_plot.sort_values(by=['sw'], inplace=True)
 
 
 
 # plot inset 
 
-ax_ins = inset_axes(ax, width='65%', height='38%', loc='lower right', bbox_to_anchor=(0,0.07,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax, width='64%', height='35%', loc='lower right', bbox_to_anchor=(0,0.07,1,1), bbox_transform=ax.transAxes)
 
 for ierr, err in enumerate(np.sort(nu_error.unique())): 
    
@@ -517,7 +533,9 @@ for ierr, err in enumerate(np.sort(nu_error.unique())):
                      label=HT_errors_nu[err])
     df_plot.sort_values(by=['sw'], inplace=True)
     
-    legend_dict[HT_errors_nu[err]].set_color(colors[i_err])
+    
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors_nu[err]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i_err])
 
         
 for i_err, err in enumerate(np.sort(nu_error.unique())): 
@@ -529,8 +547,8 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
         plt.hlines(-HT_errors_nu_val[err],min(plot_x), max(plot_x),
                    linestyles=linestyles[i_err], color=colors[i_err], linewidth=2)
     
-
-    legend_dict[HT_errors_nu[err]].set_color(colors[i_err])
+    legend_line = legend_dict_keys[np.where([key.startswith(HT_errors_nu[err]) for key in legend_dict])[0].tolist()[0]]
+    legend_dict[legend_line].set_color(colors[i_err])
     df_plot.sort_values(by=['sw'], inplace=True)
 
 
@@ -551,7 +569,7 @@ plt.ylim(-0.0019, 0.0019)
 
 # need to reduce spacing between lines with added cm-1 before saving to file
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
 
 
 # %% feature widths - Linda plot
@@ -1491,6 +1509,29 @@ plt.legend()
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 air n shift.svg',bbox_inches='tight')
 
 
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%                                               compiling results
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+#%%
+
+
 # %% table of results (number of fits, vibrational bands, etc.)
 
 
@@ -1542,6 +1583,51 @@ for i, prop in enumerate(props_which):
 
     count[-1,i] = len(df_sceg_new[df_sceg_new[prop] > 0])
             
+
+# %% table of uncertainty values updated
+
+
+props_which_part = ['nu','sw']
+unc_where =        [   0,   1]
+ref_where =        [   0,   1]
+
+# for i, prop in enumerate(props_which_part): 
+
+which = [df_sceg_align['uc_'+prop] > 0]
+
+unc_code = df_plot_ht.ierr.str[unc_where]
+
+
+df_plot = df_sceg_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
+df_plot_og = df_HT2020_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
+
+df_plot_ht = df_HT2020_HT_align[df_sceg_align.uc_nu > 0].sort_values(by=['elower'])
+nu_error = df_plot_ht.ierr.str[0]
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
