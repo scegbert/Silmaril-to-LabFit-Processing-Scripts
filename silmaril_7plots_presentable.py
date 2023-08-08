@@ -236,7 +236,7 @@ please = stopherefdf
 markers = ['v', 'o', '>','s','^','d', '<']
 linestyles = ['', 'solid', (5, (10, 3)), 'dashdot', 'dashed','','']
 # colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fee9ac']
-colors = ['k','#d95f02','#514c8e','#f5a9d0', 'k','k']
+colors = ['k','#d95f02','#514c8e','#f5a9d0', '#131f06','k']
 
 buffer = 1.3
 
@@ -273,7 +273,6 @@ limited = ['6']
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
         
     label = HT_errors[ierr]
-    if ierr == '7': label=''
     
     sc = plt.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
@@ -312,9 +311,8 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
                     linestyles=linestyles[i], color=colors[i], linewidth=2)
         
         
-    if ierr not in ['7']: 
-        legend_dict[HT_errors[ierr]].set_color(colors[i])
-        df_plot.sort_values(by=['sw'], inplace=True)
+    legend_dict[HT_errors[ierr]].set_color(colors[i])
+    df_plot.sort_values(by=['sw'], inplace=True)
 
 
 
@@ -336,23 +334,21 @@ plt.xlim(2.1e-31, 2.5e-20)
 ax_ins = inset_axes(ax, width='48%', height='30%', loc='center right', bbox_to_anchor=(0,-0.06,1,1), bbox_transform=ax.transAxes)
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
-    
-    if ierr not in ['7']: 
-    
-        ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
-                         c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                         label=HT_errors[ierr])
-        df_plot.sort_values(by=['sw'], inplace=True)
-        
-        legend_dict[HT_errors[ierr]].set_color(colors[i])
-        
-        if ierr not in ['3', '7']: 
-            plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
-                        linestyles=linestyles[i], color=colors[i], linewidth=2)
-            plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
-                        linestyles=linestyles[i], color=colors[i], linewidth=2)
-        
        
+    ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
+                     c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
+                     label=HT_errors[ierr])
+    df_plot.sort_values(by=['sw'], inplace=True)
+    
+    legend_dict[HT_errors[ierr]].set_color(colors[i])
+    
+    if ierr not in ['3']: 
+        plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
+                    linestyles=linestyles[i], color=colors[i], linewidth=2)
+        plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
+                    linestyles=linestyles[i], color=colors[i], linewidth=2)
+    
+   
 patch, pp1,pp2 = mark_inset(ax, ax_ins, loc1=1, loc2=2, fc='none', ec='k', zorder=10)
 pp1.loc1 = 3
 pp2.loc1 = 4
@@ -385,22 +381,20 @@ sw_error = df_plot.ierr.str[1]
 ax_ins = inset_axes(ax, width='48%', height='30%', loc='upper right', bbox_to_anchor=(0,0,1,1), bbox_transform=ax.transAxes)
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
+       
+    ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
+                     c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
+                     label=HT_errors[ierr])
+    df_plot.sort_values(by=['sw_sceg'], inplace=True)
     
-    if ierr not in ['7']: 
+    legend_dict[HT_errors[ierr]].set_color(colors[i])
     
-        ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
-                         c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
-                         label=HT_errors[ierr])
-        df_plot.sort_values(by=['sw_sceg'], inplace=True)
-        
-        legend_dict[HT_errors[ierr]].set_color(colors[i])
-        
-        if ierr not in ['3', '7']: 
-            plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
-                        linestyles=linestyles[i], color=colors[i], linewidth=2)
-            plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
-                        linestyles=linestyles[i], color=colors[i], linewidth=2)
-    
+    if ierr not in ['3']: 
+        plt.hlines(float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
+                    linestyles=linestyles[i], color=colors[i], linewidth=2)
+        plt.hlines(-float(HT_errors[ierr].split('-')[-1].split('%')[0]),min(plot_x), max(plot_x),
+                    linestyles=linestyles[i], color=colors[i], linewidth=2)
+
 plt.xlim(2e-24, 2.25e-20)
 plt.ylim(-12, 12)
 
@@ -410,7 +404,7 @@ plt.xscale('log')
 ax_ins.text(.6, .13, "Updated vs HITRAN2016", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
 
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
