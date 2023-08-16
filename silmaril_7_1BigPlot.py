@@ -30,7 +30,7 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -248,7 +248,7 @@ ax21ins.yaxis.set_label_position("right")
 ax21ins.yaxis.tick_right()
 ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
 
-ax21ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
+ax21ins.text(0.7, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
 
 #%% 1300 K inset
 
@@ -271,7 +271,7 @@ ax21ins.text(0.59, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transfor
 #%% arrows pointing to inset
 
 ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax10.arrow(narrow[1], 0.27, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax10.arrow(narrow[1], 0.25, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 ax20.arrow(narrow[1], 0.41, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 
 #%% set axis
@@ -356,10 +356,18 @@ v0 = 0.9
 v1 = 0.9
 
 ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
+ax00.text(0.525, 0.5, "(B)", fontsize=12, transform=ax00.transAxes)
+
 ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
+
 ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
+ax10.text(0.525, 0.27, "(D)", fontsize=12, transform=ax10.transAxes)
+
 ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
+
 ax20.text(h0, v0, "E", fontweight="bold", fontsize=12, transform=ax20.transAxes)
+ax20.text(0.525, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
+
 ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
 
 

@@ -226,7 +226,7 @@ elif d_type == 'air': f = open(os.path.join(d_sceg_save,'spectra_air.pckl'), 'wb
 pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_og_all], f)
 f.close()
 
-please = stopfsdsaasd
+# please = stopfsdsaasd
 
 
 # %% load both databases and combine

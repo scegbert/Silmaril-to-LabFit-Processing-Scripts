@@ -50,7 +50,7 @@ spike_location_expected = 13979
 
 check_bl = False # look at a bunch of BL's to try to find the right one
 two_BG_temps = True # number of background temperatures to subtract (False==1, True==2)
-check_fit = True # fit measurments against HITRAN database (2020, 2016, and Paul)
+check_fit = False # fit measurments against HITRAN database (2020, 2016, and Paul)
 save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -117,7 +117,7 @@ elif d_type == 'air':
                  0.0191551, 0.0195356, 0.0192415, 0.0187509, 0.0188582, 
                  0.0193093] # calculated using 38 features (listed above)
    
-    calc_yh2o = False # probably don't want to fit against model yet (set to False)
+    calc_yh2o = True # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -139,6 +139,7 @@ spike_location = np.zeros(len(d_base), dtype=int)
 output2020 = np.zeros((len(d_base),8))
 output2016 = np.zeros((len(d_base),8))
 outputPaul = np.zeros((len(d_base),8))
+outputSceg = np.zeros((len(d_base),8))
 
 if calc_yh2o: 
     bl_cutoff_h2o = 2 # TD fit BL cutoff for calculating yh2o for a single feature (very narrow)
@@ -149,9 +150,10 @@ if calc_yh2o:
     output_shift = np.zeros((len(d_base),len(wvn2_concentration)))
     output_yh20_test = {}
     
-    path_yh2o_load = r'\\data - HITRAN 2020\\'
+    path_yh2o_load = r'\\data - sceg\\' # r'\\data - HITRAN 2020\\'
     path_yh2o_save = r'\\data - temp\\'
-    df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.par')
+    try: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.par')
+    except: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.data')
 
 #%% load in measured conditions (P and T) 
 
@@ -595,7 +597,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         model_TD_fit2016 = np.fft.irfft(model_abs_fit2016)
     
     
-    # %% finally, fit against paul's database
+    # %% fit against paul's database
     
         pld.db_begin('data - Paul')  # load Paul's linelist into Python
         fit_modPaul, fit_parsPaul = td.spectra_single_lmfit() 
@@ -630,6 +632,44 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
         model_trans_fitPaul = np.exp(-model_abs_fitPaul)
         model_TD_fitPaul = np.fft.irfft(model_abs_fitPaul)
+        
+        
+        # %% fit against updated database (if you have it)
+    
+        pld.db_begin('data - sceg')  # load sceg linelist into Python
+        fit_modSceg, fit_parsSceg = td.spectra_single_lmfit() 
+        
+        fit_parsSceg['mol_id'].value = 1 # water = 1 (hitran molecular code)
+        fit_parsSceg['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
+
+        fit_parsSceg['molefraction'].set(value = y_h2o, vary = vary_yh2o) # mole fraction
+        fit_parsSceg['pressure'].set(value = P / 760, vary = vary_P) # pressure in atm (converted from Torr)
+
+        fit_parsSceg['temperature'].set(value = T, vary = True) # temperature in K
+        
+        meas_fit_bg_Sceg = fit_modSceg.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_parsSceg, weights=weight)
+        #td.plot_fit(wvn_fit, meas_fit_bg_Sceg)
+        
+        yh2o_fit = meas_fit_bg_Sceg.params['molefraction'].value
+        yh2o_fit_unc = meas_fit_bg_Sceg.params['molefraction'].stderr 
+                
+        P_fit = meas_fit_bg_Sceg.params['pressure'].value * 760
+        try: P_fit_unc = meas_fit_bg_Sceg.params['pressure'].stderr * 760
+        except: P_fit_unc = meas_fit_bg_Sceg.params['pressure'].stderr # can't multiple NAN by a number
+    
+        T_fit = meas_fit_bg_Sceg.params['temperature'].value
+        T_fit_unc = meas_fit_bg_Sceg.params['temperature'].stderr
+        
+        shift_fit = meas_fit_bg_Sceg.params['shift'].value
+        shift_fit_unc = meas_fit_bg_Sceg.params['shift'].stderr
+        
+        outputSceg[which_file,:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, T_fit, T_fit_unc, shift_fit, shift_fit_unc]
+    
+        model_abs_fitSceg = np.real(np.fft.rfft(fit_modSceg.eval(xx=wvn, params=fit_parsSceg, name='H2O')))
+        
+        model_trans_fitSceg = np.exp(-model_abs_fitSceg)
+        model_TD_fitSceg = np.fft.irfft(model_abs_fitSceg)
+        
     
         # %% compare transmission spectra
 

@@ -36,7 +36,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
-d_type = 'air' # 'air'
+d_type = 'pure' # 'air'
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
@@ -103,15 +103,15 @@ for which_file in which_files:
 
 wide = [6615-25, 7650+25]
 narrow1 = [7046.35, 7047.93]
-narrow2 = [6717.86, 6719.36]
+narrow2 = [6717.89, 6719.36]
 
 
 if d_type == 'pure': 
     
-    y_lim_top = [0.35,1.06]
+    y_lim_top = [0.401,1.12]
     y_lim_bottom = [-0.075,0.075]
     
-    y_lim_top_narrow = [0.951,1.0049]
+    y_lim_top_narrow = [0.951,1.01]
     y_lim_bottom_narrow = [-0.034,0.034]
 
 elif d_type == 'air': 
@@ -122,6 +122,7 @@ elif d_type == 'air':
     y_lim_top_narrow = [0.964,1.0049]
     y_lim_bottom_narrow = [-0.017,0.017]
 
+    # narrow2 = [6717.86, 6719.36]
 
 fig = plt.figure(figsize=(14.4, 5))
 
@@ -142,8 +143,8 @@ num_files = 6
 
 which_files_partial = which_files[:num_files][::-1]
 
-gs = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.015, wspace=0.005) # rows, columns
-# gs = GridSpec(3, 1, height_ratios=[3, 1, 1], hspace=0.015, wspace=0.005) # rows, columns
+gs_right = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.02, wspace=0.04) # rows, columns
+gs = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.02, wspace=0.005) # rows, columns
 
 for which_file in which_files_partial: 
     
@@ -176,16 +177,16 @@ for which_file in which_files_partial:
               linewidth=linewidth)
     
     # third column
-    ax02 = fig.add_subplot(gs[0,2]) # First row, third column
+    ax02 = fig.add_subplot(gs_right[0,2]) # First row, third column
     ax02.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
   
    
-    ax12 = fig.add_subplot(gs[1,2], sharex=ax02) # Second row, third column
+    ax12 = fig.add_subplot(gs_right[1,2], sharex=ax02) # Second row, third column
     ax12.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
     
-    ax22 = fig.add_subplot(gs[2,2], sharex=ax02) # Second row, third column
+    ax22 = fig.add_subplot(gs_right[2,2], sharex=ax02) # Second row, third column
     ax22.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
     
@@ -210,8 +211,8 @@ for which_file in which_files_partial:
 #%% arrows pointing to inset
 
 if d_type == 'pure': 
-    ax00.arrow(narrow1[1], 0.39, 50, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-    ax00.arrow(narrow2[1], 0.84, 100, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax00.arrow(narrow1[1], 0.42, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax00.arrow(narrow2[1], 0.84, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 
 elif d_type == 'air': 
     ax00.arrow(narrow1[1], 0.67, 50, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
@@ -330,23 +331,38 @@ ax22.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
 ax00.set_ylabel('Measured\nTransmission')
 ax10.set_ylabel('Meas-\nHITRAN')
-ax20.set_ylabel('Meas-\nUpdated')
+ax20.set_ylabel('Meas-This\nWork')
+
+ax02.set_ylabel('Measured\nTransmission')
+ax12.set_ylabel('Meas-\nHITRAN')
+ax22.set_ylabel('Meas-This\nWork')
 
 #%%
 
 if d_type == 'pure': 
 
-    h0 = 0.02
-    v1 = 0.8
+    h0 = 0.015
+    h1 = 0.03
+    v0 = 0.9
+    
+    hb = 0.48
+    vb = 0.07
+    
+    hc = 0.18
+    vc = 0.53
 
 elif d_type == 'air': 
 
     h0 = 0.02
-    v1 = 0.76
+    v0 = 0.76
 
-ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
-ax01.text(h0, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
-ax02.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax02.transAxes)
+ax00.text(h0, v0, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
+ax01.text(h1, v0, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
+ax02.text(h1, v0, "C", fontweight="bold", fontsize=12, transform=ax02.transAxes)
+
+ax00.text(hb, vb, "(B)", fontsize=12, transform=ax00.transAxes)
+ax00.text(hc, vc, "(C)", fontsize=12, transform=ax00.transAxes)
+
 
 
 #%% save it

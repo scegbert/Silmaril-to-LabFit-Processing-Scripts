@@ -122,7 +122,7 @@ linewidth = 1
 offset1 = 0.05
 offset0 = 0.05*25
 
-colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',     '#e6ab02', '#fee9ac']
+colors = ['k', '#0028ff','#0080af','#117d11','#be961e','#ff0000',     '#e6ab02', '#fee9ac']
 # colors = ['#FFD700','#FF7F50','#EE82EE','#4169E1', '#00BFFF','#00FFFF',     '#e6ab02']
 
 
@@ -134,6 +134,8 @@ which_files_partial = which_files[:num_files]
 gs = GridSpec(3, 1, height_ratios=[3, 1, 1], hspace=0.015, wspace=0.005) # rows, columns
 
 for i, which_file in enumerate(which_files_partial): 
+    
+    if i == len(which_files_partial)-1: linewidth = 1.6
     
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
     ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
@@ -153,7 +155,7 @@ for i, which_file in enumerate(which_files_partial):
     ax20 = fig.add_subplot(gs[2,0], sharex=ax00) # Second row, first column
     ax20.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
-    
+       
 #%% arrows pointing to inset
 
 # ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
@@ -192,8 +194,8 @@ ax20.yaxis.set_minor_locator(AutoMinorLocator(10))
 ax20.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
 ax00.set_ylabel('Measured\nTransmission')
-ax10.set_ylabel('Meas-HITRAN\n')
-ax20.set_ylabel('Meas-Model')
+ax10.set_ylabel('Meas-\nHITRAN')
+ax20.set_ylabel('Meas-\nT.W.')
 
 
 
