@@ -39,6 +39,7 @@ import pldspectrapy as pld
 import td_support as td
 
 import scipy.stats as ss
+from sklearn.metrics import r2_score
 
 import clipboard_and_style_sheet
 clipboard_and_style_sheet.style_sheet()
@@ -188,6 +189,46 @@ if d_type == 'pure': f = open(os.path.join(d_sceg,'df_sceg_pure.pckl'), 'rb')
 elif d_type == 'air': f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
 [df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
 f.close()
+
+
+df_sceg['uc_nu_stat'] = df_sceg.uc_nu.copy()
+df_sceg['uc_sw_stat'] = df_sceg.uc_sw.copy()
+df_sceg['uc_elower_stat'] = df_sceg.uc_elower.copy()
+
+df_sceg['uc_gamma_self_stat'] = df_sceg.uc_gamma_self.copy()
+df_sceg['uc_n_self_stat'] = df_sceg.uc_n_self.copy()
+df_sceg['uc_sd_self_stat'] = df_sceg.uc_sd_self.copy()
+
+df_sceg['uc_delta_self_stat'] = df_sceg.uc_delta_self.copy()
+df_sceg['uc_n_delta_self_stat'] = df_sceg.uc_n_delta_self.copy()
+
+
+which = (df_sceg.uc_nu>-0.5)
+df_sceg.loc[which, 'uc_nu'] = np.sqrt(df_sceg[which].uc_nu_stat**2 + 
+                               (1.7E-4)**2)
+which = (df_sceg.uc_sw>-0.5)
+df_sceg.loc[which, 'uc_sw'] = np.sqrt((df_sceg[which].uc_sw_stat/df_sceg[which].sw)**2 + 
+                               (0.0086)**2) * df_sceg[which].sw
+
+which = (df_sceg.uc_gamma_self>-0.5)
+df_sceg.loc[which, 'uc_gamma_self'] = np.sqrt((df_sceg[which].uc_gamma_self_stat/df_sceg[which].gamma_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2) * df_sceg[which].gamma_self
+which = (df_sceg.uc_n_self>-0.5)
+df_sceg.loc[which, 'uc_n_self'] = np.sqrt((df_sceg[which].uc_n_self_stat/df_sceg[which].n_self)**2 + 
+                                   (0.9645*df_sceg[which].uc_gamma_self/df_sceg[which].gamma_self)**2) * df_sceg[which].n_self
+which = (df_sceg.uc_sd_self>-0.5)
+df_sceg.loc[which, 'uc_sd_self'] = np.sqrt((df_sceg[which].uc_sd_self_stat/df_sceg[which].sd_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2) * df_sceg[which].sd_self
+
+which = (df_sceg.uc_delta_self>-0.5)
+df_sceg.loc[which, 'uc_delta_self'] = np.sqrt((df_sceg[which].uc_delta_self_stat/df_sceg[which].delta_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2 + #) * df_sceg[which].delta_self
+                                       (1.7E-4 / (0.021*df_sceg[which].delta_self))**2) * df_sceg[which].delta_self
+
+which = (df_sceg.uc_n_delta_self>-0.5)
+df_sceg.loc[which, 'uc_n_delta_self'] = np.sqrt((df_sceg[which].uc_n_delta_self_stat/df_sceg[which].n_delta_self)**2 + 
+                                   (0.9645*df_sceg[which].uc_delta_self/df_sceg[which].delta_self)**2) * df_sceg[which].n_delta_self
+
 
 # f = open(os.path.join(d_sceg,'df_sceg_all.pckl'), 'rb')
 # [df_sceg] = pickle.load(f)
@@ -545,6 +586,9 @@ ax_ins = inset_axes(ax, width='64%', height='35%', loc='lower right', bbox_to_an
 
 for ierr, err in enumerate(np.sort(nu_error.unique())): 
    
+    ax_ins.errorbar(plot_x[nu_error == err],plot_y[nu_error == err], yerr=plot_y_unc[nu_error == err], 
+                    color='k', ls='none', zorder=1) 
+   
     ax_ins.scatter(plot_x[nu_error == err], plot_y[nu_error == err], marker=markers[i_err], 
                      c=plot_c[nu_error == err], cmap='viridis', zorder=2, 
                      label=HT_errors_nu[err])
@@ -590,20 +634,28 @@ plt.ylim(-0.0019, 0.0019)
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
 
 
-# %% feature widths - Linda plot
+# %% feature widths - J plot
 
 
 plot_which_y = 'gamma_self'
 label_y = 'Self-Width, γ$_{self}$ [cm$^{-1}$/atm]'
 
-# plot_which_y = 'n_self'
+# 
 # label_y = 'Self-Width Temperature Exponent, n$_{self}$'
 
-label_x = 'K$_{a,max}$ + (J$_{max}$-K$_{a,max}$)/10'
+plot_which_x = 'Jpp'
+label_x = 'Angular Momentum of Ground State, J"'
 
-label_c = 'Angular Momentum of Ground State, J"'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
+plot_c = df_plot.elower
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
+
+# df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_self'] > -1)]
+# g_error = df_plot_ht.ierr.str[3]
+# g_ref = df_plot_ht.iref.str[6:8]
+# g_ref_dict = {}
+
 
 plot_unc_y_bool = True
 plot_unc_x_bool = False
@@ -618,10 +670,10 @@ plt.ylabel(label_y)
 
 
 
-plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+# plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+plot_x = df_plot['Kapp'] + 0.052*df_plot['Jpp']
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot[['Jp', 'Jpp']].max(axis=1)
-
+plot_c = df_plot['Jpp']
 
  
 sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
@@ -635,16 +687,44 @@ if plot_unc_y_bool:
     plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
        
     
-if plot_logx: 
-    plt.xscale('log')
-    
-# plt.legend()
 
+
+a2 = 0.052
+y_max = 0.44
+slope = -0.67
+offset = 0.63
+
+
+plot_y_fit = slope*(plot_x% 1) + offset
+plot_y_fit[plot_y_fit>y_max] = y_max
+
+rms = np.sum(np.sqrt((plot_y-plot_y_fit)**2)) / len(plot_y)
+
+lines = [[0.01, .8], [1.01, 1.8], [2.01, 2.8], [3.01, 3.8], [4.01, 4.8], [5.01, 5.8], [6.01, 6.8], [7.01, 7.8], [8.01, 8.8]]
+
+for i, line in enumerate(lines): 
+    plot_x_smooth = np.linspace(line[0], line[1], num=1000)
+    plot_y_smooth = slope*(plot_x_smooth % 1 ) + offset
+    plot_y_smooth[plot_y_smooth>y_max] = y_max
+
+    if i == 0: 
+        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r', 
+                 label='-0.67 [ (K$_{a}$" + 0.052J") % 1 ] + 0.63 < γ$_{self}$ < 0.44')
+    else: 
+        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r')
+
+
+
+plt.legend(loc='lower right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-# plt.xlim(-.59,1.24)
-# plt.ylim(0.05,0.6)
+ax = plt.gca()
+ax.minorticks_on()
+
+plt.xlim(-.4,10.9)
+plt.ylim(-0.03,0.59)
+
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Linda.svg',bbox_inches='tight')
 
@@ -654,7 +734,7 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 plot_which_y = 'n_self'
 label_y = 'Self-Width Temperature Exponent, n$_{γ,self}$'
 
-label_x = 'K$_{a,max}$ + (J$_{max}$-K$_{a,max}$)/10'
+label_x = 'K$_{a}$" + 0.043J"'
 
 label_c = 'Angular Momentum of Ground State, J"'
 
@@ -673,9 +753,10 @@ plt.ylabel(label_y)
 
 
 
-plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+# plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+plot_x = df_plot['Kapp'] + 0.043*df_plot['Jpp']
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot[['Jp', 'Jpp']].max(axis=1)
+plot_c = df_plot['Jpp']
 
 
  
@@ -690,16 +771,39 @@ if plot_unc_y_bool:
     plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
        
     
-if plot_logx: 
-    plt.xscale('log')
-    
-# plt.legend()
+a2 = 0.043
+slope = -1.5
+offset = 1.0
+
+plot_y_fit = slope*(plot_x% 1) + offset
+plot_y_fit[plot_y_fit>y_max] = y_max
+
+rms = np.sum(np.sqrt((plot_y-plot_y_fit)**2)) / len(plot_y)
+
+lines = [[0.01, .8], [1.01, 1.8], [2.01, 2.8], [3.01, 3.8], [4.01, 4.8], [5.01, 5.8], [6.01, 6.8], [7.01, 7.8], [8.01, 8.8]]
+
+for i, line in enumerate(lines): 
+    plot_x_smooth = np.linspace(line[0], line[1], num=1000)
+    plot_y_smooth = slope*(plot_x_smooth % 1 ) + offset
+    plot_y_smooth[plot_y_smooth>y_max] = y_max
+
+    if i == 0: 
+        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r', 
+                 label='-1.5 [ (K$_{a}$" + 0.043J") % 1 ] + 1.0')
+    else: 
+        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r')
+
+plt.legend(loc='lower right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+
 
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-# plt.xlim(-.59,1.24)
-# plt.ylim(0.05,0.6)
+plt.xlim(-.4,10.9)
+plt.ylim(-0.74,1.3)
+
+ax = plt.gca()
+ax.minorticks_on()
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 n width Linda.svg',bbox_inches='tight')
 
@@ -715,12 +819,21 @@ label_x = 'γ$_{self}$, HITRAN [cm$^{-1}$/atm]'
 
 label_c = 'Angular Momentum of Ground State, J"'
 
-df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)].sort_values(by=['Jpp']).sort_values(by=['Jpp'])
+which = (df_sceg['uc_gamma_self'] > -1) # &(df_sceg['uc_n_self'] > -1)
+
+df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
 df_HT2020_align['Jpp'] = df_sceg_align.Jpp
-df_plot_HT = df_HT2020_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)].sort_values(by=['Jpp']).sort_values(by=['Jpp'])
+df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
 
 # df_plot['gamma_self'] = df_HT2020_align.gamma_self
 # df_plot['n_self'] = df_HT2020_align.n_self
+
+# df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_self'] > -1)]
+# g_error = df_plot_ht.ierr.str[3]
+# g_ref = df_plot_ht.iref.str[6:8]
+# g_ref_dict = {}
+
+# df_plot_HT = df_plot_HT[g_ref == '71']
 
 
 plot_unc_y_bool = True
@@ -735,10 +848,9 @@ plt.xlabel(label_x)
 plt.ylabel(label_y)
 
 
-
-plot_x = df_plot_HT[plot_which]
+plot_x = df_plot_HT.Jpp # df_plot_HT[plot_which]
 plot_y = df_plot[plot_which]
-plot_c = df_plot.Jpp
+plot_c = df_plot_HT.Jpp
 
 
 
@@ -764,9 +876,9 @@ cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink
 # cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
 
 
-line_ = [0.2,0.5]
+line_ = [0, 18]
 
-plt.plot(line_,line_,'k',linewidth=2)
+# plt.plot(line_,line_,'k',linewidth=2)
 
 p = np.polyfit(plot_x[(plot_x>line_[0])], plot_y[(plot_x>line_[0])], 1)
 plot_y_fit = np.poly1d(p)(line_)
@@ -778,14 +890,20 @@ plt.plot(line_, plot_y_fit, colors[1], label='This Work  ({}γHT{})'.format(str(
 
 plt.legend(loc='lower right', edgecolor='k', framealpha=1)
 
-
 plt.show()
 
 # plt.ylim(-.59,1.24)
 # plt.xlim(0.05,0.6)
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width HT.svg',bbox_inches='tight')
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width HT.svg',bbox_inches='tight')
 
+
+mad = np.mean(np.abs(plot_y-np.poly1d(p)(plot_x)))
+rms = np.sqrt(np.sum((plot_y-np.poly1d(p)(plot_x))**2)/ len(plot_y))
+r2 = r2_score(plot_y, np.poly1d(p)(plot_x))
+
+
+print(rms)
 
 
 # %% feature widths vs temp dependence (matching Paul's style)
@@ -849,7 +967,7 @@ plot_y_fit = np.poly1d(p)(plot_x_sparse)
 
 slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 
-plt.plot(plot_x_sparse,[1.5344*.2+0.0502, 1.5344*.5+0.0502], colors[0], label='Schroeder (1.53γ+.05)', linewidth=4)
+plt.plot(plot_x_sparse,[1.5344*.2+0.0502, 1.5344*.5+0.0502], colors[0], label='Schroeder (1.53γ+0.05)', linewidth=4)
 plt.plot(plot_x_sparse, plot_y_fit, colors[1], label='This Work  ({}γ{})'.format(str(slope)[:4], str(intercept)[:5]),
          linewidth=4, linestyle='dashed')
 
@@ -858,8 +976,11 @@ plt.legend(loc='lower right', edgecolor='k', framealpha=1)
 
 plt.show()
 
-plt.ylim(-.59,1.24)
+plt.ylim(-.69,1.29)
 plt.xlim(0.05,0.6)
+
+ax = plt.gca()
+ax.minorticks_on()
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Paul.svg',bbox_inches='tight')
 
@@ -905,13 +1026,15 @@ if plot_unc_y_bool:
 cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
 
 
-p = np.polyfit(plot_x, plot_y, 0)
+polyfit = np.polyfit(plot_x, plot_y, 0, full=True)
+p = polyfit[0]
+fit_stats = polyfit[1:]
 plot_x_sparse = [0, 10.2]
 plot_y_fit = np.poly1d(p)(plot_x_sparse)
 
 
-
-slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
+std = np.std(np.poly1d(p)(plot_x) - plot_y)
+# r2 = r2_score(plot_y, np.poly1d(p)(plot_x))
 
 plt.plot(plot_x_sparse,[0.125597, 0.125597], colors[0], label='Schroeder Average ({})'.format('0.126'), linewidth=4)
 plt.plot([0.2, 10.0], plot_y_fit, color='k', label='This Work Average ({})'.format(str(p[0])[0:5]), linewidth=4, linestyle='dashed')
@@ -921,6 +1044,8 @@ plt.legend(loc='upper left', edgecolor='k', framealpha=1)
 plt.ylim((-0.04, 0.49))
 plt.xlim((-0.1, 10.5))
 
+ax = plt.gca()
+ax.minorticks_on()
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SD.svg',bbox_inches='tight')
 
@@ -929,20 +1054,26 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 markers = ['1','2','3','+','x', '.', '.', '.']
 linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
 
-colors = ['dodgerblue', 'firebrick', 'darkorange', 'darkgreen', 'purple', 'moccasin']
-
 #-----------------------
 plot_which_y = 'delta_self'
-label_y = 'Self-Width, δ$_{self}$ [cm$^{-1}$/atm]'
+label_y = 'Self-Shift, δ$_{self}$ [cm$^{-1}$/atm]'
 
 plot_which_x = 'elower'
 label_x = 'Lower State Energy, E" [cm$^{-1}$]'
 
+colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fee9ac']
+colors = ['dodgerblue', 'firebrick', 'darkorange', 'darkgreen', 'purple', 'moccasin']
 
-legend_dict = {'101': 'ν$_{1}$+ν$_{3}$',
-               '021': '2ν$_{2}$+ν$_{3}$',
-               '111': 'ν$_{1}$+ν$_{2}$+ν$_{3}$',
-               '200': '2ν$_{1}$',}
+
+legend_dict = {'101': ['ν$_{1}$+ν$_{3}$', '#1b9e77'],
+               '021': ['2ν$_{2}$+ν$_{3}$','#e6ab02'],
+               '111': ['ν$_{1}$+ν$_{2}$+ν$_{3}$←ν$_{2}$','#514c8e'],
+               '200': ['2ν$_{1}$', '#d95f02'],
+               '120': ['ν$_{1}$+2ν$_{2}$', '#4c7c17'], 
+               '002': ['2ν$_{3}$', 'firebrick'], 
+               '040': ['4ν$_{2}$', 'darkgreen'],
+               '031': ['3ν$_{2}$+ν$_{3}$←ν$_{2}$', 'dodgerblue']}
+
 
 
 # plot_which_x = 'm'
@@ -972,7 +1103,7 @@ df_plot = df_sceg[(df_sceg['uc_'+plot_which_y] > -1)] # &(df_sceg['uc_n_delta_se
 plot_x = df_plot[plot_which_x]
 plot_y = df_plot[plot_which_y]
 
-plt.plot(plot_x, plot_y, '+', color='k', label = 'All (This Work)', linewidth=2)
+# plt.plot(plot_x, plot_y, '+', color='k', label = 'All (This Work)', linewidth=2)
 
 for vp in df_sceg.vp.unique(): 
 
@@ -981,44 +1112,31 @@ for vp in df_sceg.vp.unique():
     plot_x = df_plot[plot_which_x]
     plot_y = df_plot[plot_which_y]
         
-    if len(df_plot) > 10: 
+    if len(df_plot) > 0: 
     
-        plt.plot(plot_x, plot_y, 'x', color=colors[i], label = legend_dict[vp], linewidth=2)
+        plt.plot(plot_x, plot_y, 'x', color=legend_dict[vp][1], label=legend_dict[vp][0], linewidth=2)
     
         if plot_unc_x_bool: 
             plot_unc_x = df_plot['uc_'+plot_which_x]
-            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=colors[i], ls='none')
+            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=legend_dict[vp][1], ls='none')
         if plot_unc_y_bool: 
             plot_unc_y = df_plot['uc_'+plot_which_y]
-            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=colors[i], ls='none')
+            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=legend_dict[vp][1], ls='none')
         
-        if plot_labels:
-            for j in df_plot.index:
-                j = int(j)
-                plt.annotate(str(j),(plot_x[j], plot_y[j]))
-    
-        if plot_which_y == 'delta_self': 
-            
-            df_plot2 = df_plot[(df_plot['uc_'+plot_which_y] > -1)&(df_plot['uc_n_delta_self'] > -1)]
-            
-            plot_x = df_plot2[plot_which_x]
-            plot_y = df_plot2[plot_which_y]
-            
-            plt.plot(plot_x, plot_y, '+', color=colors[i], linewidth=2)
-        
-        i+=1
         
     
 if plot_logx: 
     plt.xscale('log')
     
-plt.legend(edgecolor='k', framealpha=1, labelspacing=0)
+plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=0)
 
+
+plt.ylim((-0.65, 0.36))
+
+ax = plt.gca()
+ax.minorticks_on()
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 shift.svg',bbox_inches='tight')
-
-
-
 
 
 # %% temperature dependence of the shift (not planning to include this in the final paper)
@@ -1026,7 +1144,6 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 markers = ['1','2','3','+','x', '.', '.', '.']
 linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
 
-colors = ['dodgerblue', 'firebrick', 'darkorange', 'darkgreen', 'purple', 'moccasin']
 
 #-----------------------
 plot_which_y = 'n_delta_self'
@@ -1043,11 +1160,14 @@ label_x = 'Lower State Energy, E" [cm$^{-1}$]'
 # label_x = 'Pressure Shift'
 
 
-legend_dict = {'101': 'ν$_{1}$+ν$_{3}$',
-               '021': '2ν$_{2}$+ν$_{3}$',
-               '111': 'ν$_{1}$+ν$_{2}$+ν$_{3}$',
-               '200': '2ν$_{1}$',
-               '120': 'ν$_{1}$+2ν$_{2}$',}
+legend_dict = {'101': ['ν$_{1}$+ν$_{3}$', '#1b9e77'],
+               '021': ['2ν$_{2}$+ν$_{3}$','#e6ab02'],
+               '111': ['ν$_{1}$+ν$_{2}$+ν$_{3}$←ν$_{2}$','#514c8e'],
+               '200': ['2ν$_{1}$', '#d95f02'],
+               '120': ['ν$_{1}$+2ν$_{2}$', '#4c7c17'], 
+               '002': ['2ν$_{3}$', 'firebrick'], 
+               '040': ['4ν$_{2}$', 'darkgreen'],
+               '031': ['3ν$_{2}$+ν$_{3}$←ν$_{2}$', 'dodgerblue']}
 
 
 plot_unc_y_bool = True
@@ -1081,30 +1201,15 @@ for vp in df_sceg.vp.unique():
         
     if len(df_plot) > 0: 
     
-        plt.plot(plot_x, plot_y, 'x', color=colors[i], label = legend_dict[vp], linewidth=2)
+        plt.plot(plot_x, plot_y, 'x', color=legend_dict[vp][1], label=legend_dict[vp][0], linewidth=2)
     
         if plot_unc_x_bool: 
             plot_unc_x = df_plot['uc_'+plot_which_x]
-            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=colors[i], ls='none')
+            plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=legend_dict[vp][1], ls='none')
         if plot_unc_y_bool: 
             plot_unc_y = df_plot['uc_'+plot_which_y]
-            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=colors[i], ls='none')
+            plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=legend_dict[vp][1], ls='none')
         
-        if plot_labels:
-            for j in df_plot.index:
-                j = int(j)
-                plt.annotate(str(j),(plot_x[j], plot_y[j]))
-    
-        if plot_which_y == 'delta_self': 
-            
-            df_plot2 = df_plot[(df_plot['uc_'+plot_which_y] > -1)&(df_plot['uc_n_delta_self'] > -1)]
-            
-            plot_x = df_plot2[plot_which_x]
-            plot_y = df_plot2[plot_which_y]
-            
-            plt.plot(plot_x, plot_y, '+', color=colors[i], linewidth=2)
-        
-        i+=1
         
     
 if plot_logx: 
@@ -1112,6 +1217,10 @@ if plot_logx:
     
 plt.legend(loc='lower right', edgecolor='k', framealpha=1, labelspacing=0)
 
+plt.ylim((-0.4, 5.5))
+
+ax = plt.gca()
+ax.minorticks_on()
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 n shift.svg',bbox_inches='tight')
 
