@@ -745,3 +745,14 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         pickle.dump([meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul], f)
         f.close() 
 
+
+#%% save all results for looking at all together
+
+if save_file: 
+    
+    d_load = os.path.join(d_meas, 'output fit results.pckl')
+    
+    f = open(d_load, 'wb')
+    pickle.dump([T_all, P_all, y_h2o, pathlength, output2020, output2016, outputPaul, outputSceg], f)
+    f.close()
+    
