@@ -31,7 +31,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -50,7 +50,7 @@ spike_location_expected = 13979
 
 check_bl = False # look at a bunch of BL's to try to find the right one
 two_BG_temps = True # number of background temperatures to subtract (False==1, True==2)
-check_fit = False # fit measurments against HITRAN database (2020, 2016, and Paul)
+check_fit = True # fit measurments against HITRAN database (2020, 2016, and Paul)
 save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -670,6 +670,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         model_trans_fitSceg = np.exp(-model_abs_fitSceg)
         model_TD_fitSceg = np.fft.irfft(model_abs_fitSceg)
         
+        asdfasdfasdfasdf
     
         # %% compare transmission spectra
 

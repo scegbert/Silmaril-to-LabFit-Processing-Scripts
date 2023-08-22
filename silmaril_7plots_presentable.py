@@ -692,11 +692,11 @@ g_HT = [0.50361, 0.47957, 0.45633, 0.43388, 0.41221, 0.39129, 0.37113, 0.3517, 0
         0.29773, 0.28113, 0.26521, 0.24996, 0.23536, 0.2214, 0.20806, 0.19534, 0.18323, 0.1717, 
         0.16076, 0.15038, 0.14056, 0.13128, 0.12252, 0.11429]
 
-plt.plot(j_HT,g_HT, colors[0], label='HITRAN', linewidth=4)
+plt.plot(j_HT,g_HT, colors[0], label='HITRAN/HITEMP', linewidth=4)
 plt.plot([0, 25], [.484, 0.484-0.018*25], colors[1], label='This Work (0.484-0.018J")',
          linewidth=4, linestyle='dashed')
 
-plt.legend(loc='lower right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5)
 
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
@@ -705,7 +705,7 @@ ax = plt.gca()
 ax.minorticks_on()
 
 plt.xlim(-.9,24.9)
-plt.ylim(-0.16,1.19)
+plt.ylim(-0.04,1.19)
 
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Linda.svg',bbox_inches='tight')
@@ -770,7 +770,7 @@ plt.legend(loc='lower left', ncol=2, edgecolor='k', framealpha=1, labelspacing=0
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-plt.xlim(-.9,19.9)
+plt.xlim(-.9,21.1)
 plt.ylim(-0.79,1.3)
 
 ax = plt.gca()
@@ -938,8 +938,8 @@ plot_y_fit = np.poly1d(p)(plot_x_sparse)
 
 slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 
-plt.plot(plot_x_sparse,[1.5344*.2+0.0502, 1.5344*.5+0.0502], colors[0], label='Schroeder (1.53γ+0.05)', linewidth=4)
-plt.plot(plot_x_sparse, plot_y_fit, colors[1], label='This Work  ({}γ{})'.format(str(slope)[:4], str(intercept)[:5]),
+plt.plot(plot_x_sparse,[1.5344*.2+0.0502, 1.5344*.5+0.0502], colors[0], label='Schroeder  (0.05+1.53γ)', linewidth=4)
+plt.plot(plot_x_sparse, plot_y_fit, colors[1], label='This Work ({}+{}γ)'.format(str(intercept)[:5], str(slope)[:4]),
          linewidth=4, linestyle='dashed')
 
 plt.legend(loc='lower right', edgecolor='k', framealpha=1)
