@@ -644,12 +644,12 @@ label_y = 'Self-Width, γ$_{self}$ [cm$^{-1}$/atm]'
 # label_y = 'Self-Width Temperature Exponent, n$_{self}$'
 
 plot_which_x = 'Jpp'
-label_x = 'Angular Momentum of Ground State, J"'
+label_x = 'J" + K$_{c}$"/10'
 
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
-plot_c = df_plot.elower
+plot_which_c = 'elower'
 
-df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
+df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)] #&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
 
 # df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_self'] > -1)]
 # g_error = df_plot_ht.ierr.str[3]
@@ -671,12 +671,12 @@ plt.ylabel(label_y)
 
 
 # plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
-plot_x = df_plot['Kapp'] + 0.052*df_plot['Jpp']
+plot_x = df_plot[plot_which_x] + df_plot['Kcpp'] / 10
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot['Jpp']
+plot_c = df_plot[plot_which_c]
 
  
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
              # label=HT_errors_nu[err])
 
 if plot_unc_x_bool: 
@@ -687,43 +687,25 @@ if plot_unc_y_bool:
     plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
        
     
+j_HT = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+g_HT = [0.50361, 0.47957, 0.45633, 0.43388, 0.41221, 0.39129, 0.37113, 0.3517, 0.333, 0.31501, 
+        0.29773, 0.28113, 0.26521, 0.24996, 0.23536, 0.2214, 0.20806, 0.19534, 0.18323, 0.1717, 
+        0.16076, 0.15038, 0.14056, 0.13128, 0.12252, 0.11429]
 
-
-a2 = 0.052
-y_max = 0.44
-slope = -0.67
-offset = 0.63
-
-
-plot_y_fit = slope*(plot_x% 1) + offset
-plot_y_fit[plot_y_fit>y_max] = y_max
-
-rms = np.sum(np.sqrt((plot_y-plot_y_fit)**2)) / len(plot_y)
-
-lines = [[0.01, .8], [1.01, 1.8], [2.01, 2.8], [3.01, 3.8], [4.01, 4.8], [5.01, 5.8], [6.01, 6.8], [7.01, 7.8], [8.01, 8.8]]
-
-for i, line in enumerate(lines): 
-    plot_x_smooth = np.linspace(line[0], line[1], num=1000)
-    plot_y_smooth = slope*(plot_x_smooth % 1 ) + offset
-    plot_y_smooth[plot_y_smooth>y_max] = y_max
-
-    if i == 0: 
-        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r', 
-                 label='-0.67 [ (K$_{a}$" + 0.052J") % 1 ] + 0.63 < γ$_{self}$ < 0.44')
-    else: 
-        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r')
-
-
+plt.plot(j_HT,g_HT, colors[0], label='HITRAN', linewidth=4)
+plt.plot([0, 25], [.484, 0.484-0.018*25], colors[1], label='This Work (0.484-0.018J")',
+         linewidth=4, linestyle='dashed')
 
 plt.legend(loc='lower right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
 ax = plt.gca()
 ax.minorticks_on()
 
-plt.xlim(-.4,10.9)
-plt.ylim(-0.03,0.59)
+plt.xlim(-.9,24.9)
+plt.ylim(-0.16,1.19)
 
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Linda.svg',bbox_inches='tight')
@@ -734,9 +716,11 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 plot_which_y = 'n_self'
 label_y = 'Self-Width Temperature Exponent, n$_{γ,self}$'
 
-label_x = 'K$_{a}$" + 0.043J"'
+plot_which_x = 'Jpp'
+label_x = 'J" + K$_{c}$"/10'
 
-label_c = 'Angular Momentum of Ground State, J"'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
+plot_which_c = 'elower'
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
 
@@ -754,13 +738,13 @@ plt.ylabel(label_y)
 
 
 # plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
-plot_x = df_plot['Kapp'] + 0.043*df_plot['Jpp']
+plot_x = df_plot[plot_which_x] + df_plot['Kcpp'] / 10
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot['Jpp']
+plot_c = df_plot[plot_which_c]
 
 
  
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=3000)
              # label=HT_errors_nu[err])
 
 if plot_unc_x_bool: 
@@ -771,36 +755,23 @@ if plot_unc_y_bool:
     plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
        
     
-a2 = 0.043
-slope = -1.5
-offset = 1.0
+p = np.polyfit(plot_x, plot_y, 1)
+plot_x_sparse = [0, 18]
+plot_y_fit = np.poly1d(p)(plot_x_sparse)
 
-plot_y_fit = slope*(plot_x% 1) + offset
-plot_y_fit[plot_y_fit>y_max] = y_max
+slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 
-rms = np.sum(np.sqrt((plot_y-plot_y_fit)**2)) / len(plot_y)
+plt.plot([0,18], [0.997, 0.997-0.068*18], colors[1], label='This Work (0.997-0.068J")',
+         linewidth=4, linestyle='dashed')
 
-lines = [[0.01, .8], [1.01, 1.8], [2.01, 2.8], [3.01, 3.8], [4.01, 4.8], [5.01, 5.8], [6.01, 6.8], [7.01, 7.8], [8.01, 8.8]]
-
-for i, line in enumerate(lines): 
-    plot_x_smooth = np.linspace(line[0], line[1], num=1000)
-    plot_y_smooth = slope*(plot_x_smooth % 1 ) + offset
-    plot_y_smooth[plot_y_smooth>y_max] = y_max
-
-    if i == 0: 
-        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r', 
-                 label='-1.5 [ (K$_{a}$" + 0.043J") % 1 ] + 1.0')
-    else: 
-        plt.plot(plot_x_smooth, plot_y_smooth, linewidth=1, color='r')
-
-plt.legend(loc='lower right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+plt.legend(loc='lower left', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
 
 
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-plt.xlim(-.4,10.9)
-plt.ylim(-0.74,1.3)
+plt.xlim(-.9,19.9)
+plt.ylim(-0.79,1.3)
 
 ax = plt.gca()
 ax.minorticks_on()
