@@ -56,9 +56,16 @@ if d_type == 'air': P_all = np.round(P_all/10,0)*10 # for air-water to round pre
 
 #%% plot and verify this is what you want
 
-
 if d_type == 'pure': 
-    which_files = ['1300 K 16 T']
+
+    which_files = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
+                   '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
+                   '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
+                   '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
+                   '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', 
+                   '1300 K 16 T']
+
+    # which_files = ['1300 K 16 T']
 elif d_type == 'air': 
     which_files = ['1300 K 600 T']
 
@@ -69,15 +76,19 @@ res_updated = []
 trans = []
 wvn = []
 
-for which_file in which_files: 
+RMS_HT = [None] * len(which_files)
+RMS_updated = [None] * len(which_files)
+Prms = [None] * len(which_files)
 
-    T_plot = int(which_file.split()[0])
-    P_plot = int(which_file.split()[2])
+for i, which_file in enumerate(which_files): 
+
+    T_plot = float(which_file.split()[0])
+    P_plot = float(which_file.split()[2].replace('_','.'))
     
     i_plot = np.where((T_all == T_plot) & (P_all == P_plot))[0]
         
-    T = [T_all[i] for i in i_plot]
-    P = [P_all[i] for i in i_plot]
+    T = [T_all[j] for j in i_plot]
+    P = [P_all[j] for j in i_plot]
     
     wvn_labfit_all = np.concatenate([wvn_pure[i] for i in i_plot])
     trans_labfit_all = np.concatenate([trans_pure[i] for i in i_plot])
@@ -96,7 +107,24 @@ for which_file in which_files:
     # plt.plot(wvn[-1], res_updated[-1], label='og')
     # plt.plot(wvn[-1], res_HT[-1], label='HT')
 
+    RMS_HT[i] = np.sqrt(np.mean(res_HT[-1][20000:-20000]**2))
+    RMS_updated[i] = np.sqrt(np.mean(res_updated[-1][20000:-20000]**2))
+    Prms[i] = np.mean(P)
 # plt.legend()
+
+plt.figure()
+plt.plot([x*0.0001 for x in Prms], label='pressure')
+plt.plot(RMS_HT, label='HT')
+plt.plot(RMS_updated, label='updated')
+plt.legend()
+
+#%% check RMS errors
+
+
+
+
+
+
 
 
 #%%

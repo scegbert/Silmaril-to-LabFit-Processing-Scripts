@@ -110,14 +110,22 @@ if d_type == 'pure':
     
 elif d_type == 'air':
     
-    y_h2o_all = [0.0189748, 0.0191960, 0.0192649, 0.0193174, 0.0193936, 0.0194903, 0.0195316, 0.0194732, 
-                 0.0193572, 0.0193187, 0.0192066, 0.0192580, 0.0195697, 
-                 0.0189490, 0.0190159, 0.0189894, 0.0189217, 0.0189221, 
-                 0.0186053 ,0.0189104 ,0.0187065, 0.0185842, 0.0185690, 
-                 0.0191551, 0.0195356, 0.0192415, 0.0187509, 0.0188582, 
-                 0.0193093] # calculated using 38 features (listed above)
-   
-    calc_yh2o = True # probably don't want to fit against model yet (set to False)
+    # y_h2o_all = [0.0189748, 0.0191960, 0.0192649, 0.0193174, 0.0193936, 0.0194903, 0.0195316, 0.0194732, 
+    #              0.0193572, 0.0193187, 0.0192066, 0.0192580, 0.0195697, 
+    #              0.0189490, 0.0190159, 0.0189894, 0.0189217, 0.0189221, 
+    #              0.0186053 ,0.0189104 ,0.0187065, 0.0185842, 0.0185690, 
+    #              0.0191551, 0.0195356, 0.0192415, 0.0187509, 0.0188582, 
+    #              0.0193093] # calculated using 38 features (listed above) using HITRAN 2020
+
+    y_h2o_all = [0.0190805, 0.0193217, 0.0193786, 0.0194300, 0.0195055, 0.0195998, 0.0196325, 0.0195542,
+                 0.0194681, 0.0194289, 0.0193158, 0.0193640, 0.0196652, 
+                 0.0190566, 0.0191279, 0.0190909, 0.0190324, 0.0190234, 
+                 0.0187246, 0.0190349, 0.0188222, 0.0187054, 0.0186803, 
+                 0.0193032, 0.0196869, 0.0193919, 0.0188933, 0.0189874, 
+                 0.0194611] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
+    
+    
+    calc_yh2o = False # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -154,6 +162,7 @@ if calc_yh2o:
     path_yh2o_save = r'\\data - temp\\'
     try: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.par')
     except: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.data')
+
 
 #%% load in measured conditions (P and T) 
 
@@ -456,8 +465,11 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             # plt.plot(wvn_fit, meas_trans_bg_fit)
             
             meas_TD_bg_fit = np.fft.irfft(-np.log(meas_trans_bg_fit))
-              
-            fit_mod2020, fit_pars2020 = td.spectra_single_lmfit()
+             
+            if path_yh2o_load.split()[-1][:4] == 'sceg': sd = True
+            else: sd = False
+            
+            fit_mod2020, fit_pars2020 = td.spectra_single_lmfit(sd = sd)
             
             fit_pars2020['mol_id'].value = 1 # water = 1 (hitran molecular code)
             fit_pars2020['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
@@ -514,7 +526,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
         meas_TD_bg_fit = np.fft.irfft(-np.log(meas_trans_bg_fit))
           
-        fit_mod2020, fit_pars2020 = td.spectra_single_lmfit() # sd = True is an option
+        fit_mod2020, fit_pars2020 = td.spectra_single_lmfit(sd=False) # sd = True is an option
         
         fit_pars2020['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_pars2020['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
@@ -524,9 +536,9 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
         fit_pars2020['temperature'].set(value = T, vary = True) # temperature in K
         
+        r'''
         model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O') # used to check baseline decision
         
-        r'''
         plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')
         plt.plot(model_TD_fit2020, label='model')
         plt.plot(meas_TD_bg_fit, label='BG')
@@ -563,7 +575,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         
 
         pld.db_begin('data - HITRAN 2016')  # load the 2016 linelist into Python
-        fit_mod2016, fit_pars2016 = td.spectra_single_lmfit()
+        fit_mod2016, fit_pars2016 = td.spectra_single_lmfit(sd=False)
         
         fit_pars2016['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_pars2016['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
@@ -600,7 +612,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     # %% fit against paul's database
     
         pld.db_begin('data - Paul')  # load Paul's linelist into Python
-        fit_modPaul, fit_parsPaul = td.spectra_single_lmfit() 
+        fit_modPaul, fit_parsPaul = td.spectra_single_lmfit(sd=True) 
         
         fit_parsPaul['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_parsPaul['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
@@ -637,7 +649,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         # %% fit against updated database (if you have it)
     
         pld.db_begin('data - sceg')  # load sceg linelist into Python
-        fit_modSceg, fit_parsSceg = td.spectra_single_lmfit() 
+        fit_modSceg, fit_parsSceg = td.spectra_single_lmfit(sd=True) 
         
         fit_parsSceg['mol_id'].value = 1 # water = 1 (hitran molecular code)
         fit_parsSceg['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
@@ -670,8 +682,6 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         model_trans_fitSceg = np.exp(-model_abs_fitSceg)
         model_TD_fitSceg = np.fft.irfft(model_abs_fitSceg)
         
-        asdfasdfasdfasdf
-    
         # %% compare transmission spectra
 
         # plt.figure(figsize=(6, 4), dpi=200, facecolor='w', edgecolor='k')

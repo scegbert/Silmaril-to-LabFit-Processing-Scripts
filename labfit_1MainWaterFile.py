@@ -743,7 +743,7 @@ plt.title(bin_name)
 #%% setup for rerunning last check out
 
 
-bin_name = 'B49'
+bin_name = 'B10'
 
 d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'

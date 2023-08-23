@@ -381,6 +381,8 @@ ax.minorticks_on()
 plt.xlim(2.1e-31, 2.5e-20)
 plt.ylim(-150, 1999)
 
+plt.xticks(10**np.arange(-30, -19, 1.0))
+
 
 # ------------ plot inset for HITRAN 2020 ------------
 
@@ -430,6 +432,9 @@ label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_c = df_plot.elower_sceg
 
 sw_error = df_plot.ierr.str[1]
+
+df_plot.iref_2020 = df_plot.iref_2020.str[2:4]
+df_plot.iref_2016 = df_plot.iref_2016.str[2:4]
 
 ax_ins = inset_axes(ax, width='48%', height='30%', loc='upper right', bbox_to_anchor=(0,0,1,1), bbox_transform=ax.transAxes)
 
@@ -557,6 +562,8 @@ plt.xscale('log')
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
+plt.xticks(10**np.arange(-30, -19, 1.0))
+
 # lines for HITRAN uncertainties
 
 for i_err, err in enumerate(np.sort(nu_error.unique())): 
@@ -582,7 +589,7 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
 
 # plot inset 
 
-ax_ins = inset_axes(ax, width='64%', height='35%', loc='lower right', bbox_to_anchor=(0,0.05,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax, width='64%', height='35%', loc='lower right', bbox_to_anchor=(0,0.07,1,1), bbox_transform=ax.transAxes)
 
 for ierr, err in enumerate(np.sort(nu_error.unique())): 
    
@@ -627,7 +634,6 @@ plt.xscale('log')
 
 plt.xlim(2e-26, 2.5e-20)
 plt.ylim(-0.0019, 0.0019)
-
 
 # need to reduce spacing between lines with added cm-1 before saving to file
 
@@ -707,6 +713,7 @@ ax.minorticks_on()
 plt.xlim(-.9,24.9)
 plt.ylim(-0.04,1.19)
 
+plt.xticks(np.arange(0, 25, 2.0))
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Linda.svg',bbox_inches='tight')
 
@@ -770,11 +777,14 @@ plt.legend(loc='lower left', ncol=2, edgecolor='k', framealpha=1, labelspacing=0
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-plt.xlim(-.9,21.1)
+plt.xlim(-.9,19.9)
 plt.ylim(-0.79,1.3)
+plt.xticks(np.arange(0, 19, 2.0))
 
 ax = plt.gca()
 ax.minorticks_on()
+
+
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 n width Linda.svg',bbox_inches='tight')
 
@@ -784,13 +794,13 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 
 # %% feature widths vs HITRAN
 
-plot_which = 'gamma_self'
-label_y = 'γ$_{self}$, This Work [cm$^{-1}$/atm]'
-label_x = 'γ$_{self}$, HITRAN [cm$^{-1}$/atm]'
+plot_which = 'n_self'
+label_y = 'n$_{γ,self}$, This Work [cm$^{-1}$/atm]'
+label_x = 'n$_{γ,air}$, HITRAN [cm$^{-1}$/atm]'
 
 label_c = 'Angular Momentum of Ground State, J"'
 
-which = (df_sceg['uc_gamma_self'] > -1) # &(df_sceg['uc_n_self'] > -1)
+which = (df_sceg['uc_n_self'] > -1) # &(df_sceg['uc_n_self'] > -1)
 
 df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
 df_HT2020_align['Jpp'] = df_sceg_align.Jpp
@@ -819,7 +829,7 @@ plt.xlabel(label_x)
 plt.ylabel(label_y)
 
 
-plot_x = df_plot_HT.Jpp # df_plot_HT[plot_which]
+plot_x = df_plot_HT['n_air']
 plot_y = df_plot[plot_which]
 plot_c = df_plot_HT.Jpp
 
@@ -847,16 +857,18 @@ cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink
 # cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
 
 
-line_ = [0, 18]
+line_ = [0, 1]
 
 # plt.plot(line_,line_,'k',linewidth=2)
 
-p = np.polyfit(plot_x[(plot_x>line_[0])], plot_y[(plot_x>line_[0])], 1)
+p = np.polyfit(plot_x, plot_y, 1)
 plot_y_fit = np.poly1d(p)(line_)
 
 slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 
-plt.plot(line_, plot_y_fit, colors[1], label='This Work  ({}γHT{})'.format(str(slope)[:4],str(intercept)[:5]),
+r2 = r_value**2
+
+plt.plot(line_, plot_y_fit, colors[1], label='This Work  ({}n$_{}${})'.format(str(slope)[:4],'HT',str(intercept)[:5]),
           linewidth=4, linestyle='dashed')
 
 plt.legend(loc='lower right', edgecolor='k', framealpha=1)
@@ -948,7 +960,10 @@ plt.legend(loc='lower right', edgecolor='k', framealpha=1)
 plt.show()
 
 plt.ylim(-.69,1.29)
-plt.xlim(0.05,0.6)
+plt.xlim(0.05,0.57)
+
+plt.xticks(np.arange(0.1, 0.6, 0.1))
+
 
 ax = plt.gca()
 ax.minorticks_on()
@@ -966,9 +981,11 @@ colors = ['#d95f02','#514c8e']
 plot_which_y = 'sd_self'
 label_y = 'Speed Dependence of the Self-Width, a$_{w}$'
 
-label_x = 'K$_{a,max}$ + (J$_{max}$-K$_{a,max}$)/20'
+plot_which_x = 'Jpp'
+label_x = 'J" + K$_{c}$"/10'
 
-label_c = 'Angular Momentum of Ground State, J"'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
+plot_which_c = 'elower'
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)&(df_sceg['uc_sd_self'] > -1)].sort_values(by=['Jpp']) # all width (with SD)
 
@@ -984,11 +1001,11 @@ plt.ylabel(label_y)
 
 
 # plot_x = df_plot[plot_which_x]
-plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.05*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
+plot_x = df_plot[plot_which_x] + df_plot['Kcpp'] / 10
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot.Jpp
+plot_c = df_plot[plot_which_c]
 
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=3000)
 
 if plot_unc_y_bool: 
     plot_unc_y = df_plot['uc_'+plot_which_y]
@@ -1000,7 +1017,7 @@ cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink
 polyfit = np.polyfit(plot_x, plot_y, 0, full=True)
 p = polyfit[0]
 fit_stats = polyfit[1:]
-plot_x_sparse = [0, 10.2]
+plot_x_sparse = [0, 19]
 plot_y_fit = np.poly1d(p)(plot_x_sparse)
 
 
@@ -1008,12 +1025,13 @@ std = np.std(np.poly1d(p)(plot_x) - plot_y)
 # r2 = r2_score(plot_y, np.poly1d(p)(plot_x))
 
 plt.plot(plot_x_sparse,[0.125597, 0.125597], colors[0], label='Schroeder Average ({})'.format('0.126'), linewidth=4)
-plt.plot([0.2, 10.0], plot_y_fit, color='k', label='This Work Average ({})'.format(str(p[0])[0:5]), linewidth=4, linestyle='dashed')
+plt.plot(plot_x_sparse, plot_y_fit, color='k', label='This Work Average ({})'.format(str(p[0])[0:5]), linewidth=4, linestyle='dashed')
 
-plt.legend(loc='upper left', edgecolor='k', framealpha=1)
+plt.legend(loc='upper right', edgecolor='k', framealpha=1)
 
-plt.ylim((-0.04, 0.49))
-plt.xlim((-0.1, 10.5))
+plt.ylim((-0.04, 0.39))
+plt.xlim(-.9,19.9)
+plt.xticks(np.arange(0, 19, 2.0))
 
 ax = plt.gca()
 ax.minorticks_on()
