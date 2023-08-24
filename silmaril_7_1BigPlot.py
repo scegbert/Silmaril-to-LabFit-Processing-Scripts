@@ -30,16 +30,20 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
 
 if d_type == 'pure': 
     which_file = '1300 K 16 T'
+    y_h2o = '2%'
+    post_label = ''
     which_vacuum = 25 # vacuum scans that correspond to the file above
 elif d_type == 'air': 
     which_file = '1300 K 600 T'
+    y_h2o = '2%'
+    post_label = ' in air'
     which_vacuum = 25 # vacuum scans that correspond to the file above
 
 #%% load in transmission data (model from labfit results)
@@ -171,7 +175,13 @@ fig = plt.figure(figsize=(14.4, 7))
 gs = GridSpec(3, 2, width_ratios=[2, 1], hspace=0.015, wspace=0.005) # rows, columns
 
 wide = [6615-50, 7650+25]
-narrow = [7094.39, 7096.19]
+
+if d_type == 'pure': 
+    narrow = [7094.39, 7096.19]
+    
+if d_type == 'air': 
+    narrow = [6962.66, 6963.94]
+
 linewidth = 1
 
 offset1 = 0.05
@@ -184,9 +194,9 @@ colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fe
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
 ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at 1300 K <1mT', 
+ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at {} K <1mT'.format(which_file.split()[0]), 
           linewidth=linewidth)
-ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background $\mathregular{H_2O}$ Removed', 
+ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background H$_{2}$O Removed', 
           linewidth=linewidth)
 ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered', 
           linewidth=linewidth*2)
@@ -204,8 +214,9 @@ ax01.plot(wvn_data,vac_smooth_data, color=colors[2],
 ax10 = fig.add_subplot(gs[1,0], sharex = ax00) # Second row, first column
 ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax10.plot(wvn_data, meas_data, color=colors[3], label='100% $\mathregular{H_2O}$ at 1300 K 16 T', 
-          linewidth=linewidth)
+
+ax10.plot(wvn_data, meas_data, color=colors[3], linewidth=linewidth,
+          label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file))
 ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax11 = fig.add_subplot(gs[1,1], sharex = ax01) # Second row, second column
@@ -216,10 +227,10 @@ ax11.plot(wvn_data, meas_data, color=colors[3],
 ax20 = fig.add_subplot(gs[2,0], sharex = ax00) # Third row, first column
 ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax20.plot(wvn_data, trans_data, color=colors[4], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Filtered Baseline', 
-          linewidth=linewidth)
-ax20.plot(wvn_labfit, trans_labfit, color=colors[5], label='100% $\mathregular{H_2O}$ at 1300 K 16 T - Normalized by Baseline and Chebyshevs',
-          linewidth=linewidth)
+ax20.plot(wvn_data, trans_data, color=colors[4], linewidth=linewidth,
+          label='{} H$_{{2}}$O{} at {} - Normalized by Filtered Baseline'.format(y_h2o, post_label, which_file))
+ax20.plot(wvn_labfit, trans_labfit, color=colors[5], linewidth=linewidth,
+          label='{} H$_{{2}}$O{} at {} - Normalized by Baseline and Chebyshevs'.format(y_h2o, post_label, which_file))
 ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
 
 ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
@@ -230,25 +241,32 @@ ax21.plot(wvn_labfit, trans_labfit, color=colors[5],
 
 #%% noise plot inset 
 
-ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.22,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
+if d_type == 'pure': 
+    ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.22,0.1,1.2,1.2), bbox_transform=ax21.transAxes)
+if d_type == 'air': 
+    ax21ins = inset_axes(ax21, width='30%', height='40%', loc='lower left', bbox_to_anchor=(0.55,0.03,1.2,1.2), bbox_transform=ax21.transAxes)
 
 ax21ins.plot(wvn_labfit, trans_labfit, color=colors[5], 
              linewidth=linewidth)
-# ax21ins.plot(wvn_data, trans_data, color=colors[4])  # for partially normalized plot
 
-ax21ins.axis([7094.885, 7095.20, 0.9985, 1.00025])
-# ax21ins.axis([7094.88, 7095.20, 1.0111, 1.0132]) # for partially normalized plot
+if d_type == 'pure': 
+    ax21ins.axis([7094.885, 7095.20, 0.9985, 1.00025])
 
-patch, pp1,pp2 = mark_inset(ax21, ax21ins, loc1=1, loc2=2, fc='none', ec='k', zorder=0)
+elif d_type == 'air': 
+    # ax21ins.axis([6962.45, 6962.735, 0.9987, 1.00065])
+    ax21ins.axis([6963.48, 6963.695, 0.9984, 1.00065])
+
+
+patch, pp1,pp2 = mark_inset(ax21, ax21ins, loc1=1, loc2=2, fc='none', ec='k', zorder=5)
 pp1.loc2 = 4
-
+    
 ax21ins.xaxis.set_visible(False)
 
-ax21ins.yaxis.set_label_position("right")
-ax21ins.yaxis.tick_right()
+ax21ins.yaxis.set_label_position("left")
+ax21ins.yaxis.tick_left()
 ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
 
-ax21ins.text(0.7, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
+ax21ins.text(0.4, 0.2, "noise floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
 
 #%% 1300 K inset
 
@@ -270,20 +288,34 @@ ax21ins.text(0.7, 0.3, "noise\n floor", fontweight="bold", fontsize=8, transform
 
 #%% arrows pointing to inset
 
-ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax10.arrow(narrow[1], 0.25, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax20.arrow(narrow[1], 0.41, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax00.arrow(narrow[1], 0.55, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+ax20.arrow(narrow[1], 0.67, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
 
 #%% set axis
+
 ax00.set_xlim(wide)
 ax01.set_xlim(narrow)
 
-ax01.set_ylim([0.861, 0.886])
-ax11.set_ylim([0.35, 0.99])
-ax21.set_ylim([0.41, 1.099])
-ax00.set_ylim([0,1.1])
-ax10.set_ylim([0,1.1])
-ax20.set_ylim([0,1.1])
+if d_type == 'pure': 
+    
+    ax01.set_ylim([0.861, 0.886])
+    ax11.set_ylim([0.35, 0.99])
+    ax21.set_ylim([0.41, 1.099])
+    ax00.set_ylim([0,1.1])
+    ax10.set_ylim([0,1.1])
+    ax20.set_ylim([0,1.1])
+
+elif d_type == 'air': 
+
+
+    ax01.set_ylim([0.953, 0.959])
+    ax11.set_ylim([0.901, 0.938])
+    ax21.set_ylim([0.96, 1.01])
+    
+    ax00.set_ylim([0,1.1])
+    ax10.set_ylim([0,1.1])
+    ax20.set_ylim([0.45,1.06])
 
 
 #%%  remove x label on upper plots (mostly covered)
@@ -350,25 +382,31 @@ ax20.set_ylabel('Transmission')
 
 #%%
 
-h0 = 0.02
-h1 = 0.05
-v0 = 0.9
-v1 = 0.9
 
-ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
-ax00.text(0.525, 0.5, "(B)", fontsize=12, transform=ax00.transAxes)
+if d_type == 'pure': 
+    
+    h0 = 0.02
+    h1 = 0.05
+    v0 = 0.9
+    v1 = 0.9
+    
+    ax00.text(0.525, 0.5, "(B)", fontsize=12, transform=ax00.transAxes)
+    ax10.text(0.525, 0.27, "(D)", fontsize=12, transform=ax10.transAxes)
+    ax20.text(0.525, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
 
-ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
+    
+    
+elif d_type == 'air': 
+    
+    h0 = 0.02
+    h1 = 0.05
+    v0 = 0.87
+    v1 = 0.9
+    
+    ax00.text(0.41, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
+    ax10.text(0.41, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
+    ax20.text(0.41, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
 
-ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)
-ax10.text(0.525, 0.27, "(D)", fontsize=12, transform=ax10.transAxes)
-
-ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
-
-ax20.text(h0, v0, "E", fontweight="bold", fontsize=12, transform=ax20.transAxes)
-ax20.text(0.525, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
-
-ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
 
 
 #%% save it

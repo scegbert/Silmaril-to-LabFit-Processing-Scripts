@@ -36,7 +36,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
-d_type = 'pure' # 'air'
+d_type = 'air' # 'air'
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
@@ -66,8 +66,13 @@ if d_type == 'pure':
                    '1300 K 16 T']
 
     # which_files = ['1300 K 16 T']
+    y_h2o = '2%'
+    post_label = ''
+    
 elif d_type == 'air': 
     which_files = ['1300 K 600 T']
+    y_h2o = '2%'
+    post_label = ' in air'
 
 
 res_HT = []
@@ -112,11 +117,11 @@ for i, which_file in enumerate(which_files):
     Prms[i] = np.mean(P)
 # plt.legend()
 
-plt.figure()
-plt.plot([x*0.0001 for x in Prms], label='pressure')
-plt.plot(RMS_HT, label='HT')
-plt.plot(RMS_updated, label='updated')
-plt.legend()
+# plt.figure()
+# plt.plot([x*0.0001 for x in Prms], label='pressure')
+# plt.plot(RMS_HT, label='HT')
+# plt.plot(RMS_updated, label='updated')
+# plt.legend()
 
 #%% check RMS errors
 
@@ -144,13 +149,11 @@ if d_type == 'pure':
 
 elif d_type == 'air': 
     
-    y_lim_top = [0.65,1.04]
-    y_lim_bottom = [-0.035,0.035]
+    y_lim_top = [0.63,1.08]
+    y_lim_bottom = [-0.04,0.04]
     
-    y_lim_top_narrow = [0.964,1.0049]
+    y_lim_top_narrow = [0.965,1.007]
     y_lim_bottom_narrow = [-0.017,0.017]
-
-    # narrow2 = [6717.86, 6719.36]
 
 fig = plt.figure(figsize=(14.4, 5))
 
@@ -179,7 +182,7 @@ for which_file in which_files_partial:
     i = which_files.index(which_file)
     
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
-    ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
+    ax00.plot(wvn[i],trans[i], color=colors[i], label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file), 
               linewidth=linewidth)
     ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=9)   
    
@@ -243,8 +246,8 @@ if d_type == 'pure':
     ax00.arrow(narrow2[1], 0.84, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
 
 elif d_type == 'air': 
-    ax00.arrow(narrow1[1], 0.67, 50, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
-    ax00.arrow(narrow2[1], 0.90, 100, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    ax00.arrow(narrow1[1], 0.67, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    ax00.arrow(narrow2[1], 0.84, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
 
 
 #%% set axis
@@ -381,8 +384,15 @@ if d_type == 'pure':
 
 elif d_type == 'air': 
 
-    h0 = 0.02
-    v0 = 0.76
+    h0 = 0.015
+    h1 = 0.03
+    v0 = 0.9
+    
+    hb = 0.48
+    vb = 0.13
+    
+    hc = 0.18
+    vc = 0.53
 
 ax00.text(h0, v0, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)
 ax01.text(h1, v0, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
