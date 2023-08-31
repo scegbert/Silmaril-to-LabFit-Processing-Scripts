@@ -30,7 +30,7 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -200,7 +200,7 @@ ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background H
           linewidth=linewidth)
 ax00.plot(wvn_data,vac_smooth_data, color=colors[2], label='Baseline - Low-pass Filtered', 
           linewidth=linewidth*2)
-ax00.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+ax00.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)
 
 ax01 = fig.add_subplot(gs[0,1]) # First row, second column
 ax01.plot(wvn_data,vac_raw_data, color=colors[0], 
@@ -217,7 +217,7 @@ ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
 
 ax10.plot(wvn_data, meas_data, color=colors[3], linewidth=linewidth,
           label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file))
-ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)
 
 ax11 = fig.add_subplot(gs[1,1], sharex = ax01) # Second row, second column
 ax11.plot(wvn_data, meas_data, color=colors[3], 
@@ -231,7 +231,7 @@ ax20.plot(wvn_data, trans_data, color=colors[4], linewidth=linewidth,
           label='{} H$_{{2}}$O{} at {} - Normalized by Filtered Baseline'.format(y_h2o, post_label, which_file))
 ax20.plot(wvn_labfit, trans_labfit, color=colors[5], linewidth=linewidth,
           label='{} H$_{{2}}$O{} at {} - Normalized by Baseline and Chebyshevs'.format(y_h2o, post_label, which_file))
-ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=9)
+ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)
 
 ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
 ax21.plot(wvn_data, trans_data, color=colors[4], 
@@ -262,11 +262,22 @@ pp1.loc2 = 4
     
 ax21ins.xaxis.set_visible(False)
 
-ax21ins.yaxis.set_label_position("left")
-ax21ins.yaxis.tick_left()
-ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
+if d_type == 'pure': 
 
-ax21ins.text(0.4, 0.2, "noise floor", fontweight="bold", fontsize=8, transform=ax21ins.transAxes)
+    ax21ins.yaxis.set_label_position("right")
+    ax21ins.yaxis.tick_right()
+    ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
+
+    ax21ins.text(0.68, 0.2, "noise\n floor", fontsize=10, transform=ax21ins.transAxes)
+
+if d_type == 'air': 
+
+    ax21ins.yaxis.set_label_position("left")
+    ax21ins.yaxis.tick_left()
+    ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
+
+    ax21ins.text(0.4, 0.2, "noise floor", fontweight="bold", fontsize=10, transform=ax21ins.transAxes)
+
 
 #%% 1300 K inset
 
@@ -288,9 +299,17 @@ ax21ins.text(0.4, 0.2, "noise floor", fontweight="bold", fontsize=8, transform=a
 
 #%% arrows pointing to inset
 
-ax00.arrow(narrow[1], 0.55, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-ax20.arrow(narrow[1], 0.67, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+if d_type == 'pure': 
+
+    ax00.arrow(narrow[1], 0.525, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax10.arrow(narrow[1], 0.27, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax20.arrow(narrow[1], 0.435, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+
+if d_type == 'air': 
+
+    ax00.arrow(narrow[1], 0.55, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
+    ax20.arrow(narrow[1], 0.67, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
 
 #%% set axis
 
@@ -387,14 +406,22 @@ if d_type == 'pure':
     
     h0 = 0.02
     h1 = 0.05
-    v0 = 0.9
-    v1 = 0.9
+    v0 = 0.88
+    v1 = 0.88
     
-    ax00.text(0.525, 0.5, "(B)", fontsize=12, transform=ax00.transAxes)
-    ax10.text(0.525, 0.27, "(D)", fontsize=12, transform=ax10.transAxes)
-    ax20.text(0.525, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
+    ax00.text(0.522, 0.53, "(B)", fontsize=12, transform=ax00.transAxes)
+    ax10.text(0.522, 0.3, "(D)", fontsize=12, transform=ax10.transAxes)
+    ax20.text(0.522, 0.45, "(F)", fontsize=12, transform=ax20.transAxes)
 
+
+    ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)   
+    ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
     
+    ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)    
+    ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
+    
+    ax20.text(h0, v0, "E", fontweight="bold", fontsize=12, transform=ax20.transAxes)   
+    ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
     
 elif d_type == 'air': 
     

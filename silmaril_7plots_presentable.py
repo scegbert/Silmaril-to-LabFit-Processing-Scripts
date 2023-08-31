@@ -218,7 +218,7 @@ df_sceg.loc[which, 'uc_n_self'] = np.sqrt((df_sceg[which].uc_n_self_stat/df_sceg
                                    (0.9645*df_sceg[which].uc_gamma_self/df_sceg[which].gamma_self)**2) * df_sceg[which].n_self
 which = (df_sceg.uc_sd_self>-0.5)
 df_sceg.loc[which, 'uc_sd_self'] = np.sqrt((df_sceg[which].uc_sd_self_stat/df_sceg[which].sd_self)**2 + 
-                                       (0.0027)**2 + (0.0081)**2) * df_sceg[which].sd_self
+                                       (0.0027)**2 + (0.0081)**2 + 0.03**2) * df_sceg[which].sd_self
 
 which = (df_sceg.uc_delta_self>-0.5)
 df_sceg.loc[which, 'uc_delta_self'] = np.sqrt((df_sceg[which].uc_delta_self_stat/df_sceg[which].delta_self)**2 + 
@@ -304,8 +304,8 @@ label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_c = df_plot.elower
 
 plt.figure(figsize=(14.4, 5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 plt.errorbar(plot_x,plot_y, yerr=plot_y_unc, color='k', ls='none', zorder=1)
 
@@ -346,7 +346,7 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     # print('{}    {}   {}   {}   {} ± {}     {}  {}'.format(ierr, len(plot_x[which]), within_HT, delta_avg, delta_avg_abs, delta_std_abs, 
     #                                             df_plot[which].elower.mean(), len(df_plot[which][df_plot.local_iso_id != '1'])))
 
-plt.legend(edgecolor='k', framealpha=1, loc='upper left')
+plt.legend(edgecolor='k', framealpha=1, loc='upper left', fontsize=12)
 
 ax = plt.gca()
 legend = ax.get_legend()
@@ -373,7 +373,9 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
 plt.xlim(min(plot_x)/buffer, max(plot_x)*buffer)
 plt.xscale('log')
 
-plt.colorbar(sc, label=label_c, pad=0.01)
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
 plt.show()
 
 ax.minorticks_on()
@@ -462,7 +464,7 @@ plt.xscale('log')
 ax_ins.text(.6, .13, "This Work vs HITRAN2016", fontsize=12, transform=ax_ins.transAxes) # fontweight="bold",
 
 
-# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 SW.svg',bbox_inches='tight')
 
 
 
@@ -501,8 +503,8 @@ plot_c = df_plot.elower
 
 
 plt.figure(figsize=(14.4, 5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 for i_err, err in enumerate(np.sort(nu_error.unique())):  
@@ -544,7 +546,8 @@ handles, labels = plt.gca().get_legend_handles_labels()
 order = [1,2,3,4,5,6,7,0]
 
 plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order], 
-           loc='upper right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+           loc='upper right', ncol=2, edgecolor='k', framealpha=1, labelspacing=0, 
+           fontsize=12)
 
 ax = plt.gca()
 legend = ax.get_legend()
@@ -558,7 +561,10 @@ plt.xlim(2.1e-31, 2.5e-20)
 plt.ylim(-0.19, 0.14)
 
 plt.xscale('log')
-plt.colorbar(sc, label=label_c, pad=0.01)
+
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
 plt.show()
 
 plt.xticks(10**np.arange(-30, -19, 1.0))
@@ -636,7 +642,7 @@ plt.ylim(-0.0019, 0.0019)
 
 # need to reduce spacing between lines with added cm-1 before saving to file
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
+# plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 NU.svg',bbox_inches='tight')
 
 
 # %% feature widths - J plot
@@ -669,9 +675,9 @@ plot_labels = False
 plot_logx = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 
@@ -698,12 +704,18 @@ g_HT = [0.50361, 0.47957, 0.45633, 0.43388, 0.41221, 0.39129, 0.37113, 0.3517, 0
         0.16076, 0.15038, 0.14056, 0.13128, 0.12252, 0.11429]
 
 plt.plot(j_HT,g_HT, colors[0], label='HITRAN/HITEMP', linewidth=4)
-plt.plot([0, 25], [.484, 0.484-0.018*25], colors[1], label='This Work (0.484-0.018J")',
+# plt.plot([0, 25], [.484, 0.484-0.018*25], colors[1], label='This Work (0.484-0.018J")',
+#          linewidth=4, linestyle='dashed')
+plt.plot(j_HT, 0.485*np.exp(-0.0633*np.array(j_HT)) + 0.04, colors[1], label='This Work (0.485 e$^{-0.0633J"}$ + 0.04)',
          linewidth=4, linestyle='dashed')
+
+
 
 plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5)
 
-plt.colorbar(sc, label=label_c, pad=0.01)
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
 plt.show()
 
 ax = plt.gca()
@@ -716,7 +728,7 @@ plt.xticks(np.arange(0, 25, 2.0))
 
 plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 width Linda.svg',bbox_inches='tight')
 
-# %% feature temperature dependence of widths - Linda plot
+# %% feature temperature dependence of widths - J" plot
 
 
 plot_which_y = 'n_self'
@@ -737,9 +749,9 @@ plot_labels = False
 plot_logx = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 
@@ -773,11 +785,13 @@ plt.plot([0,18], [0.997, 0.997-0.068*18], colors[1], label='This Work (0.997-0.0
 plt.legend(loc='lower left', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
 
 
-plt.colorbar(sc, label=label_c, pad=0.01)
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
 plt.show()
 
 plt.xlim(-.9,19.9)
-plt.ylim(-0.79,1.3)
+plt.ylim(-0.86,1.3)
 plt.xticks(np.arange(0, 19, 2.0))
 
 ax = plt.gca()
@@ -823,9 +837,9 @@ plot_labels = False
 plot_logx = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 plot_x = df_plot_HT['n_air']
@@ -852,9 +866,10 @@ if plot_logx:
 # plt.legend()
 
 
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-# cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
-
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
+plt.show()
 
 line_ = [0, 1]
 
@@ -910,9 +925,9 @@ plot_labels = False
 plot_logx = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 
@@ -939,9 +954,10 @@ if plot_logx:
 # plt.legend()
 
 
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-# cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
-
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
+plt.show()
 
 p = np.polyfit(plot_x[(plot_x>0.2)], plot_y[(plot_x>0.2)], 1)
 plot_x_sparse = [0.2, 0.5]
@@ -994,9 +1010,9 @@ plot_unc_x_bool = False
 plot_labels = False
 plot_logx = False
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 # plot_x = df_plot[plot_which_x]
@@ -1010,8 +1026,10 @@ if plot_unc_y_bool:
     plot_unc_y = df_plot['uc_'+plot_which_y]
     plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
        
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-
+cbar = plt.colorbar(sc, label=label_c, pad=0.01)
+cbar.ax.tick_params(labelsize=12)
+cbar.set_label(label=label_c, size=12)
+plt.show()
 
 polyfit = np.polyfit(plot_x, plot_y, 0, full=True)
 p = polyfit[0]
@@ -1026,7 +1044,7 @@ std = np.std(np.poly1d(p)(plot_x) - plot_y)
 plt.plot(plot_x_sparse,[0.125597, 0.125597], colors[0], label='Schroeder Average ({})'.format('0.126'), linewidth=4)
 plt.plot(plot_x_sparse, plot_y_fit, color='k', label='This Work Average ({})'.format(str(p[0])[0:5]), linewidth=4, linestyle='dashed')
 
-plt.legend(loc='upper right', edgecolor='k', framealpha=1)
+plt.legend(loc='upper right', edgecolor='k', framealpha=1, fontsize=12)
 
 plt.ylim((-0.04, 0.39))
 plt.xlim(-.9,19.9)
@@ -1079,9 +1097,9 @@ plot_logx = False
 plot_unc_x_bool = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 i=0
@@ -1116,10 +1134,10 @@ for vp in df_sceg.vp.unique():
 if plot_logx: 
     plt.xscale('log')
     
-plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=0)
+plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=0, fontsize=12, ncol=2)
 
 
-plt.ylim((-0.65, 0.36))
+plt.ylim((-0.63, 0.38))
 
 ax = plt.gca()
 ax.minorticks_on()
@@ -1166,9 +1184,9 @@ plot_logx = False
 plot_unc_x_bool = False
 
 
-plt.figure(figsize=(7.2, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x)
-plt.ylabel(label_y)
+plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
+plt.xlabel(label_x, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 i=0
@@ -1203,9 +1221,9 @@ for vp in df_sceg.vp.unique():
 if plot_logx: 
     plt.xscale('log')
     
-plt.legend(loc='lower right', edgecolor='k', framealpha=1, labelspacing=0)
+plt.legend(loc='lower right', edgecolor='k', framealpha=1, labelspacing=0, fontsize=12)
 
-plt.ylim((-0.4, 5.5))
+plt.ylim((-0.89, 5.5))
 
 ax = plt.gca()
 ax.minorticks_on()

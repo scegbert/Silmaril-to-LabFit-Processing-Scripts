@@ -36,7 +36,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
-d_type = 'air' # 'air'
+d_type = 'pure' # 'air'
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
@@ -58,15 +58,15 @@ if d_type == 'air': P_all = np.round(P_all/10,0)*10 # for air-water to round pre
 
 if d_type == 'pure': 
 
-    which_files = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
-                   '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
-                   '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
-                   '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
-                   '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', 
-                   '1300 K 16 T']
+    # which_files = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
+    #                '500 K 1 T',  '500 K 2 T',  '500 K 4 T',  '500 K 8 T',  '500 K 16 T', 
+    #                '700 K 1 T',  '700 K 2 T',  '700 K 4 T',  '700 K 8 T',  '700 K 16 T', 
+    #                '900 K 1 T',  '900 K 2 T',  '900 K 4 T',  '900 K 8 T',  '900 K 16 T', 
+    #                '1100 K 1 T', '1100 K 2 T', '1100 K 4 T', '1100 K 8 T', '1100 K 16 T', 
+    #                '1300 K 16 T']
 
-    # which_files = ['1300 K 16 T']
-    y_h2o = '2%'
+    which_files = ['1300 K 16 T']
+    y_h2o = ''
     post_label = ''
     
 elif d_type == 'air': 
@@ -123,13 +123,6 @@ for i, which_file in enumerate(which_files):
 # plt.plot(RMS_updated, label='updated')
 # plt.legend()
 
-#%% check RMS errors
-
-
-
-
-
-
 
 
 #%%
@@ -141,7 +134,7 @@ narrow2 = [6717.89, 6719.36]
 
 if d_type == 'pure': 
     
-    y_lim_top = [0.401,1.12]
+    y_lim_top = [0.351,1.12]
     y_lim_bottom = [-0.075,0.075]
     
     y_lim_top_narrow = [0.951,1.01]
@@ -184,7 +177,7 @@ for which_file in which_files_partial:
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
     ax00.plot(wvn[i],trans[i], color=colors[i], label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file), 
               linewidth=linewidth)
-    ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=9)   
+    ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10, labelspacing=0)   
    
     ax10 = fig.add_subplot(gs[1,0], sharex=ax00) # Second row, first column
     ax10.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
@@ -377,10 +370,10 @@ if d_type == 'pure':
     v0 = 0.9
     
     hb = 0.48
-    vb = 0.07
+    vb = 0.13
     
     hc = 0.18
-    vc = 0.53
+    vc = 0.56
 
 elif d_type == 'air': 
 

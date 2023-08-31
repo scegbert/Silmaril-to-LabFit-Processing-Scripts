@@ -108,7 +108,7 @@ wide = [7377.29, 7378.36] # line strength changes #2
 wide = [7377.07, 7378.36] # line strength changes #2
 y_lim_top = [0.972,1.007]
 y_lim_bottom = [-0.008,0.003]
-fig = plt.figure(figsize=(7.2, 4))
+fig = plt.figure(figsize=(6.5, 4)) #, dpi=200, facecolor='w', edgecolor='k')
 adjust = True # adjust residual to compensate for the large feature next to the plot (that's not what we're trying to highlight)
 
 # wide = [6718.01, 6719.5] # new feature
@@ -140,7 +140,7 @@ for i, which_file in enumerate(which_files_partial):
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
     ax00.plot(wvn[i],trans[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
-    ax00.legend(loc = 'lower left', framealpha=1, edgecolor='black', fontsize=9)
+    ax00.legend(loc = 'lower left', framealpha=1, edgecolor='black', fontsize=10)
     
     
     if adjust: 

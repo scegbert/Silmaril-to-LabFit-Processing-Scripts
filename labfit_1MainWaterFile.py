@@ -33,7 +33,7 @@ from copy import deepcopy
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -99,7 +99,7 @@ if d_type == 'pure':
     d_cutoff_locations = d_labfit_main + '\\cutoff locations pure.pckl'
 
 elif d_type == 'air': 
-    base_name = 'p2020a_updated'
+    base_name = 'p2020a_yh2o'
     d_cutoff_locations = d_labfit_main + '\\cutoff locations air.pckl'
 
 ratio_min_plot = -2 # min S_max value to both plotting (there are so many tiny transitions we can't see, don't want to bog down)
@@ -157,7 +157,12 @@ please = stophere
 
 
 # %% mini-script to get the bin started, save OG file
-lab.bin_ASC_cutoff(d_labfit_main, base_name, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
+
+for bin_name in bin_names: 
+
+    lab.bin_ASC_cutoff(d_labfit_main, base_name, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
+
+asdfsdfsdf
 
 lab.run_labfit(d_labfit_kernal, bin_name) # <-------------------
 
@@ -743,29 +748,36 @@ plt.title(bin_name)
 #%% setup for rerunning last check out
 
 
-bin_name = 'B10'
+bin_name = 'B19a'
 
-d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
-d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 
-d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
-# d_labfit_main = r'D:\OneDrive - UCB-O365\water database\done' # this is where all the files are kept right now
+d_labfit_kernal = d_labfit_main 
 
-d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
+d_old = r'H:\water database\air water' # for comparing to original input files
+d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 
-# lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
+# lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_old) # float lines, most recent saved REI in -> INP out
 # feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
 
-prop_which = 'sw'
-prop_which2 = 'gamma_self'
+prop_which = 'gamma_air'
+prop_which2 = 'delta_air'
 
-[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
+[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 1, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-plt.title(bin_name + d_labfit_kernal[-13:])
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+
+
+pausehere
+
+
+
+lab.save_file(d_old, bin_name, 're-ran with updated yh2o', d_folder_input=d_labfit_kernal)
+
 
 
 #%% re-run fits to fix something wrong
@@ -782,7 +794,7 @@ res1 = res.copy()
 # lab.float_lines(d_labfit_kernal, bin_name,  [], props[prop_which], 'inp_new', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 
 # print('     labfit iteration #1')
-# feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
 
 # i = 1 # start at 1 because we already ran things once
 # while feature_error is None and i < iter_labfit: # run X times
@@ -800,10 +812,13 @@ lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plo
 plt.title(bin_name)
 
 
-if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'final - updated - removed a float', d_folder_input=d_labfit_kernal)
-
 
 asdfsadfsadf
+
+
+
+if feature_error is None: lab.save_file(d_labfit_main, bin_name, 'final - updated - removed a float', d_folder_input=d_labfit_kernal)
+
 
 lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)

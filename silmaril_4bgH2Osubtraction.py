@@ -50,7 +50,7 @@ spike_location_expected = 13979
 
 check_bl = False # look at a bunch of BL's to try to find the right one
 two_BG_temps = True # number of background temperatures to subtract (False==1, True==2)
-check_fit = True # fit measurments against HITRAN database (2020, 2016, and Paul)
+check_fit = False # fit measurments against HITRAN database (2020, 2016, and Paul)
 save_file = check_fit
 
 nyq_side = 1 # which side of the Nyquist window are you on? + (0 to 0.25) or - (0.75 to 0)
@@ -64,6 +64,7 @@ wvn2_concentration = [[7010.2,7010.7],[7012.45,7012.95],[7026.35,7027],[7038.1,7
                       [7241.55,7245],[7293.05,7295.6],[7311.4,7313.5],[7326.9,7329.3],[7338.5,7341.4],[7347.6,7349.2],
                       [7355, 7356.6],[7374.1,7376.17],[7389,7390.6],[7396.7,7398.5],[7405.5,7406.3],[7412.8,7413.4],
                       [7413.3,7414.4],[7415.8,7416.6],[7417.2,7418.3]] # all low-uncertainty features
+
 
 wvn2_etalon = [6630,7570] # some kind of etalon range with vacuum scans from December 2020 water data. can't remember why I included this
 
@@ -91,7 +92,10 @@ bl_cutoff = 101
 if d_type == 'pure': 
 
     y_h2o = 1
-    calc_yh2o = False
+    
+    print('********************* calc yh2o for pure water *********************')
+    wvn2_error = []
+    calc_yh2o = True
     
     d_base = d_base_pure
     which_BL = which_BL_pure
@@ -125,7 +129,7 @@ elif d_type == 'air':
                  0.0194611] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
     
     
-    calc_yh2o = False # probably don't want to fit against model yet (set to False)
+    calc_yh2o = True # probably don't want to fit against model yet (set to False)
 
     d_base = d_base_air
     which_BL = which_BL_air
@@ -156,9 +160,12 @@ if calc_yh2o:
     output_yh20P = np.zeros((len(d_base),len(wvn2_concentration)))
     output_Pyh2o = np.zeros((len(d_base),len(wvn2_concentration)))
     output_shift = np.zeros((len(d_base),len(wvn2_concentration)))
+    output_gamma = np.zeros((len(d_base),len(wvn2_concentration)))
+    output_sd = np.zeros((len(d_base),len(wvn2_concentration)))
+    
     output_yh20_test = {}
     
-    path_yh2o_load = r'\\data - sceg\\' # r'\\data - HITRAN 2020\\'
+    path_yh2o_load = r'\\data - sceg\\' # r'\\data - sceg\\' # r'\\data - HITRAN 2020\\'
     path_yh2o_save = r'\\data - temp\\'
     try: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.par')
     except: df_yh2o = db.par_to_df(os.path.abspath('') + path_yh2o_load + 'H2O.data')
@@ -442,7 +449,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     change_bg = meas_trans_bl - meas_trans_bg
     
     # %% calculate water concentration in the cell (if desired)
-   
+       
     if calc_yh2o: 
         
         output_yh20_test[d_base[which_file]] = np.zeros((len(wvn2_concentration),6))   
@@ -450,8 +457,10 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         for wvn2 in wvn2_concentration: 
             
             print('     {}       {}'.format(d_base[which_file], wvn2))
-            
-            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
+                        
+            # df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
+            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1) &
+                                    (df_yh2o.n_delta_air != 0)]
                         
             db.df_to_par(df_yh2o_iter.reset_index(), par_name='H2O_yh2o', save_dir=os.path.abspath('')+path_yh2o_save, print_name=False)
     
@@ -465,18 +474,20 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             # plt.plot(wvn_fit, meas_trans_bg_fit)
             
             meas_TD_bg_fit = np.fft.irfft(-np.log(meas_trans_bg_fit))
-             
-            if path_yh2o_load.split()[-1][:4] == 'sceg': sd = True
-            else: sd = False
             
-            fit_mod2020, fit_pars2020 = td.spectra_single_lmfit(sd = sd)
+            if path_yh2o_load.split()[-1][:4] == 'sceg': sd = True
+            else: sd = False           
+            
+            fit_mod2020, fit_pars2020 = td.spectra_single_lmfit(float_air_width=True, sd=sd)
             
             fit_pars2020['mol_id'].value = 1 # water = 1 (hitran molecular code)
             fit_pars2020['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
-            fit_pars2020['pressure'].set(value = P / 760, vary = True, max=3) # pressure in atm (converted from Torr)
+            # fit_pars2020['pressure'].set(value = P / 760, vary = False, max=3) # pressure in atm (converted from Torr)
             fit_pars2020['temperature'].set(value = T, vary = False) # temperature in K
     
-            fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
+            # fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
+            fit_pars2020['molefraction'].set(value = 1, vary = False) # mole fraction
+            fit_pars2020['pressure'].set(value = P / 760, vary = True, max=3) # pressure in atm (converted from Torr)            
             
             r'''
             model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O_yh2o') # used to check baseline decision
@@ -490,29 +501,44 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             weight = td.weight_func(len(wvn_fit), bl_cutoff_h2o, etalons = [])
             
-            meas_fit_bg2020 = fit_mod2020.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_pars2020, weights=weight, name='H2O_yh2o')
-            # td.plot_fit(wvn_fit, meas_fit_bg2020, plot_td = False)
+            try: 
+                
+                meas_fit_bg2020 = fit_mod2020.fit(meas_TD_bg_fit, xx=wvn_fit, params=fit_pars2020, weights=weight, name='H2O_yh2o')
+                # td.plot_fit(wvn_fit, meas_fit_bg2020, plot_td = False)
+                
+                yh2o_fit = meas_fit_bg2020.params['molefraction'].value
+                yh2o_fit_unc = meas_fit_bg2020.params['molefraction'].stderr
+                
+                P_fit = meas_fit_bg2020.params['pressure'].value * 760
+                try: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr * 760
+                except: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr # can't multiple NAN by a number
+                
+                shift_fit = meas_fit_bg2020.params['shift'].value
+                shift_fit_unc = meas_fit_bg2020.params['shift'].stderr
+                
+                gamma_floated = meas_fit_bg2020.params['gamma_floated'].value
+                sd_floated = meas_fit_bg2020.params['sd_floated'].value
+                
+                output_yh20[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit
+                output_P[which_file, wvn2_concentration.index(wvn2)] = P_fit
+                
+                output_shift[which_file, wvn2_concentration.index(wvn2)] = shift_fit / hz2cm / 1e6 # in MHz
+                
+                output_yh20P[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / P # adjusted yh2o at known pressure
+                output_Pyh2o[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / y_h2o # adjust pressure at known concentration
+                
+                output_gamma[which_file, wvn2_concentration.index(wvn2)] = gamma_floated
+                output_sd[which_file, wvn2_concentration.index(wvn2)] = sd_floated
+    
+                output_yh20_test[d_base[which_file]][wvn2_concentration.index(wvn2),:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, shift_fit, shift_fit_unc]
+                
+                # td.plot_fit(wvn_fit, meas_fit_bg2020)
+                # plt.close()
             
-            yh2o_fit = meas_fit_bg2020.params['molefraction'].value
-            yh2o_fit_unc = meas_fit_bg2020.params['molefraction'].stderr
+            except: 
+                wvn2_error.append([which_file, wvn2])
+                
             
-            P_fit = meas_fit_bg2020.params['pressure'].value * 760
-            try: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr * 760
-            except: P_fit_unc = meas_fit_bg2020.params['pressure'].stderr # can't multiple NAN by a number
-            
-            shift_fit = meas_fit_bg2020.params['shift'].value
-            shift_fit_unc = meas_fit_bg2020.params['shift'].stderr
-            
-            output_yh20[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit
-            output_P[which_file, wvn2_concentration.index(wvn2)] = P_fit
-            
-            output_shift[which_file, wvn2_concentration.index(wvn2)] = shift_fit / hz2cm / 1e6 # in MHz
-            
-            output_yh20P[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / P # adjusted yh2o at known pressure
-            output_Pyh2o[which_file, wvn2_concentration.index(wvn2)] = yh2o_fit * P_fit / y_h2o # adjust pressure at known concentration
-            
-            output_yh20_test[d_base[which_file]][wvn2_concentration.index(wvn2),:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, shift_fit, shift_fit_unc]
-
     # %% check values by fitting for them against HITRAN 2020 database
     
     if check_fit:
