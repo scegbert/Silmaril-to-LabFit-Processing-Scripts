@@ -54,11 +54,11 @@ elif d_type == 'air':
 props = {}
 props['nu'] = ['nu', 'ν', 1, 23, 0.0015] 
 props['sw'] = ['sw', '$S_{296}$', 2, 24, 0.09] # 9 % percent
-props['gamma_air'] = ['gamma_air', 'γ air', 3, 25, 0.10] # ? (might be too generous for gamma only fits)
-props['elower'] = ['elower', 'E\"', 4, 34, 1e6] # using 1e6 for things we aren't floating
+props['gamma_air'] = ['gamma_air', 'γ air', 3, 25, 0.012] 
+props['elower'] = ['elower', 'E\"', 4, 34, 200] # only floating this when things are weird
 props['n_air'] = ['n_air', 'n air', 5, 26, 0.13]
-props['delta_air'] = ['delta_air', 'δ air', 6, 27, .005]
-props['n_delta_air'] = ['n_delta_air', 'n δ air', 7, 28, 0.2]
+props['delta_air'] = ['delta_air', 'δ air', 6, 27, 0.005]
+props['n_delta_air'] = ['n_delta_air', 'n δ air', 7, 28, 0.13]
 props['MW'] = ['MW', 'MW', 8, 29, 1e6]
 props['gamma_self'] = ['gamma_self', 'γ self', 9, 30, 0.10]
 props['n_self'] = ['n_self', 'n γ self', 10, 31, 0.13]
@@ -75,7 +75,7 @@ bin_breaks = [6500.2, 6562.8, 6579.7, 6599.5, 6620.6, 6639.4, 6660.2, 6680.1, 66
               6940.0, 6960.5, 6982.9, 7002.5, 7021.4, 7041.1, 7060.5, 7081.7, 7099.0, 7119.0, 
               7141.4, 7158.3, 7177.4, 7198.2, 7217.1, 7238.9, 7258.4, 7279.7, 7301.2, 7321.2, 
               7338.9, 7358.5, 7377.1, 7398.5, 7421.0, 7440.8, 7460.5, 7480.6, 7500.1, 7520.4,
-              7540.6, 7560.5, 7580.5, 7600.0, 7620.0, 7640.0, 7660.0, 7720.0, 7799.9]
+              7540.6, 7560.5, 7580.5, 7600.0, 7620.0, 7640.0, 7660.0, 7720.0, 7799.8]
 bin_names = ['B1',  'B2',  'B3',  'B4',  'B5',  'B6',  'B7',  'B8',  'B9',  'B10', 
              'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
              'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
@@ -87,11 +87,14 @@ if d_type == 'air': bin_names = [item + 'a' for item in bin_names] # append an a
 bins = {} # dictionary (key is bin_names, entries are bin_breaks on either side)
 for i in range(len(bin_names)):   
     bins[bin_names[i]] = [-buffer, bin_breaks[i], bin_breaks[i+1], buffer] 
-# bins['all'] = [-buffer, 6700, 7158.3, buffer] 
+    if i == 0: bins[bin_names[i]][0] = 0
+    elif i == len(bin_names)-1: bins[bin_names[i]][-1] = 0
+bins['all'] = [-buffer, 6700, 7158.3, buffer] 
 
 d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
 d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+
 
 base_name_pure = 'p2020'
 d_cutoff_locations = d_labfit_main + '\\cutoff locations pure.pckl'
@@ -115,7 +118,10 @@ features_reject_old = []
 
 prop_whiches = [[          'nu',     'sw',     False,            'nu + sw',          False, False],
 				[  'gamma_self', 'n_self', 'sd_self',   'after all widths', 'use_accepted', False], 
-				[  'delta_self',    False,     False,   'after delta self', 'use_accepted', False]]
+				[  'delta_self',    False,     False,   'after delta self', 'use_accepted', False]] # for initial pure water values
+
+
+prop_whiches = [[  'gamma_air', 'n_air', 'sd_self',   'after all widths', 'use_accepted', False]] # for SD_air initial
 
 # %% run specific parameters and function executions
 
