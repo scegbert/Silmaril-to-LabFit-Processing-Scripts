@@ -111,16 +111,10 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 # %% run specific parameters and function executions
 
 
-
 cutoff_s296 = 5E-24 
 
 bin_name = 'B20' # name of working bin (for these calculations)
 d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
-
-
-
-
-
 
 
 
@@ -898,5 +892,133 @@ for bin_name in bins:
                 
                 failed.append(bin_name)
     
+#%%  revert delta_air back to HITRAN, update SD to 0.13, and update y_h2o
+
+
+bin_name = 'B19a'
+
+
+
+y_h2o_old = [0.0189750, 0.0191960, 0.0192650, 0.0193170, 0.0193940, 0.0194900, 0.0195320, 0.0194730, 
+             0.0193570, 0.0193190, 0.0192070, 0.0192580, 0.0195700, 
+             0.0189490, 0.0190160, 0.0189890, 0.0189220, 0.0189220, # duplicates
+             0.0186050, 0.0189100, 0.0187070, 0.0185840, 0.0185690, 
+             0.0191550, 0.0195360, 0.0192420, 0.0187510, 0.0188580, 
+             0.0193090] # calculated using 38 features (listed above) using HITRAN 2020
+
+y_h2o_new = [0.0190805, 0.0193217, 0.0193786, 0.0194300, 0.0195055, 0.0195998, 0.0196325, 0.0195542, 
+             0.0194681, 0.0194289, 0.0193158, 0.0193640, 0.0196652, 
+             0.0190566, 0.0191279, 0.0190909, 0.0190324, 0.0190234, 
+             0.0187246, 0.0190349, 0.0188222, 0.0187054, 0.0186803, 
+             0.0193032, 0.0196869, 0.0193919, 0.0188933, 0.0189874, 
+             0.0194611] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
+
+lines_main_header = 3 # number of lines at the very very top of inp and rei files
+lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
+lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
+
+lines_header_lwa = 18 # number of lines per header in lwa file
+
+d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+
+d_labfit_kernal = d_labfit_main 
+
+d_old = r'H:\water database\air water' # for comparing to original input files
+d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
+
+
+
+# copy file and load
+
+lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_old) # float lines, most recent saved REI in -> INP out
+
+inp_bin = open(os.path.join(d_labfit_main, bin_name+'.inp'), "r").readlines()
+inp_updated = inp_bin.copy()
+
+inp_HT = open(os.path.join(d_labfit_main, 'p2020a.inp'), "r").readlines()
+
+lines_until_features = lines_main_header + int(inp_updated[0].split()[2]) * lines_per_asc # all of the header down to the spectra
+       
+
+# update yh2o
+
+for i_asc in range(int(inp_updated[0].split()[2])): 
+
+    asc_name = ' '.join(inp_updated[lines_main_header+i_asc*lines_per_asc].split()[0].replace('_', ' ').split('.')[0].split()[1:-1])
+    
+    print(asc_name)
+    
+    i_condition = d_conditions.index(asc_name)
+    
+    y_asc = float(inp_updated[lines_main_header+i_asc*lines_per_asc + 20].split()[0])
+    
+    y_h2o_old_i = y_h2o_old[i_condition]
+    
+    if y_asc != y_h2o_old_i: throw_error = different_y
+    
+    y_h2o_new_i = y_h2o_new[i_condition]
+    
+    inp_updated[lines_main_header+i_asc*lines_per_asc + 20] = '     {0:.6f}    '.format(y_h2o_new_i) + inp_updated[lines_main_header+i_asc*lines_per_asc + 20][17:]
+    
+    print(inp_updated[lines_main_header+i_asc*lines_per_asc + 20])
+
+# update SD and delta (and n_delta back to 1)
+
+i_feature_updated = 0
+
+for i_feature_HT in range(int(inp_HT[0].split()[3])): 
+   
+    i_feature_HT += 1
+    if str(i_feature_HT) != inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)].split()[0]: throw_error = pleasehere
+    
+    delta_HT = inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)][73:] # includes delta, n_delta, SD
+    delta_HT = delta_HT[:12] + '1' + delta_HT[13:] # reset n_delta to 1 for all features
+    
+    i_feature_updated += 1
+    line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
+    
+    # make sure you're on the right line
+    while inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+        
+        update = here_please # need to look for feature in both directions within a reasonable range
+        
+        inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD
+
+        i_feature_updated += 1 # look at the next feature
+        line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
+    
+    if inp_updated[line_updated].split()[0] != str(i_feature_HT): please = stop_here
+        
+    inp_updated[line_updated] = inp_updated[line_updated][:73] + delta_HT
+    
+    inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

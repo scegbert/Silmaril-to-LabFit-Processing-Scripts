@@ -2016,7 +2016,7 @@ plot_which_c = 'elower'
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_air'] > -1)&(df_sceg['uc_n_air'] > -1)&(df_sceg['uc_sd_self'] > -1)].sort_values(by=['Jpp']) # all width (with SD)
 
-# df_plot = df_plot[(df_sceg['uc_gamma_air'] < 0.03)&(df_sceg['uc_n_air'] < 0.03)&(df_sceg['uc_sd_self'] < 0.03)].sort_values(by=['Jpp']) # all width (with SD)
+df_plot = df_plot[(df_sceg['uc_gamma_air'] < 0.03)&(df_sceg['uc_n_air'] < 0.03)&(df_sceg['uc_sd_self'] < 0.03)].sort_values(by=['Jpp']) # all width (with SD)
 
 
 plot_unc_y_bool = True
