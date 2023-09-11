@@ -181,6 +181,9 @@ f.close()
 
 for which_file in range(len(d_base)): # check with d_base[which_file]
     
+    which_file = 28
+    print('hard coded which file to {} ***************************************'.format(which_file))
+
     print(d_base[which_file])
 
     if 'y_h2o_all' in locals(): y_h2o = y_h2o_all[which_file] # if we have values for yh2o (ie air-water)
@@ -458,9 +461,9 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             print('     {}       {}'.format(d_base[which_file], wvn2))
             
-            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
-            # df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1) &
-            #                         (df_yh2o.n_delta_air != 0)]
+            # df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
+            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1) &
+                                    (df_yh2o.n_delta_air != 0)]
             
             db.df_to_par(df_yh2o_iter.reset_index(), par_name='H2O_yh2o', save_dir=os.path.abspath('')+path_yh2o_save, print_name=False)
     
@@ -486,6 +489,9 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             fit_pars2020['temperature'].set(value = T, vary = False) # temperature in K
     
             fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
+            
+            fit_pars2020['gamma_floated'].set(vary=True)
+            fit_pars2020['sd_floated'].set(vary=True)
             
             r'''
             model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O_yh2o') # used to check baseline decision
@@ -530,14 +536,15 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
     
                 output_yh20_test[d_base[which_file]][wvn2_concentration.index(wvn2),:] = [yh2o_fit, yh2o_fit_unc, P_fit, P_fit_unc, shift_fit, shift_fit_unc]
                 
-                # td.plot_fit(wvn_fit, meas_fit_bg2020)
-                # plt.close()
+                td.plot_fit(wvn_fit, meas_fit_bg2020)
+                plt.close()
             
             except: 
                 
                 wvn2_error.append([which_file, wvn2])
+                                
+        asdfasdfasdfasdf
                 
-            
     # %% check values by fitting for them against HITRAN 2020 database
     
     if check_fit:
