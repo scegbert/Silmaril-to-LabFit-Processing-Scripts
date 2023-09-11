@@ -31,7 +31,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% dataset specific information
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 d_ref = True
 spike_location_expected = 13979
 spectrum_length_expected = 190651
@@ -457,11 +457,11 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
         for wvn2 in wvn2_concentration: 
             
             print('     {}       {}'.format(d_base[which_file], wvn2))
-                        
-            # df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
-            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1) &
-                                    (df_yh2o.n_delta_air != 0)]
-                        
+            
+            df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1)]
+            # df_yh2o_iter = df_yh2o[(df_yh2o.nu > wvn2[0] - 2) & (df_yh2o.nu < wvn2[1] + 2) & (df_yh2o.local_iso_id == 1) &
+            #                         (df_yh2o.n_delta_air != 0)]
+            
             db.df_to_par(df_yh2o_iter.reset_index(), par_name='H2O_yh2o', save_dir=os.path.abspath('')+path_yh2o_save, print_name=False)
     
             pld.db_begin('data - temp')  # load the linelists into Python
@@ -482,12 +482,10 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
             
             fit_pars2020['mol_id'].value = 1 # water = 1 (hitran molecular code)
             fit_pars2020['pathlength'].set(value = pathlength, vary = False) # pathlength in cm
-            # fit_pars2020['pressure'].set(value = P / 760, vary = False, max=3) # pressure in atm (converted from Torr)
+            fit_pars2020['pressure'].set(value = P / 760, vary = False, max=3) # pressure in atm (converted from Torr)
             fit_pars2020['temperature'].set(value = T, vary = False) # temperature in K
     
-            # fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
-            fit_pars2020['molefraction'].set(value = 1, vary = False) # mole fraction
-            fit_pars2020['pressure'].set(value = P / 760, vary = True, max=3) # pressure in atm (converted from Torr)            
+            fit_pars2020['molefraction'].set(value = y_h2o*0.999, vary = True) # mole fraction
             
             r'''
             model_TD_fit2020 = fit_mod2020.eval(xx=wvn_fit, params=fit_pars2020, name='H2O_yh2o') # used to check baseline decision
@@ -536,6 +534,7 @@ for which_file in range(len(d_base)): # check with d_base[which_file]
                 # plt.close()
             
             except: 
+                
                 wvn2_error.append([which_file, wvn2])
                 
             

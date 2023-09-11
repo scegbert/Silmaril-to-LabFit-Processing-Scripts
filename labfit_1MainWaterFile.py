@@ -907,13 +907,22 @@ y_h2o_old = [0.0189750, 0.0191960, 0.0192650, 0.0193170, 0.0193940, 0.0194900, 0
              0.0191550, 0.0195360, 0.0192420, 0.0187510, 0.0188580, 
              0.0193090] # calculated using 38 features (listed above) using HITRAN 2020
 
-y_h2o_new = [0.0194565, 0.0197830, 0.0199033, 0.0199502, 0.0200456, 0.0200617, 0.0200454, 0.020000, 0.0199243, 
+y_h2o_new = [0.0194565, 0.0197830, 0.0199033, 0.0199502, 0.0200456, 0.0200617, 0.0200454, 0.0199243, 
              0.0198340, 0.0199169, 0.0198419, 0.0198157, 0.0200947, 
-             0.0193546, 0.0195809, 0.0196135, 0.0195629, 0.0195001,
+             0.0193546, 0.0195809, 0.0196135, 0.0195629, 0.0195001, 
              0.0189080, 0.0193659, 0.0193067, 0.0192536, 0.0191974, 
              0.0195506, 0.0199976, 0.0198608, 0.0194793, 0.0195815, 
              0.0200991] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
 
+y_h2o_new = [0.0196524, 0.0200153, 0.0200697, 0.0200962, 0.0200661, 0.0200784, 0.0199212, 0.0198118, 
+             0.0199235, 0.0199632, 0.0197838, 0.0195992, 0.0196813, 
+             0.0193286, 0.0195483, 0.0195483, 0.0193226, 0.0190388, 
+             0.0190292, 0.0194498, 0.0193004, 0.0190781, 0.0188174, 
+             0.0195233, 0.0199885, 0.0198106, 0.0193143, 0.0192070, 
+             0.0196818]
+             
+             
+             
 lines_main_header = 3 # number of lines at the very very top of inp and rei files
 lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
 lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
@@ -1039,8 +1048,8 @@ if feature_error is not None:
 else: 
     [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og) # <-------------------
-    # lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset,props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
-    lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
+    lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset,props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
+    # lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
     plt.title(bin_name)
 
 
