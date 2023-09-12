@@ -48,7 +48,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -125,7 +125,7 @@ cutoff_s296 = 1E-24
 if d_type == 'pure': props_which = ['nu','sw','gamma_self','n_self','sd_self','delta_self','n_delta_self', 'elower']
 elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','delta_air','n_delta_air', 'elower'] # note that SD_self is really SD_air 
 
-d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_sceg = os.path.join(os.path.abspath(''),'data - sceg')
 
 
 HT_errors = {'0': '0 (unreported)', 
@@ -523,18 +523,18 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
     nu_ref_dict[err] = nu_ref[which]
     
     delta_avg = np.mean(plot_y[which])
-    delta_avg_abs = np.mean(abs(plot_y[which]))
-    delta_std_abs = np.std(abs(plot_y[which]))
+    delta_RMS = np.sqrt(np.mean(plot_y[which]**2))
+    delta_RM_std = np.std(np.mean(plot_y[which]**2))
     
     plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
     
-    if err == '1': MAD = '   MAD = {:.4f}±{:.4f}'.format(delta_avg_abs,delta_std_abs) 
-    elif err == '6': MAD = ' MAD = {:.4f} (1 feat.)'.format(delta_avg_abs)
-    else: MAD = ' MAD = {:.4f}±{:.4f}'.format(delta_avg_abs,delta_std_abs)
+    if err == '1': RMS = '   RMS = {:.4f}±{:.4f}'.format(delta_RMS,delta_RM_std) 
+    elif err == '6': RMS = ' RMS = {:.4f} (1 feat.)'.format(delta_RMS)
+    else: RMS = ' RMS = {:.4f}±{:.4f}'.format(delta_RMS,delta_RM_std)
     
     sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i_err], 
                      c=plot_c[which], cmap='viridis', zorder=2, 
-                     label=HT_errors_nu[err] + MAD, vmin=0, vmax=6000)
+                     label=HT_errors_nu[err] + RMS, vmin=0, vmax=6000)
     df_plot.sort_values(by=['sw'], inplace=True)
     
     within_HT = plot_y[which].abs()
@@ -542,7 +542,7 @@ for i_err, err in enumerate(np.sort(nu_error.unique())):
     
     print('{} -  {} total, {} within uncertainty ({}%)'.format(err,len(plot_x[which]), within_HT, 100*within_HT/(len(plot_x[which])-1e-15)))
     
-    print('       {}       {} ± {}'.format(delta_avg, delta_avg_abs, delta_std_abs))
+    print('       {}       {} ± {}'.format(delta_avg, delta_RMS, delta_RM_std))
 
     print(np.mean(plot_c[which]))
     print(np.std(plot_c[which]))

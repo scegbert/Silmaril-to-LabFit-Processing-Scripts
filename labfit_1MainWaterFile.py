@@ -89,8 +89,6 @@ for i in range(len(bin_names)):
     elif i == len(bin_names)-1: bins[bin_names[i]][-1] = 0
 bins['all'] = [-buffer, 6700, 7158.3, buffer] 
 
-d_labfit_kp2 = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool 2'
-d_labfit_kp = r'C:\Users\scott\Documents\1-WorkStuff\Labfit - Kiddie Pool'
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 
 
@@ -896,7 +894,7 @@ for bin_name in bins:
 
 
 bin_name = 'B19a'
-bin_name = 'B29a'
+bin_name = 'B30a'
 
 
 
@@ -913,13 +911,6 @@ y_h2o_new = [0.0194565, 0.0197830, 0.0199033, 0.0199502, 0.0200456, 0.0200617, 0
              0.0189080, 0.0193659, 0.0193067, 0.0192536, 0.0191974, 
              0.0195506, 0.0199976, 0.0198608, 0.0194793, 0.0195815, 
              0.0200991] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
-
-y_h2o_new = [0.0196524, 0.0200153, 0.0200697, 0.0200962, 0.0200661, 0.0200784, 0.0199212, 0.0198118, 
-             0.0199235, 0.0199632, 0.0197838, 0.0195992, 0.0196813, 
-             0.0193286, 0.0195483, 0.0195483, 0.0193226, 0.0190388, 
-             0.0190292, 0.0194498, 0.0193004, 0.0190781, 0.0188174, 
-             0.0195233, 0.0199885, 0.0198106, 0.0193143, 0.0192070, 
-             0.0196818]
              
              
              
@@ -929,13 +920,18 @@ lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if usi
 
 lines_header_lwa = 18 # number of lines per header in lwa file
 
-d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+# d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
+d_labfit_k1 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - Kiddie Pool'
+
 
 d_labfit_kernal = d_labfit_main 
 
-d_old = r'H:\water database\air water' # for comparing to original input files
-# d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
-d_og = os.path.join(d_old, bin_name, bin_name + '-000-HITRAN') # for comparing to original input files
+# d_old = r'H:\water database\air water' # for comparing to original input files
+d_old = r'E:\water database\air water' # for comparing to original input files
+
+d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
+# d_og = os.path.join(d_old, bin_name, bin_name + '-000-HITRAN') # for comparing to original input files
 
 
 
@@ -1048,8 +1044,8 @@ if feature_error is not None:
 else: 
     [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og) # <-------------------
-    lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset,props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
-    # lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
+    # lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset,props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
+    lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
     plt.title(bin_name)
 
 
