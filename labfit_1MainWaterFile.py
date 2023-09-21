@@ -737,31 +737,120 @@ plt.title(bin_name)
 [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props['gamma_self'], props['n_self'], props['sd_self'], d_old=d_old) # read results into python
 
 
-#%% setup for rerunning last check out
+#%% look for good yH2O features and features for exploring double power law relationships
+
+d_old = r'E:\water database\air water' # for comparing to original input files
 
 
-bin_name = 'B19a'
+bin_names_test = ['B10', 
+                  'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
+                  'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
+                  'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
+                  'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
 
-d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
+features_strong =  [[7094],
+                    [8051, 8085, 8220],
+                    [8450, 8793],
+                    [9298, 9566],
+                    [10165],
+                    [10827],
+                    [11063, 11124],
+                    [11787, 11788, 12001, 12136],
+                    [12647, 12837, 12922, 12923, 12952, 13048],
+                    [13848, 13867, 13873, 13886, 13950, 14026, 14025],
+                    [14045, 14060, 14169, 14172, 14459, 14509, 14740, 14742, 14817],
+                    [15077, 15097, 15128, 15126, 15146, 15144, 15194, 15487, 15535, 15596],
+                    [15812, 16182, 16210, 16209, 16259, 16295, 16467, 16551, 16558, 16572, 16594, 16596],
+                    [16735, 17112, 17170, 17290, 17295, 17300, 17304, 17309, 17339, 17383, 17423, 17428, 17475, 17473],
+                    [17677, 17856, 17955, 18011],
+                    [18339, 18398, 18406, 18478, 18555, 18611, 18974, 19055],
+                    [19207, 19281, 19333, 19339, 19346, 19398, 19406, 19421, 19422, 19463, 19707, 19814, 19812],
+                    [20283, 20315, 20320, 20349, 20429, 20464, 20465, 20550, 20835],
+                    [21075, 21189, 21361, 21430, 21455, 21459, 21484],
+                    [21873, 21929, 21991, 22025, 22060, 22337, 22422, 22431, 22455],
+                    [22562, 22611, 22707, 22855, 22893, 23161, 23200, 23250, 23360, 23378],
+                    [23499, 23615, 24128, 24166, 24167],
+                    [24324, 24469, 24467, 24484, 24506, 24605, 24802, 24840, 24841],
+                    [25117, 25118, 25176, 25210, 25233, 25341, 25340, 25495, 25502, 25534, 25695, 25732],
+                    [25931, 25935, 26046, 26067, 26117, 26118, 26134, 26190, 26365, 26463, 26578, 26611],
+                    [26691, 26745, 26750, 27034, 27107, 27181, 27194, 27227, 27244, 27268, 27282, 27307, 27334, 27348, 27442, 27475],
+                    [27622, 27698, 27730, 27839, 28117, 28152, 28187],
+                    [28492, 28543, 28805, 28824, 29054, 29069],
+                    [29433, 29524, 29550, 29743, 29840, 29937, 30022, 30272],
+                    [30697, 30781, 30851, 30999, 31006],
+                    [31330, 31379, 31504, 31555, 31565, 31680, 31761, 32034],
+                    [32116, 32145, 32215, 32308, 32453, 32506, 32634, 32767, 32805, 32870],
+                    [32958, 33055, 33056, 33197, 33209, 33330, 33347, 33596, 33603, 33612],
+                    [33706, 33757, 33786, 33801, 33811, 33956, 34111, 34228, 34245, 34243, 34360],
+                    [34403, 34413, 34508, 34537, 34617, 34662, 34834, 34892, 34906, 34907, 34917, 34962, 35005, 35036],
+                    [35195, 35251, 35348, 35597],
+                    [35745, 35926, 36029],
+                    [36383]]
 
-d_labfit_kernal = d_labfit_main 
+features_doublets = [[],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [[11787, 11788]],
+                     [[12922, 12923]],
+                     [[14026, 14025]],
+                     [[14169, 14172]],
+                     [[15128, 15126], [15146, 15144]],
+                     [[16210, 16209], [16594, 16596]],
+                     [[17304, 17309], [17475, 17473]],
+                     [],
+                     [],
+                     [[19421, 19422], [19814, 19812]],
+                     [[20464, 20465]],
+                     [[21455, 21459]],
+                     [],
+                     [],
+                     [[24166, 24167]],
+                     [[24469, 24467], [24841, 24840]],
+                     [[25118, 25117], [25340, 25341]],
+                     [[25935, 25931], [26117, 26118]],
+                     [[26750, 26745]],
+                     [],
+                     [],
+                     [],
+                     [[30610, 30612]],
+                     [],
+                     [],
+                     [[33055, 33056]],
+                     [[34245, 34243]],
+                     [[34906, 34907]],
+                     [],
+                     [],
+                     []]
 
-d_old = r'H:\water database\air water' # for comparing to original input files
-d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
 
+# features_strong = {}
 
-# lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_old) # float lines, most recent saved REI in -> INP out
-# feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
-
-prop_which = 'gamma_air'
-prop_which2 = 'delta_air'
-
-[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
-[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-plt.title(bin_name)
-
+for i, bin_name in enumerate(bin_names_test): 
+   
+    if i > 17: 
+   
+        bin_name = bin_name + 'a' 
+       
+        d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
+        
+        [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+        d_load = os.path.join(d_old, bin_name, use_which)[:-4]
+        
+        prop_which = False
+        prop_which2 = False
+        
+        # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
+        
+        [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
+        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
+        # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
+        lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
+        plt.title(bin_name)
+    
 
 
 pausehere
@@ -889,7 +978,13 @@ for bin_name in bins:
             except: 
                 
                 failed.append(bin_name)
-    
+
+#%% calculate new SW that will be used for yh2o
+
+
+
+
+
 #%%  revert delta_air back to HITRAN, update SD to 0.13, and update y_h2o
 
 
