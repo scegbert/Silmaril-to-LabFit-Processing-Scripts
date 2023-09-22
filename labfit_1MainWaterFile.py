@@ -90,7 +90,7 @@ for i in range(len(bin_names)):
 bins['all'] = [-buffer, 6700, 7158.3, buffer] 
 
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
-
+d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
 
 if d_type == 'pure': 
     base_name = 'p2020' + 'n_gam' # n update name
@@ -135,9 +135,9 @@ features_reject_old = []
 
 print('\n\n\n     ******************************************')
 print('     *************** using bin {} ******************       '.format(bin_name))
-if d_labfit_kernal == d_labfit_kp: print('************** using KP Labfit folder **************')
-if d_labfit_kernal == d_labfit_kp2: print('************** using KP #2 Labfit folder **************')
-elif d_labfit_kernal == d_labfit_main: print('************** using MAIN Labfit folder **************')
+if d_labfit_kernal == d_labfit_main: print('************** using MAIN Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp: print('************** using KP Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp2: print('************** using KP #2 Labfit folder **************')
 print('     ******************************************\n\n\n')
 
 please = stophere
@@ -748,109 +748,28 @@ bin_names_test = ['B10',
                   'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
                   'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
 
-features_strong =  [[7094],
-                    [8051, 8085, 8220],
-                    [8450, 8793],
-                    [9298, 9566],
-                    [10165],
-                    [10827],
-                    [11063, 11124],
-                    [11787, 11788, 12001, 12136],
-                    [12647, 12837, 12922, 12923, 12952, 13048],
-                    [13848, 13867, 13873, 13886, 13950, 14026, 14025],
-                    [14045, 14060, 14169, 14172, 14459, 14509, 14740, 14742, 14817],
-                    [15077, 15097, 15128, 15126, 15146, 15144, 15194, 15487, 15535, 15596],
-                    [15812, 16182, 16210, 16209, 16259, 16295, 16467, 16551, 16558, 16572, 16594, 16596],
-                    [16735, 17112, 17170, 17290, 17295, 17300, 17304, 17309, 17339, 17383, 17423, 17428, 17475, 17473],
-                    [17677, 17856, 17955, 18011],
-                    [18339, 18398, 18406, 18478, 18555, 18611, 18974, 19055],
-                    [19207, 19281, 19333, 19339, 19346, 19398, 19406, 19421, 19422, 19463, 19707, 19814, 19812],
-                    [20283, 20315, 20320, 20349, 20429, 20464, 20465, 20550, 20835],
-                    [21075, 21189, 21361, 21430, 21455, 21459, 21484],
-                    [21873, 21929, 21991, 22025, 22060, 22337, 22422, 22431, 22455],
-                    [22562, 22611, 22707, 22855, 22893, 23161, 23200, 23250, 23360, 23378],
-                    [23499, 23615, 24128, 24166, 24167],
-                    [24324, 24469, 24467, 24484, 24506, 24605, 24802, 24840, 24841],
-                    [25117, 25118, 25176, 25210, 25233, 25341, 25340, 25495, 25502, 25534, 25695, 25732],
-                    [25931, 25935, 26046, 26067, 26117, 26118, 26134, 26190, 26365, 26463, 26578, 26611],
-                    [26691, 26745, 26750, 27034, 27107, 27181, 27194, 27227, 27244, 27268, 27282, 27307, 27334, 27348, 27442, 27475],
-                    [27622, 27698, 27730, 27839, 28117, 28152, 28187],
-                    [28492, 28543, 28805, 28824, 29054, 29069],
-                    [29433, 29524, 29550, 29743, 29840, 29937, 30022, 30272],
-                    [30697, 30781, 30851, 30999, 31006],
-                    [31330, 31379, 31504, 31555, 31565, 31680, 31761, 32034],
-                    [32116, 32145, 32215, 32308, 32453, 32506, 32634, 32767, 32805, 32870],
-                    [32958, 33055, 33056, 33197, 33209, 33330, 33347, 33596, 33603, 33612],
-                    [33706, 33757, 33786, 33801, 33811, 33956, 34111, 34228, 34245, 34243, 34360],
-                    [34403, 34413, 34508, 34537, 34617, 34662, 34834, 34892, 34906, 34907, 34917, 34962, 35005, 35036],
-                    [35195, 35251, 35348, 35597],
-                    [35745, 35926, 36029],
-                    [36383]]
-
-features_doublets = [[],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [[11787, 11788]],
-                     [[12922, 12923]],
-                     [[14026, 14025]],
-                     [[14169, 14172]],
-                     [[15128, 15126], [15146, 15144]],
-                     [[16210, 16209], [16594, 16596]],
-                     [[17304, 17309], [17475, 17473]],
-                     [],
-                     [],
-                     [[19421, 19422], [19814, 19812]],
-                     [[20464, 20465]],
-                     [[21455, 21459]],
-                     [],
-                     [],
-                     [[24166, 24167]],
-                     [[24469, 24467], [24841, 24840]],
-                     [[25118, 25117], [25340, 25341]],
-                     [[25935, 25931], [26117, 26118]],
-                     [[26750, 26745]],
-                     [],
-                     [],
-                     [],
-                     [[30610, 30612]],
-                     [],
-                     [],
-                     [[33055, 33056]],
-                     [[34245, 34243]],
-                     [[34906, 34907]],
-                     [],
-                     [],
-                     []]
-
-
 # features_strong = {}
 
 for i, bin_name in enumerate(bin_names_test): 
+  
+    bin_name = bin_name + 'a' 
    
-    if i > 17: 
-   
-        bin_name = bin_name + 'a' 
-       
-        d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
-        
-        [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
-        d_load = os.path.join(d_old, bin_name, use_which)[:-4]
-        
-        prop_which = False
-        prop_which2 = False
-        
-        # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
-        
-        [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
-        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
-        # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
-        lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
-        plt.title(bin_name)
+    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
     
+    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+    d_load = os.path.join(d_old, bin_name, use_which)[:-4]
+    
+    prop_which = False
+    prop_which2 = False
+    
+    # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
+    
+    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
+    # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
+    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
+    plt.title(bin_name)
+
 
 
 pausehere
@@ -980,6 +899,259 @@ for bin_name in bins:
                 failed.append(bin_name)
 
 #%% calculate new SW that will be used for yh2o
+
+
+bin_names_test = ['B10', 
+                  'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
+                  'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
+                  'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
+                  'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
+
+features_strong =  [[7094], # features with a clean absorption peak at all conditions, see excel file for more details
+                    [8051, 8085, 8220],
+                    [8450, 8793],
+                    [9298, 9566],
+                    [10165],
+                    [10827],
+                    [11063, 11124],
+                    [11787, 11788, 12001, 12136],
+                    [12647, 12837, 12922, 12923, 12952, 13048],
+                    [13848, 13867, 13873, 13886, 13950, 14026, 14025],
+                    [14045, 14060, 14169, 14172, 14459, 14509, 14740, 14742, 14817],
+                    [15077, 15097, 15128, 15126, 15146, 15144, 15194, 15487, 15535, 15596],
+                    [15812, 16182, 16210, 16209, 16259, 16295, 16467, 16551, 16558, 16572, 16594, 16596],
+                    [16735, 17112, 17170, 17290, 17295, 17300, 17304, 17309, 17339, 17383, 17423, 17428, 17475, 17473],
+                    [17677, 17856, 17955, 18011],
+                    [18339, 18398, 18406, 18478, 18555, 18611, 18974, 19055],
+                    [19207, 19281, 19333, 19339, 19346, 19398, 19406, 19421, 19422, 19463, 19707, 19814, 19812],
+                    [20283, 20315, 20320, 20349, 20429, 20464, 20465, 20550, 20835],
+                    [21075, 21189, 21361, 21430, 21455, 21459, 21484],
+                    [21873, 21929, 21991, 22025, 22060, 22337, 22422, 22431, 22455],
+                    [22562, 22611, 22707, 22855, 22893, 23161, 23200, 23250, 23360, 23378],
+                    [23499, 23615, 24128, 24166, 24167],
+                    [24324, 24469, 24467, 24484, 24506, 24605, 24802, 24840, 24841],
+                    [25117, 25118, 25176, 25210, 25233, 25341, 25340, 25495, 25502, 25534, 25695, 25732],
+                    [25931, 25935, 26046, 26067, 26117, 26118, 26134, 26190, 26365, 26463, 26578, 26611],
+                    [26691, 26745, 26750, 27034, 27107, 27181, 27194, 27227, 27244, 27268, 27282, 27307, 27334, 27348, 27442, 27475],
+                    [27622, 27698, 27730, 27839, 28117, 28152, 28187],
+                    [28492, 28543, 28805, 28824, 29054, 29069],
+                    [29433, 29524, 29550, 29743, 29840, 29937, 30022, 30272],
+                    [30697, 30781, 30851, 30999, 31006, 30610, 30612],
+                    [31330, 31379, 31504, 31555, 31565, 31680, 31761, 32034],
+                    [32116, 32145, 32215, 32308, 32453, 32506, 32634, 32767, 32805, 32870],
+                    [32958, 33055, 33056, 33197, 33209, 33330, 33347, 33596, 33603, 33612],
+                    [33706, 33757, 33786, 33801, 33811, 33956, 34111, 34228, 34245, 34243, 34360],
+                    [34403, 34413, 34508, 34537, 34617, 34662, 34834, 34892, 34906, 34907, 34917, 34962, 35005, 35036],
+                    [35195, 35251, 35348, 35597],
+                    [35745, 35926, 36029],
+                    [36383]]
+
+features_doublets = [[],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [],
+                     [[11787, 11788]],
+                     [[12922, 12923]],
+                     [[14026, 14025]],
+                     [[14169, 14172]],
+                     [[15128, 15126], [15146, 15144]],
+                     [[16210, 16209], [16594, 16596]],
+                     [[17304, 17309], [17475, 17473]],
+                     [],
+                     [],
+                     [[19421, 19422], [19814, 19812]],
+                     [[20464, 20465]],
+                     [[21455, 21459]],
+                     [],
+                     [],
+                     [[24166, 24167]],
+                     [[24469, 24467], [24841, 24840]],
+                     [[25118, 25117], [25340, 25341]],
+                     [[25935, 25931], [26117, 26118]],
+                     [[26750, 26745]],
+                     [],
+                     [],
+                     [],
+                     [[30610, 30612]],
+                     [],
+                     [],
+                     [[33055, 33056]],
+                     [[34245, 34243]],
+                     [[34906, 34907]],
+                     [],
+                     [],
+                     []]
+
+
+features_strong_flat = [item for sublist in features_strong for item in sublist]
+
+for doublet in features_doublets: 
+    if doublet != []: 
+        for sub_doublet in doublet: 
+            features_strong_flat.remove(sub_doublet[1])
+
+
+output_sw = np.zeros((len(d_conditions), len(features_strong_flat)))
+output_uc_sw = np.zeros((len(d_conditions), len(features_strong_flat)))
+output_sw_old = np.zeros((len(d_conditions), len(features_strong_flat)))
+output_attempts = np.zeros((len(d_conditions), len(features_strong_flat)))
+
+d_old = r'E:\water database\air water' # for comparing to original input files
+lines_main_header = 3 # number of lines at the very very top of inp and rei files
+lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
+lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
+
+
+for i_bin, bin_name in enumerate(bin_names_test):
+    
+    bin_name = bin_name + 'a' 
+    
+    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
+    
+    # get most up-to-date INP file into Labfit
+    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+    d_load = os.path.join(d_old, bin_name, use_which)[:-4] 
+    
+    inp_updating = open(d_load + '.inp', "r").readlines()
+    
+    num_ASC = int(inp_updating[0].split()[2])
+    num_features = int(inp_updating[0].split()[3])
+    
+    line_first_feature = lines_main_header + num_ASC * lines_per_asc # all of the header down to the spectra
+    line_first_constraint = line_first_feature + num_features * lines_per_feature
+    
+    
+    # remove all constraints and unfloat all features
+    inp_updating[1] = inp_updating[1][:26] + '      0      0' + inp_updating[1][40:] # remove all constraints from file header
+    inp_updating = inp_updating[:line_first_constraint] # remove all constraints from bottom of file
+    
+    for i in range(num_features): 
+        
+        inp_updating[line_first_feature+i*lines_per_feature+2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n' # unfloat everything
+    
+    inp_header = inp_updating[:lines_main_header]
+    inp_features = inp_updating[line_first_feature:]
+    
+    
+    for i_meas, meas_condition in enumerate(d_conditions): 
+        
+        # remove all measurement files except the one we're investigating
+        num_ascs = 0
+        for i_asc in range(num_ASC): 
+            
+            line_asc = lines_main_header+i_asc*lines_per_asc
+            
+            
+            asc_name = ' '.join(inp_updating[line_asc].split()[0].replace('_', ' ').split('.')[0].split()[1:-1])
+            
+            if asc_name == meas_condition: 
+                
+                if num_ascs == 0: 
+                    num_ascs+=1
+                    inp_asc = inp_updating[line_asc:line_asc+lines_per_asc] # for first (and/or only) instance
+                    
+                else: 
+                    num_ascs+=1
+                    inp_asc.extend(inp_updating[line_asc:line_asc+lines_per_asc]) # if ultiple instances of this ASC file
+        
+        inp_header[0] = inp_header[0][:25] + '    {}'.format(num_ascs) + inp_header[0][30:]
+        
+        inp_updated = inp_header.copy()
+        inp_updated.extend(inp_asc)
+        inp_updated.extend(inp_features)
+        
+        open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+        
+        print('\n************************            {}            {}\n'.format(bin_name, meas_condition))
+        
+        num_attempts = 1
+        
+        # float lines we're investigating (nu, sw, gamma, SD), constrain all values for doublets
+        features = features_strong[i_bin]
+        features_constrain = features_doublets[i_bin]
+        
+        lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', features_constrain) 
+        lab.float_lines(d_labfit_kernal, bin_name, features, props['sw'], 'inp_new', features_constrain) 
+        lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_self'], 'inp_new', features_constrain) 
+        lab.float_lines(d_labfit_kernal, bin_name, features, props['sd_self'], 'inp_new', features_constrain) 
+           
+        # run labfit
+        print('     labfit iteration #1')
+        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=45) # need to run one time to send INP info -> REI
+        
+        if feature_error != None: 
+            
+            num_attempts+=1
+            
+            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+            
+            lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', features_constrain) 
+            lab.float_lines(d_labfit_kernal, bin_name, features, props['sw'], 'inp_new', features_constrain) 
+            lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_self'], 'inp_new', features_constrain) 
+            
+            # run labfit
+            print('     labfit iteration #2 (no SD)')
+            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=45) # need to run one time to send INP info -> REI
+            
+            if feature_error != None: 
+            
+                num_attempts+=1    
+            
+                open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)    
+            
+                lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', features_constrain) 
+                lab.float_lines(d_labfit_kernal, bin_name, features, props['sw'], 'inp_new', features_constrain) 
+                
+                # run labfit
+                print('     labfit iteration #3 (no widths of any kind)')
+                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=45) # need to run one time to send INP info -> REI
+        
+        if feature_error == None: 
+            
+            # plot results (at least at first to make sure things aren't crazy)
+            # [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+            [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props['sw'], d_old=d_og, plots=False) # read results into python
+            # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props['nu'], props['sw'], features=features, axis_labels=False) # <-------------------
+            # plt.title(bin_name + ' - ' + meas_condition)
+    
+    
+            # extract updated SW values and compile into dict/list
+            for feat in features: 
+                
+                if feat in features_strong_flat: 
+                
+                    i_feat = features_strong_flat.index(feat)
+                       
+                    output_sw[i_meas, i_feat] = df_props.loc[feat].sw
+                    output_uc_sw[i_meas, i_feat] = df_props.loc[feat].uc_sw
+                    output_sw_old[i_meas, i_feat] = df_props.loc[feat].sw_old
+                
+                    output_attempts[i_meas, i_feat] = num_attempts
+    
+
+
+# convert updated SW values into updated yh2o's based on yh2o being used
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

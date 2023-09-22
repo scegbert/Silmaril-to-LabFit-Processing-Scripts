@@ -51,12 +51,14 @@ if d_type == 'pure':
         # d_base = ['300 K _5 T', '300 K 1 T',  '300 K 1_5 T','300 K 2 T',  '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T']
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
+    d_meas = r'E:\water database\data - 2021-08\pure water'
+
     file_number = 1000 # counter to start the save files at (skipped 2000 due to first round)
  
     which_BG = [0,0,0,0,0,0,0,0, 10,10,10,10,10, 29,12,12,12,29, 15,15,16,16,16, 23,23,23,21,21, 23] # don't mess with this one (determined by date of data collection)
 
     d_save = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water\labfit files'
-    
+    d_save = r'E:\water database\data - 2021-08\pure water\labfit files'
     
 elif d_type == 'air':
 
@@ -67,20 +69,25 @@ elif d_type == 'air':
               '1100 K 40 T', '1100 K 80 T', '1100 K 160 T', '1100 K 320 T', '1100 K 600 T', '1300 K 600 T']
     
     if check_bins: 
-        # d_base = ['300 K 600 T', '500 K 600 T', '700 K 600 T', '900 K 600 T', '1100 K 600 T', '1300 K 600 T']
+        d_base = ['300 K 600 T', '500 K 600 T', '700 K 600 T', '900 K 600 T', '1100 K 600 T', '1300 K 600 T']
         # d_base = ['300 K 20 T', '300 K 600 T', '700 K 40 T', '700 K 600 T', '1100 K 40 T', '1100 K 600 T', '1300 K 600 T']
-        d_base = ['1300 K 600 T']
+        # d_base = ['1300 K 600 T']
 
     
     d_meas = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
+    d_meas = r'E:\water database\data - 2021-08\air water'
+
     file_number = 5000 # counter to start the save files at (skipped 2000 due to first round)
 
     which_BG = [3,3,3,3,3,3,3,3, 10,10,10,10,10, 12,12,12,12,12, 16,16,16,16,16, 19,19,19,19,19, 23] # don't mess with this one (determined by date of data collection)
 
     d_save = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water\labfit files'
+    d_save = r'E:\water database\data - 2021-08\air water\labfit files'
 
 
 d_vac = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
+d_vac = r'E:\water database\data - 2021-08\vacuum scans'
+
 
 Patm = 628 # Torr, atmospheric pressure during measurement
 
