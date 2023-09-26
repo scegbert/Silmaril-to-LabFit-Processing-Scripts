@@ -92,12 +92,22 @@ bins['all'] = [-buffer, 6700, 7158.3, buffer]
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
 d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
 
+d_labfit_kp1 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP1'
+d_labfit_kp2 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP2'
+d_labfit_kp3 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP3'
+d_labfit_kp4 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP4'
+d_labfit_kp5 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP5'
+d_labfit_kp6 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP6'
+d_labfit_kp7 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP7'
+
+
+
 if d_type == 'pure': 
     base_name = 'p2020' + 'n_gam' # n update name
     d_cutoff_locations = d_labfit_main + '\\cutoff locations pure.pckl'
 
 elif d_type == 'air': 
-    base_name = 'p2020a_yh2o'
+    base_name = 'p2020HTa' # 'p2020a_updated' 
     d_cutoff_locations = d_labfit_main + '\\cutoff locations air.pckl'
 
 ratio_min_plot = -2 # min S_max value to both plotting (there are so many tiny transitions we can't see, don't want to bog down)
@@ -111,14 +121,15 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 5E-24 
 
-bin_name = 'B20' # name of working bin (for these calculations)
-d_labfit_kernal = d_labfit_main # d_labfit_main # d_labfit_kp # d_labfit_kp2
+bin_name = 'B37a' # name of working bin (for these calculations)
+
+d_labfit_kernal = d_labfit_kp5 # d_labfit_main # d_labfit_kp1
 
 
 
 
 # d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
-d_old_holder = r'H:\water database\air water'
+d_old_holder = r'E:\water database\air water'
 d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 # use_rei = True
@@ -136,13 +147,18 @@ features_reject_old = []
 print('\n\n\n     ******************************************')
 print('     *************** using bin {} ******************       '.format(bin_name))
 if d_labfit_kernal == d_labfit_main: print('************** using MAIN Labfit folder **************')
-elif d_labfit_kernal == d_labfit_kp: print('************** using KP Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp1: print('************** using KP #1 Labfit folder **************')
 elif d_labfit_kernal == d_labfit_kp2: print('************** using KP #2 Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp3: print('************** using KP #3 Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp4: print('************** using KP #4 Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp5: print('************** using KP #5 Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp6: print('************** using KP #6 Labfit folder **************')
+elif d_labfit_kernal == d_labfit_kp7: print('************** using KP #7 Labfit folder **************')
 print('     ******************************************\n\n\n')
 
 please = stophere
 
-
+r'''
 # %% update n parameters to match Paul (Labfit default is 0.75 for all features)
 
 # lab.nself_initilize(d_labfit_main, base_name_pure, n_update_name)
@@ -151,14 +167,14 @@ please = stophere
 # %% mini-script to get the bin started, save OG file
 
 for bin_name in bin_names: 
+    
+    print(bin_name)
 
     lab.bin_ASC_cutoff(d_labfit_main, base_name, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
 
-asdfsdfsdf
-
-lab.run_labfit(d_labfit_kernal, bin_name) # <-------------------
-
-lab.save_file(d_labfit_main, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
+    lab.run_labfit(d_labfit_kernal, bin_name) # <-------------------
+    
+    lab.save_file(d_old_holder, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
 
 # %% more intense script to get the bin started by testing which files allow labfit to run, save OG file
 
@@ -426,12 +442,16 @@ a_features_check = [int(x) for x in list(df_calcs[df_calcs.ratio_max>0].index)]
 lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, features = a_features_check, axis_labels=False) # <-------------------
 plt.title(bin_name)
 
+r'''
+
 # %% MAIN SEGMENT (will need to snag prop_which and feature parameters from txt file)
 
+d_labfit_main = d_old_holder
+features_new = None
 
 # make sure all doublets are floated (avoids errors if we pause and then run in the night)
 lab.float_lines(d_labfit_kernal, bin_name, features_test, props['nu'], 'rei_saved', features_doublets, 
-                d_folder_input=d_labfit_main, features_new=features_new) # float lines, most recent saved REI in -> INP out
+                d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 # lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
 
 lab.wait_for_kernal(d_labfit_kernal)
@@ -726,58 +746,10 @@ elif d_save_name == 'after n delta air': prop_which2 = 'delta_air'
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)
 
-
-
-
-#%% check widths for weird things
-
-[df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props['gamma_self'], props['n_self'], props['sd_self'], d_old=d_old) # read results into python
-
-
-#%% look for good yH2O features and features for exploring double power law relationships
-
-d_old = r'E:\water database\air water' # for comparing to original input files
-
-
-bin_names_test = ['B10', 
-                  'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
-                  'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
-                  'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
-                  'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
-
-# features_strong = {}
-
-for i, bin_name in enumerate(bin_names_test): 
-  
-    bin_name = bin_name + 'a' 
-   
-    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
-    
-    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
-    d_load = os.path.join(d_old, bin_name, use_which)[:-4]
-    
-    prop_which = False
-    prop_which2 = False
-    
-    # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
-    
-    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
-    # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
-    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
-    plt.title(bin_name)
-
-
-
-pausehere
-
-
-
-lab.save_file(d_old, bin_name, 're-ran with updated yh2o', d_folder_input=d_labfit_kernal)
-
+finished = True
 
 
 #%% re-run fits to fix something wrong
@@ -824,79 +796,47 @@ lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plo
 plt.title(bin_name)
 
 
+       
+#%% look for good yH2O features and features for exploring double power law relationships
+
+d_old = r'E:\water database\air water' # for comparing to original input files
 
 
-#%% ditch floats that won't impact the shifts we are wanting to focus on
+bin_names_test = ['B10', 
+                  'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
+                  'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
+                  'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
+                  'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
 
+# features_strong = {}
 
-
-lab.unfloat_lines(d_labfit_kernal, bin_name, features_keep, features_keep_doublets, d_folder_input=d_labfit_main)
-
-sdfasdf
-
-lab.float_lines(d_labfit_kernal, bin_name, [feature for doublet in features_keep_doublets for feature in doublet],
-                props['sw'], 'inp_new', features_keep_doublets) # INP -> INP, testing two at once (typically nu or n_self)
-
-sdfasdfsad
-
-print('     labfit iteration #1')
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # need to run one time to send INP info -> REI
-
-iter_labfit = 5          
-i = 1 # start at 1 because we already ran things once
-while feature_error is None and i < iter_labfit: # run X times
-    i += 1
-    print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
-
-lab.save_file(d_labfit_main, bin_name, 'ditched floats', d_folder_input=d_labfit_kernal)
-
-#%% make new OG files that actually match HITRAN values
-
-
-good_files= []
-bad_files = []
-
-base_name_HITRAN = 'p2020HT'
-
-for bin_name in bins:
+for i, bin_name in enumerate(bin_names_test): 
+  
+    bin_name = bin_name + 'a' 
+   
+    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
     
-    if bin_name not in ['all']: 
+    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+    d_load = os.path.join(d_old, bin_name, use_which)[:-4]
     
-        print(bin_name)
-            
-        lab.bin_ASC_cutoff(d_labfit_main, base_name_HITRAN, d_labfit_kernal, bins, bin_name, d_cutoff_locations, d_conditions)
-        result = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # only let Labfit try running for one minute
-        
-        if result != 'timeout':
-            print('     good\n')
-            good_files.append(bin_name)
-        else: 
-            print('     bad\n')
-            bad_files.append(bin_name)
-        
-        
-
-#%% save the new HITRAN og files in their folders
-
-d_labfit_folders = r'H:\water database\air water'
-failed = []
-
-for bin_name in bins:
-
-    if bin_name not in ['all']:     
+    prop_which = False
+    prop_which2 = False
     
-        try: 
-            lab.save_file(d_labfit_folders, bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
-            ####### - change module to save as HITRAN
-        except: 
-            try: 
-                
-                lab.save_file(os.path.join(d_labfit_folders,'done'), bin_name, d_og=True, d_folder_input=d_labfit_kernal) # make a folder for saving and save the original file for later
+    # [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=True) # <-------------------
     
-            except: 
-                
-                failed.append(bin_name)
+    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
+    # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
+    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
+    plt.title(bin_name)
+
+
+
+pausehere
+
+
+
+lab.save_file(d_old, bin_name, 're-ran with updated yh2o', d_folder_input=d_labfit_kernal)
 
 #%% calculate new SW that will be used for yh2o
 
@@ -1160,10 +1100,6 @@ for i_bin, bin_name in enumerate(bin_names_test):
 #%%  revert delta_air back to HITRAN, update SD to 0.13, and update y_h2o
 
 
-bin_name = 'B19a'
-bin_name = 'B30a'
-
-
 
 y_h2o_old = [0.0189750, 0.0191960, 0.0192650, 0.0193170, 0.0193940, 0.0194900, 0.0195320, 0.0194730, 
              0.0193570, 0.0193190, 0.0192070, 0.0192580, 0.0195700, 
@@ -1178,6 +1114,13 @@ y_h2o_new = [0.0194565, 0.0197830, 0.0199033, 0.0199502, 0.0200456, 0.0200617, 0
              0.0189080, 0.0193659, 0.0193067, 0.0192536, 0.0191974, 
              0.0195506, 0.0199976, 0.0198608, 0.0194793, 0.0195815, 
              0.0200991] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
+
+y_h2o_lab = [0.0195687, 0.0198780, 0.0199699, 0.0199530, 0.0200125, 0.0200252, 0.0198926, 0.0197421, 
+             0.0198567, 0.0198780, 0.0197901, 0.0197584, 0.0199763, 
+             0.0196421, 0.0195510, 0.0196035, 0.0195262, 0.0194346, 
+             0.0192477, 0.0194570, 0.0192889, 0.0192088, 0.0191539, 
+             0.0193705, 0.0203911, 0.0199124, 0.0195472, 0.0196069, 
+             0.0202362] # calculated using 251 features using LabFit
              
              
              
@@ -1197,136 +1140,114 @@ d_labfit_kernal = d_labfit_main
 # d_old = r'H:\water database\air water' # for comparing to original input files
 d_old = r'E:\water database\air water' # for comparing to original input files
 
-d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
-# d_og = os.path.join(d_old, bin_name, bin_name + '-000-HITRAN') # for comparing to original input files
 
 
 
-# copy file and load
-
-lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'rei_saved', [], d_folder_input=d_old) # float lines, most recent saved REI in -> INP out
-
-inp_bin = open(os.path.join(d_labfit_main, bin_name+'.inp'), "r").readlines()
-inp_updated = inp_bin.copy()
-
-inp_HT = open(os.path.join(d_labfit_main, 'p2020a.inp'), "r").readlines()
-
-lines_until_features = lines_main_header + int(inp_updated[0].split()[2]) * lines_per_asc # all of the header down to the spectra
+for bin_name in bin_names: 
        
-
-# update yh2o
-
-for i_asc in range(int(inp_updated[0].split()[2])): 
-
-    asc_name = ' '.join(inp_updated[lines_main_header+i_asc*lines_per_asc].split()[0].replace('_', ' ').split('.')[0].split()[1:-1])
+    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
+    # d_og = os.path.join(d_old, bin_name, bin_name + '-000-HITRAN') # for comparing to original input files
+    
+    
+    # copy file and load
+    
+    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+    
+    inp_updated = open(os.path.join(d_old, bin_name, use_which), "r").readlines() 
+    
+    print('\n{}        {} features in this file, starting with {}'.format(bin_name, inp_updated[0].split()[3], use_which))
+    
+    inp_HT = open(os.path.join(d_old, bin_name, bin_name + '-000-HITRAN.rei'), "r").readlines()
+    
+    lines_until_features = lines_main_header + int(inp_updated[0].split()[2]) * lines_per_asc # all of the header down to the spectra
+    
+    
+    # update yh2o
+    
+    for i_asc in range(int(inp_updated[0].split()[2])): 
+    
+        asc_name = ' '.join(inp_updated[lines_main_header+i_asc*lines_per_asc].split()[0].replace('_', ' ').split('.')[0].split()[1:-1])
+            
+        i_condition = d_conditions.index(asc_name)
         
-    i_condition = d_conditions.index(asc_name)
-    
-    y_asc = float(inp_updated[lines_main_header+i_asc*lines_per_asc + 20].split()[0])
-    
-    y_h2o_old_i = y_h2o_old[i_condition]
-    
-    if y_asc != y_h2o_old_i: throw_error = different_y
-    
-    y_h2o_new_i = y_h2o_new[i_condition]
-    
-    inp_updated[lines_main_header+i_asc*lines_per_asc + 20] = '     {0:.6f}    '.format(y_h2o_new_i) + inp_updated[lines_main_header+i_asc*lines_per_asc + 20][17:]
-    
-# update SD and delta (and n_delta back to 1)
-
-i_feature_updated = 0
-
-for i_feature_HT in range(int(inp_HT[0].split()[3])): 
-   
-    i_feature_HT += 1
-    if str(i_feature_HT) != inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)].split()[0]: throw_error = pleasehere
-    
-    delta_HT = inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)][73:] # includes delta, n_delta, SD
-    delta_HT = delta_HT[:12] + '1' + delta_HT[13:] # reset n_delta to 1 for all features
-    
-    i_feature_updated += 1
-    line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
-    
-    i_feature_updated_down = i_feature_updated
-    # make sure you're on the right line
-    while inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+        y_asc = float(inp_updated[lines_main_header+i_asc*lines_per_asc + 20].split()[0])
         
-        if inp_updated[line_updated+1][67:-1] == '0.12000': 
-            inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD wherever you are
+        y_h2o_old_i = y_h2o_old[i_condition]
         
-        i_feature_updated += 1 # look at the next feature
+        if y_h2o_old[i_condition] != y_h2o_old_i: throw_error = different_y
+        
+        y_h2o_new_i = y_h2o_lab[i_condition]
+        
+        inp_updated[lines_main_header+i_asc*lines_per_asc + 20] = '     {0:.6f}    '.format(y_h2o_new_i) + inp_updated[lines_main_header+i_asc*lines_per_asc + 20][17:]
+        
+    # update SD and delta (and n_delta back to 1)
+    
+    i_feature_updated = 0
+    
+    for i_feature_HT in range(int(inp_HT[0].split()[3])): 
+       
+        i_feature_HT += 1
+        if str(i_feature_HT) != inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)].split()[0]: throw_error = pleasehere
+        
+        delta_HT = inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)][73:] # includes delta, n_delta, MW
+        delta_HT = delta_HT[:12] + '1' + delta_HT[13:] # reset n_delta to 1 for all features
+        
+        i_feature_updated += 1
         line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
         
-        if inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+        i_feature_updated_down = i_feature_updated
+
+        # make sure you're on the right line
+        while inp_updated[line_updated].split()[0] != str(i_feature_HT): 
             
-            i_feature_updated_down -= 1 # also look at above where you were
-            line_updated = lines_until_features + lines_per_feature*(i_feature_updated_down-1)
+            if inp_updated[line_updated+1][67:-1] == '0.12000': 
+                inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD wherever you are
             
-            if inp_updated[line_updated].split()[0] == str(i_feature_HT): 
-                i_feature_updated = i_feature_updated_down # if we found it going down, use that index
-    
-    if inp_updated[line_updated].split()[0] != str(i_feature_HT): please = stop_here
+            i_feature_updated += 1 # look at the next feature
+            line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
+            
+            if inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+                
+                i_feature_updated_down -= 1 # also look at above where you were
+                line_updated = lines_until_features + lines_per_feature*(i_feature_updated_down-1)
+                
+                if inp_updated[line_updated].split()[0] == str(i_feature_HT): 
+                    i_feature_updated = i_feature_updated_down # if we found it going down, use that index
         
-    inp_updated[line_updated] = inp_updated[line_updated][:73] + delta_HT
+        if inp_updated[line_updated].split()[0] != str(i_feature_HT): please = stop_here
+            
+        inp_updated[line_updated] = inp_updated[line_updated][:73] + delta_HT
+        
+        
+        
+        if inp_updated[line_updated+1][67:-1] == '0.12000': 
+            inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD          
+            
+        if inp_updated[line_updated-lines_per_feature+1][67:-1] == '0.12000':     
+            inp_updated[line_updated-lines_per_feature+1] = inp_updated[line_updated-lines_per_feature+1][:67] + '0.13000\n' # update SD above just in case
+        
+        if inp_updated[line_updated-2*lines_per_feature+1][67:-1] == '0.12000': 
+            inp_updated[line_updated-2*lines_per_feature+1] = inp_updated[line_updated-2*lines_per_feature+1][:67] + '0.13000\n' # update SD 2 above just in case
+        
+        if inp_updated[line_updated-3*lines_per_feature+1][67:-1] == '0.12000': 
+            inp_updated[line_updated-3*lines_per_feature+1] = inp_updated[line_updated-3*lines_per_feature+1][:67] + '0.13000\n' # update SD 3 above just in case
+        # don't go down so you don't mess up the constraints
     
-    if inp_updated[line_updated+1][67:-1] == '0.12000': 
-        inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD
 
-    if inp_updated[line_updated-lines_per_feature+1][67:-1] == '0.12000':     
-        inp_updated[line_updated-lines_per_feature+1] = inp_updated[line_updated-lines_per_feature+1][:67] + '0.13000\n' # update SD above just in case
+    # unfloat any floated shifts
+    for i_feature_updated in range(int(inp_updated[0].split()[3])): 
+ 
+        line_updated = lines_until_features + lines_per_feature*i_feature_updated    
+ 
+        inp_updated[line_updated+2] = inp_updated[line_updated+2][:18] + '1  1' + inp_updated[line_updated+2][22:]
+ 
     
-    if inp_updated[line_updated-2*lines_per_feature+1][67:-1] == '0.12000': 
-        inp_updated[line_updated-2*lines_per_feature+1] = inp_updated[line_updated-2*lines_per_feature+1][:67] + '0.13000\n' # update SD 2 above just in case
     
-    if inp_updated[line_updated-3*lines_per_feature+1][67:-1] == '0.12000': 
-        inp_updated[line_updated-3*lines_per_feature+1] = inp_updated[line_updated-3*lines_per_feature+1][:67] + '0.13000\n' # update SD 3 above just in case
-    # don't go down so you don't mess up the constraints
+    use_which_updated = bin_name + '-100-updated yh2o SD and delta for last iteration.rei'
     
-
-open(os.path.join(d_labfit_main, bin_name+'.inp'), 'w').writelines(inp_updated)
-
-
-# get data for plots ready in case it errors out
-[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_old, bins, bin_name, og=d_og) # <-------------------
-
-[_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
-d_load = os.path.join(d_old, bin_name, use_which)[:-4]
-[T, P, wvn, trans, res_prior, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, d_load=d_load) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
-
-# run the new file
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # need to run one time to send INP info -> REI
-
-iter_labfit = 4         
-i = 1 # start at 1 because we already ran things once
-while feature_error is None and i < iter_labfit: # run X times
-    i += 1
-    print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True) 
-
-if feature_error is not None: 
-    lab.plot_spectra(T,wvn,trans,res_prior, False, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
-    plt.title('DID NOT WORK')
-
-else: 
-    [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og) # <-------------------
-    # lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset,props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
-    lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_air'], props['n_delta_air'], axis_labels=False) # <-------------------
-    plt.title(bin_name)
-
-
-pause = here_please
-
-lab.save_file(d_labfit_main, bin_name, 'updated y_h2o, SD, and delta', d_folder_input=d_labfit_kernal)
-
-
-
-
-
-
-
-
+    open(os.path.join(d_old, bin_name, use_which_updated), 'w').writelines(inp_updated)
+    
+    
 
 
 
