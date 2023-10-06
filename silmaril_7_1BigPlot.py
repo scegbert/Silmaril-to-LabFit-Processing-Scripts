@@ -30,7 +30,7 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -43,13 +43,15 @@ if d_type == 'pure':
 elif d_type == 'air': 
     which_file = '1300 K 600 T'
     y_h2o = '2%'
-    post_label = ' in air'
+    post_label = ' in Air'
     which_vacuum = 25 # vacuum scans that correspond to the file above
 
 #%% load in transmission data (model from labfit results)
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
-d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+# d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+
 
 
 if d_type == 'pure': f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
@@ -78,8 +80,8 @@ res_og_all = np.concatenate([res_og_pure[i] for i in i_plot])
 
 #%% load in transmission data (vacuum normalized from bg subtract)
 
-if d_type == 'pure': d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\pure water'
-elif d_type == 'air': d_measurement = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\air water'
+if d_type == 'pure': d_measurement = r'E:\water database\data - 2021-08\pure water'
+elif d_type == 'air': d_measurement = r'E:\water database\data - 2021-08\air water'
 f = open(os.path.join(d_measurement, which_file+' bg subtraction.pckl'), 'rb')
 # [meas_trans_bg, meas_trans_bl, wvn, T, P, y_h2o, pathlength, favg, fitresults_all, model_trans_fit2020, model_trans_fit2016, model_trans_fitPaul]
 [transmission, _, wvn_process, _, _, _, _, _, _, model, _, _] = pickle.load(f)
@@ -121,7 +123,7 @@ wvn_raw = wvn_raw[:len(measurement)]
 
 #%% load in vacuum scans
 
-d_vacuum = r'C:\Users\scott\Documents\1-WorkStuff\High Temperature Water Data\data - 2021-08\vacuum scans'
+d_vacuum = r'E:\water database\data - 2021-08\vacuum scans'
 
 f = open(os.path.join(d_vacuum, 'plot stuff 1 0.030 with 2Ts.pckl'), 'rb')
 # [meas_filt_all_final, meas_filt_all_final_ref, meas_spike_all_final, meas_bg_all_final, meas_raw_all_final, wvn_all_final]
@@ -276,7 +278,7 @@ if d_type == 'air':
     ax21ins.yaxis.tick_left()
     ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
 
-    ax21ins.text(0.4, 0.2, "noise floor", fontweight="bold", fontsize=10, transform=ax21ins.transAxes)
+    ax21ins.text(0.4, 0.2, "noise floor", fontsize=10, transform=ax21ins.transAxes)
 
 
 #%% 1300 K inset
@@ -439,6 +441,6 @@ elif d_type == 'air':
 #%% save it
 
 if d_type == 'pure':
-    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
+    plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
 elif d_type == 'air':
-    plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big air.svg',bbox_inches='tight')
+    plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big air.svg',bbox_inches='tight')

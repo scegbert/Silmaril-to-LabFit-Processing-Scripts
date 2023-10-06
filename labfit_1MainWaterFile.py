@@ -121,9 +121,9 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 5E-24 
 
-bin_name = 'B18a' # name of working bin (for these calculations)
+bin_name = 'B14a' # name of working bin (for these calculations)
 
-d_labfit_kernal = d_labfit_kp7 # d_labfit_main # d_labfit_kp1
+d_labfit_kernal = d_labfit_kp4 # d_labfit_main # d_labfit_kp1
 
 
 
@@ -752,7 +752,7 @@ elif d_save_name == 'after n delta air': prop_which2 = 'delta_air'
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 3, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
 plt.title(bin_name)
 
 finished = True
@@ -762,44 +762,50 @@ finished = True
 
 
 d_labfit_kernal = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
-
+bin_name = 'B49a'
+d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 iter_labfit = 1
 
-res1 = res.copy()
+prop_which = 'delta_air'
 
 # prop_which = 'sd_self'
-# features_test = [14060, 14067]
-# features_doublets = [[14060, 14067]]
+# features_test = [12589,12590] #, 10994, 10993]
+# features_doublets = [[12589,12590]] #, [10994, 10993]]
 # lab.float_lines(d_labfit_kernal, bin_name, features_test, props[prop_which], 'inp_new', features_doublets, d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 # # 'inp_new'
 
+if bin_name_old == bin_name: res1 = res.copy()
+else: 
+    lab.float_lines(d_labfit_kernal, bin_name, [], props[prop_which], 'inp_saved', [], d_folder_input=d_labfit_main) # float lines, most recent saved REI in -> INP out
 
 print('     labfit iteration #1')
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=90) # need to run one time to send INP info -> REI
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
 
 i = 1 # start at 1 because we already ran things once
 while feature_error is None and i < iter_labfit: # run X times
     i += 1
     print('     labfit iteration #' + str(i)) # +1 for starting at 0, +1 again for already having run it using the INP (to lock in floats)
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=90) 
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=60) 
 
-[df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old) # read results into python
+# [df_compare, df_props] = lab.compare_dfs(d_labfit_kernal, bins, bin_name, props_which, props[prop_which], props[prop_which2], props[prop_which3], d_old=d_old) # read results into python
 
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-# lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-plt.title(bin_name)
+if bin_name_old == bin_name: lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+# else: lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+# plt.title(bin_name)
 
-
+bin_name_old = bin_name
 
 asdfsadfsadf
 
 
+df_calcs[df_calcs.index == 7810].delta_air
 
-lab.save_file(d_labfit_main, bin_name, 'updated - ditched a shift', d_folder_input=d_labfit_kernal)
+
+lab.save_file(d_labfit_main, bin_name, 'updated - pure water values', d_folder_input=d_labfit_kernal)
 
 
 lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
@@ -1081,29 +1087,6 @@ for i_bin, bin_name in enumerate(bin_names_test):
                 
                     output_attempts[i_meas, i_feat] = num_attempts
     
-
-
-# convert updated SW values into updated yh2o's based on yh2o being used
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

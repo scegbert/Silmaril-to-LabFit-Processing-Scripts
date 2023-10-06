@@ -36,10 +36,10 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
-d_type = 'pure' # 'air'
+d_type = 'air' # 'air'
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
-d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 if d_type == 'pure': 
     f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
@@ -72,7 +72,7 @@ if d_type == 'pure':
 elif d_type == 'air': 
     which_files = ['1300 K 600 T']
     y_h2o = '2%'
-    post_label = ' in air'
+    post_label = ' in Air'
 
 
 res_HT = []
@@ -146,7 +146,7 @@ elif d_type == 'air':
     y_lim_bottom = [-0.04,0.04]
     
     y_lim_top_narrow = [0.965,1.007]
-    y_lim_bottom_narrow = [-0.017,0.017]
+    y_lim_bottom_narrow = [-0.019,0.019]
 
 fig = plt.figure(figsize=(14.4, 5))
 
@@ -398,5 +398,5 @@ ax00.text(hc, vc, "(C)", fontsize=12, transform=ax00.transAxes)
 
 #%% save it
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-1 big residual.svg', bbox_inches='tight')
+plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-1 big residual.svg', bbox_inches='tight')
 

@@ -119,15 +119,15 @@ elif d_type == 'air': props_which = ['nu','sw','gamma_air','n_air','sd_self','de
 
 cutoff_s296 = 1E-24 
 
-if d_type == 'pure': d_sceg_load = r'H:\water database\pure water'
-elif d_type == 'air': d_sceg_load = r'H:\water database\air water'
+if d_type == 'pure': d_sceg_load = r'E:\water database\pure water'
+elif d_type == 'air': d_sceg_load = r'E:\water database\air water'
 bins_done = sorted(os.listdir(d_sceg_load), key=bin_names.index)
 
-d_paul = r'C:\Users\scott\Documents\1-WorkStuff\Labfit\working folder\paul nate og\PaulData_SD_Avgn_AKn2'
-d_sceg_save = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_paul = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit\working folder\paul nate og\PaulData_SD_Avgn_AKn2'
+d_sceg_save = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
-d_HT2020 = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2020\H2O.par'
-d_HT2016 = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2016\H2O.par'
+d_HT2020 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2020\H2O.par'
+d_HT2016 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - HITRAN 2016\H2O.par'
 
 
 

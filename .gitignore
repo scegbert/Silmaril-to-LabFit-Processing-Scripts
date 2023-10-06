@@ -2922,3 +2922,15 @@ data - sceg/
 plots/
 
 data - HITEMP 2010/
+
+data - HITRAN 2020/H2O - reduced.header
+
+data - HITRAN 2020/H2O - reduced.par
+
+data - temp/H2O_main.data
+
+data - temp/H2O_main.header
+
+data - HITRAN 2016/H2O.data
+
+data - HITRAN 2016/H2O.par
