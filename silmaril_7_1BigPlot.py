@@ -15,7 +15,7 @@ import pickle
 
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from matplotlib.ticker import AutoMinorLocator
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
@@ -218,7 +218,7 @@ ax10.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax10.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
 
 ax10.plot(wvn_data, meas_data, color=colors[3], linewidth=linewidth,
-          label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file))
+          label='{} H$_{{2}}$O{} at {}orr'.format(y_h2o, post_label, which_file))
 ax10.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)
 
 ax11 = fig.add_subplot(gs[1,1], sharex = ax01) # Second row, second column
@@ -230,9 +230,9 @@ ax20 = fig.add_subplot(gs[2,0], sharex = ax00) # Third row, first column
 ax20.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax20.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
 ax20.plot(wvn_data, trans_data, color=colors[4], linewidth=linewidth,
-          label='{} H$_{{2}}$O{} at {} - Normalized by Filtered Baseline'.format(y_h2o, post_label, which_file))
+          label='{} H$_{{2}}$O{} at {}orr - Normalized by Filtered Baseline'.format(y_h2o, post_label, which_file))
 ax20.plot(wvn_labfit, trans_labfit, color=colors[5], linewidth=linewidth,
-          label='{} H$_{{2}}$O{} at {} - Normalized by Baseline and Chebyshevs'.format(y_h2o, post_label, which_file))
+          label='{} H$_{{2}}$O{} at {}orr - Normalized by Baseline and Chebyshevs'.format(y_h2o, post_label, which_file))
 ax20.legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)
 
 ax21 = fig.add_subplot(gs[2,1], sharex = ax01) # Third row, second column
@@ -311,12 +311,13 @@ if d_type == 'air':
 
     ax00.arrow(narrow[1], 0.55, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
     ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-    ax20.arrow(narrow[1], 0.67, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    ax20.arrow(narrow[1], 0.68, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
 
 #%% set axis
 
 ax00.set_xlim(wide)
 ax01.set_xlim(narrow)
+
 
 if d_type == 'pure': 
     
@@ -329,6 +330,7 @@ if d_type == 'pure':
 
 elif d_type == 'air': 
 
+    ax21.xaxis.set_ticks(np.arange(6962.8, 6964.0, 0.3))
 
     ax01.set_ylim([0.953, 0.959])
     ax11.set_ylim([0.901, 0.938])
@@ -337,6 +339,7 @@ elif d_type == 'air':
     ax00.set_ylim([0,1.1])
     ax10.set_ylim([0,1.1])
     ax20.set_ylim([0.45,1.06])
+    
 
 
 #%%  remove x label on upper plots (mostly covered)
@@ -379,6 +382,8 @@ ax11.yaxis.set_minor_locator(AutoMinorLocator(5))
 ax21.tick_params(axis='both', which='both', direction='in', top=False, bottom=True, left=False, right=True)
 ax21.xaxis.set_minor_locator(AutoMinorLocator(5))
 ax21.yaxis.set_minor_locator(AutoMinorLocator(5))
+    
+if d_type == 'air': ax21.xaxis.set_minor_locator(MultipleLocator(0.05))
 
 
 #%% shading to highlight zoomed region
@@ -432,9 +437,9 @@ elif d_type == 'air':
     v0 = 0.87
     v1 = 0.9
     
-    ax00.text(0.41, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
-    ax10.text(0.41, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
-    ax20.text(0.41, 0.42, "(F)", fontsize=12, transform=ax20.transAxes)
+    ax00.text(0.405, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
+    ax10.text(0.405, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
+    ax20.text(0.405, 0.425, "(F)", fontsize=12, transform=ax20.transAxes)
 
 
 

@@ -37,7 +37,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 #%% load in transmission data (model from labfit results)
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
-d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
 [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)

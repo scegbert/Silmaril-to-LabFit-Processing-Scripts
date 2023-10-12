@@ -45,7 +45,6 @@ def expon(x, a1, a2, a3, a4):
     
 
 
-
 #%% gamma
 # breakdown data
 
@@ -101,6 +100,31 @@ r2 = r2_score(plot_y, fit_y)
 print('{}    {}     {}\n\n\n'.format(mad, rms, r2))
 
 
+
+#%% equations for down here
+
+
+def expon(x, a1, a2, a3, a4):
+    
+    x1, x2, x3 = x   
+        
+    return a1 * np.exp(a2*x1) + a3
+
+def j_abs(x, a1, a2, a3, a4):
+    
+    x1, x2, x3 = x   
+        
+    return x1 + a1 * abs(x3 + a2 * x1)
+
+def single_saw(x, a1, a2, a3, a4):
+    
+    x1, x2, x3 = x   
+        
+    y = np.ones_like(x1) * a2
+    y[x1>a1] = a3*(x1[x1>a1]-a1) + a2
+    
+    return y
+
 #%% temp dep of width n_gamma
 
 # breakdown data
@@ -109,7 +133,7 @@ print('{}    {}     {}\n\n\n'.format(mad, rms, r2))
 # which = (df_sceg['uc_gamma_self'] > -1) # &(df_sceg['uc_n_self'] > -1) # &(df_sceg['Kapp'] < 5)
 
 plot_which_y = 'n_air'
-which = (df_sceg['uc_n_air'] > -1) # &(df_sceg['uc_n_air'] > -1) # &(df_sceg['Kapp'] < 5)
+which = (df_sceg['uc_n_air'] > -1) &(df_sceg['Jpp'] < 15.5) # &(df_sceg['uc_n_air'] > -1) # &(df_sceg['Kapp'] < 5)
 
 
 df_plot = df_sceg_align[which] # floating all width parameters
@@ -132,10 +156,11 @@ plot_y = df_plot[plot_which_y].to_numpy()
 plot_c = df_plot['Jpp']
 
 
-a1 = -0.01
-a2 = -0.3
-a3 = 1
-a4 = .2
+
+a1 = -0.054
+a2 = 0.184
+a3 =  0.826
+a4 = 100
 
 # Fit the data to the sawtooth_wave function
 initial_guess = [a1, a2, a3, a4]  # Initial guess for frequency, phase shift, and slope
@@ -144,6 +169,7 @@ fit_params, _ = curve_fit(expon, plot_x_fit, plot_y, p0=initial_guess)#, bounds=
 a1, a2, a3, a4 = fit_params
 
 fit_y = expon(plot_x_fit, a1, a2, a3, a4)
+
 
 plt.figure()
 sc = plt.scatter(plot_x1, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)

@@ -19,6 +19,8 @@ from matplotlib.ticker import AutoMinorLocator
 
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+from mpl_toolkits.axes_grid1.inset_locator import TransformedBbox, BboxPatch, BboxConnector 
+
 
 import os
 from sys import path
@@ -1681,12 +1683,25 @@ y_h2o_update = np.array([0.0195687, 0.0198780, 0.0199699, 0.0199530, 0.0200125, 
                          0.0193705, 0.0203911, 0.0199124, 0.0195472, 0.0196069, 
                          0.0202362]) # calculated with 251 features in Labfit
 
-unc_h2o_update = np.array([0.0009585, 0.0008818, 0.0008804, 0.0007675, 0.0007826, 0.0005737, 0.0007815, 0.0006872, 
+unc_h2o_fit = np.array([0.0009585, 0.0008818, 0.0008804, 0.0007675, 0.0007826, 0.0005737, 0.0007815, 0.0006872, 
                            0.0004570, 0.0002742, 0.0002433, 0.0002285, 0.0003006, 
                            0.0005774, 0.0004262, 0.0002865, 0.0002685, 0.0002792, 
                            0.0007721, 0.0005664, 0.0004409, 0.0003754, 0.0003731, 
                            0.0010194, 0.0007559, 0.0007744, 0.0005572, 0.0005114, 
                            0.0009415])
+
+unc_h2o_T = np.array([0.007496, 0.007458, 0.007484, 0.007456, 0.007462, 0.007464, 0.007480, 0.007483, 
+                      0.007622, 0.007669, 0.007339, 0.007440, 0.007257, 
+                      0.006348, 0.006510, 0.007615, 0.007424, 0.006310, 
+                      0.008692, 0.008623, 0.008680, 0.008548, 0.008474, 
+                      0.009704, 0.009638, 0.009588, 0.009688, 0.009492, 
+                      0.015414])
+
+unc_h2o_P = 0.0025
+
+unc_h2o_PL = 0.1/91.4
+
+unc_h2o_update = np.sqrt((unc_h2o_fit/y_h2o_update)**2 + unc_h2o_T**2 + unc_h2o_P**2 + unc_h2o_PL**2) * y_h2o_update
 
 T = np.array([300, 300, 300, 300, 300, 300, 300, 300, 
      500, 500, 500, 500, 500, 
@@ -1740,13 +1755,13 @@ for i, T_i in enumerate(T_plot):
 plt.legend(loc='lower center', ncol=3, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
 # plt.xlim(-.9,24.9)
-plt.ylim(1.81,2.13)
+plt.ylim(1.801,2.14)
 
 ax = plt.gca()
 ax.minorticks_on()
 
 plt.xlabel('Total Pressure (Torr)', fontsize=12)
-plt.ylabel('Optically Measured H$_{2}$O Concentration (%)', fontsize=12)
+plt.ylabel('Optically Measured H$_{2}$O Concentration (%)', fontsize=11.5)
 
 # plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7 x h2o.svg',bbox_inches='tight')
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 x h2o.svg',bbox_inches='tight')
@@ -1825,7 +1840,7 @@ ax = plt.gca()
 ax.minorticks_on()
 
 # plt.xlim(-.9,24.9)
-# plt.ylim(-0.04,1.19)
+plt.ylim(-0.016,0.219)
 
 plt.xticks(np.arange(0, 25, 2.0))
 
@@ -1909,15 +1924,19 @@ slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 
 r2 = r_value**2
 
-plt.plot(line_, plot_y_fit, colors[1], label='This Work  ({}n$_{}${})'.format(str(slope)[:4],'HT',str(intercept)[:5]),
-          linewidth=4, linestyle='dashed')
+label = 'γ$_{air,HT}$ '
+plt.plot(line_, plot_y_fit, colors[1], label='Best Fit  (' + str(slope)[:4] + label + str(intercept)[:8] + ')',
+          linewidth=4, linestyle='dashed', zorder=11)
 
-plt.legend(loc='lower right', edgecolor='k', framealpha=1)
+plt.plot(line_, line_, 'k', label='One-to-one Line (γ$_{air,TW}$ = γ$_{air,HT}$)',
+          linewidth=2, linestyle='solid', zorder=10)
+
+plt.legend(loc='upper left', edgecolor='k', framealpha=1, labelspacing=0)
 
 plt.show()
 
-# plt.ylim(-.59,1.24)
-# plt.xlim(0.05,0.6)
+plt.ylim(-.010,0.179)
+plt.xlim(-.001,0.110)
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air width HT.svg',bbox_inches='tight')
 
@@ -1932,6 +1951,22 @@ print(rms)
 
 
 # %% feature temperature dependence of widths - Linda plot
+
+
+def mark_inset_custom(parent_axes, inset_axes, loc1a=1, loc1b=1, loc2a=2, loc2b=2, **kwargs):
+    rect = TransformedBbox(inset_axes.viewLim, parent_axes.transData)
+
+    pp = BboxPatch(rect, fill=False, **kwargs)
+    parent_axes.add_patch(pp)
+
+    p1 = BboxConnector(inset_axes.bbox, rect, loc1=loc1a, loc2=loc1b, **kwargs)
+    inset_axes.add_patch(p1)
+    p1.set_clip_on(False)
+    p2 = BboxConnector(inset_axes.bbox, rect, loc1=loc2a, loc2=loc2b, **kwargs)
+    inset_axes.add_patch(p2)
+    p2.set_clip_on(False)
+
+    return pp, p1, p2
 
 
 plot_which_y = 'n_air'
@@ -1960,6 +1995,7 @@ plt.ylabel(label_y, fontsize=12)
 
 # plot_x = df_plot[['Kap', 'Kapp']].max(axis=1) + 0.1*(df_plot[['Jp', 'Jpp']].max(axis=1) - df_plot[['Kap', 'Kapp']].max(axis=1))
 plot_x = df_plot[plot_which_x] + df_plot['Kcpp'] / 10
+
 plot_y = df_plot[plot_which_y]
 plot_c = df_plot[plot_which_c]
 
@@ -1986,24 +2022,87 @@ slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 # plt.plot([0,j_max], [intercept, intercept+slope*j_max], colors[1], label='This Work (0.997-0.068J")',
 #          linewidth=4, linestyle='dashed')
 
-j_plot = np.linspace(0,18)
+j_plot = np.linspace(0,15.9)
 
-plt.plot(j_plot, -0.039*np.exp(0.208*np.array(j_plot)) + 0.799, colors[1], label='This Work (0.118 exp[-0.105J"] + 0.01)',
-         linewidth=4, linestyle='dashed')
+# plt.plot(plot_x_sparse, [intercept, intercept+slope*j_max], 'm', label='linear fit',
+#           linewidth=4, linestyle='dashed')
+
+# # using all data
+# plt.plot(j_plot, -0.039*np.exp(0.208*np.array(j_plot)) + 0.799, colors[1], label='This Work (0.118 exp[-0.105J"] + 0.01)',
+#           linewidth=4, linestyle='dashed')
+
+# using Jpp up to 15
+
+a1 = -0.04090575973848531
+a2 = 0.20568969328496534
+a3 = 0.8038965159671903
+
+# plt.plot(j_plot, a1*np.exp(a2*np.array(j_plot)) + a3, 'k', label='{:.4f} exp[{:.3f}J"] + {:.3f}'.format(a1,a2,a3),
+#           linewidth=4, linestyle='dashed')
 
 
-plt.legend(loc='lower left', ncol=2, edgecolor='k', framealpha=1, labelspacing=0)
+# also J" up to 15 (includes 15)
+
+a1 = 7.148957481898994
+a2 = 0.6889457299632009
+a3 = -0.08260648084684498
+
+y = np.ones_like(j_plot) * a2
+y[j_plot>a1] = a3*(j_plot[j_plot>a1]-a1) + a2
+
+plt.plot(j_plot, y, 'r', label='{:.3f} if J"<{:.2f} or {:.4f}J"+{:.3f} if J"≥{:.2f}'.format(a2, a1, a3, -a1*a2*a3, a1),
+          linewidth=4, linestyle='dashed')
+
+
+# plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=.5)
+
+plt.legend(loc='upper right', edgecolor='k', framealpha=1, labelspacing=0)
+
+
+
+
+
 
 
 plt.colorbar(sc, label=label_c, pad=0.01)
 plt.show()
 
-# plt.xlim(-.9,19.9)
-# plt.ylim(-0.79,1.3)
+plt.xlim(-.7,20.5)
+plt.ylim(-1.79,1.59)
 plt.xticks(np.arange(0, 19, 2.0))
 
 ax = plt.gca()
 ax.minorticks_on()
+
+
+ax_ins = inset_axes(ax, width='40%', height='33%', loc='lower left', bbox_to_anchor=(0.04,0.07,1,1), bbox_transform=ax.transAxes)
+
+
+ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=3500)
+              # label=HT_errors_nu[err])
+
+if plot_unc_y_bool: 
+    plot_unc_y = df_plot['uc_'+plot_which_y]
+    ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+
+plt.xlim(8.95, 10.05)
+plt.ylim(-0.1,1.1)
+
+
+# patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
+patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
+
+
+plt.xticks(np.arange(9, 10.2, 0.2))
+
+
+
+
+
+ax = plt.gca()
+ax.minorticks_on()
+
+
 
 
 
@@ -2174,6 +2273,7 @@ slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
 plt.plot(plot_x_sparse, plot_y_fit, colors[1], label='This Work ({}+{}γ)'.format(str(intercept)[:5], str(slope)[:4]),
          linewidth=4, linestyle='dashed')
 
+
 plt.legend(loc='lower right', edgecolor='k', framealpha=1)
 
 
@@ -2265,7 +2365,7 @@ linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
 
 #-----------------------
 plot_which_y = 'delta_air'
-label_y = 'Self-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
+label_y = 'Air-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
 
 plot_which_x = 'elower'
 label_x = 'Lower State Energy, E" [cm$^{-1}$]'
@@ -2475,7 +2575,7 @@ plot_which_y = 'n_delta_air'
 label_y = 'Air-Shift Temperature Exponent, n$_{δ,air}$'
 
 plot_which_x = 'delta_air'
-label_x = 'Self-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
+label_x = 'Air-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
 
 # -----------------------
 # plot_which_y = 'n_delta_air'
@@ -2560,7 +2660,7 @@ plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water c
 # %% table of results (number of fits, vibrational bands, etc.)
 
 
-props_which = ['uc_nu','uc_sw','uc_gamma_self','uc_n_self','uc_sd_self','uc_delta_self','uc_n_delta_self', 'uc_elower']
+props_which = ['uc_gamma_air','uc_n_air','uc_sd_air','uc_delta_air','uc_n_delta_air']
 
 count = np.zeros((50,len(props_which)+3))
 count_name = []

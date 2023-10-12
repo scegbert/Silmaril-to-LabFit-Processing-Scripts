@@ -157,8 +157,9 @@ offset1 = 0.03
 offset0 = offset1*25
 
 # colors = ['#0028ff','#0080af','#117d11','#be961e', '#ff4000','#ff0000',      '#e6ab02', '#fee9ac']
-colors = ['#ff0000',      '#514c8e','#a3a0cc',         '#e6ab02', '#fee9ac']
+colors = ['#ff0000','#1b9e77','#4c7c17',       '#514c8e','#a3a0cc',         '#e6ab02', '#fee9ac']
 # colors = ['#FFD700','#FF7F50','#EE82EE','#4169E1', '#00BFFF','#00FFFF',     '#e6ab02']
+# colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fee9ac']
 
 
 
@@ -175,16 +176,16 @@ for which_file in which_files_partial:
     i = which_files.index(which_file)
     
     ax00 = fig.add_subplot(gs[0,0]) # First row, first column
-    ax00.plot(wvn[i],trans[i], color=colors[i], label='{} H$_{{2}}$O{} at {}'.format(y_h2o, post_label, which_file), 
+    ax00.plot(wvn[i],trans[i], color=colors[i], label='{} H$_{{2}}$O{} at {}orr'.format(y_h2o, post_label, which_file), 
               linewidth=linewidth)
     ax00.legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10, labelspacing=0)   
    
     ax10 = fig.add_subplot(gs[1,0], sharex=ax00) # Second row, first column
-    ax10.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
+    ax10.plot(wvn[i],res_HT[i], color=colors[i+1], label=which_file, 
               linewidth=linewidth)
     
     ax20 = fig.add_subplot(gs[2,0], sharex=ax00) # Second row, first column
-    ax20.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
+    ax20.plot(wvn[i],res_updated[i], color=colors[i+2], label=which_file, 
               linewidth=linewidth)
     
     # second column
@@ -193,11 +194,11 @@ for which_file in which_files_partial:
               linewidth=linewidth)
    
     ax11 = fig.add_subplot(gs[1,1], sharex=ax01) # Second row, second column
-    ax11.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
+    ax11.plot(wvn[i],res_HT[i], color=colors[i+1], label=which_file, 
               linewidth=linewidth)
     
     ax21 = fig.add_subplot(gs[2,1], sharex=ax01) # Second row, second column
-    ax21.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
+    ax21.plot(wvn[i],res_updated[i], color=colors[i+2], label=which_file, 
               linewidth=linewidth)
     
     # third column
@@ -207,11 +208,11 @@ for which_file in which_files_partial:
   
    
     ax12 = fig.add_subplot(gs_right[1,2], sharex=ax02) # Second row, third column
-    ax12.plot(wvn[i],res_HT[i], color=colors[i], label=which_file, 
+    ax12.plot(wvn[i],res_HT[i], color=colors[i+1], label=which_file, 
               linewidth=linewidth)
     
     ax22 = fig.add_subplot(gs_right[2,2], sharex=ax02) # Second row, third column
-    ax22.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
+    ax22.plot(wvn[i],res_updated[i], color=colors[i+2], label=which_file, 
               linewidth=linewidth)
     
     
