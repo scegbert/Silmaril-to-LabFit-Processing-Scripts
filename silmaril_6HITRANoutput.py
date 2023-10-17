@@ -160,53 +160,57 @@ for bin_name in bin_names:
         [_, use_which_file] = lab.newest_rei(d_saved, bin_name)
             
         d_load = os.path.join(d_saved, use_which_file[:-4]) 
-        d_load_og = os.path.join(d_saved, os.listdir(d_saved)[1][:-4]) 
+        d_load_HT = os.path.join(d_saved, os.listdir(d_saved)[1][:-4]) 
+        d_load_sd0 = os.path.join(d_saved, bin_name + '-000-SD = 0 (all other floats included)') 
         wvn_range = bins[bin_name][1:3]
 
-        print('name:{}     load:{}     og:{}'.format(bin_name, d_load, d_load_og))
+        print('name:{}\n     load:{}\n     HT:{}\n     sd0:{}'.format(bin_name, d_load, d_load_HT, d_load_sd0))
 
-        df_bin = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
+        df_sceg = lab.trim(db.labfit_to_df(d_load, htp=False), wvn_range) # open and trim old database
+        df_sd0 = lab.trim(db.labfit_to_df(d_load_sd0, htp=False), wvn_range) # open and trim old database
 
         [T, P, wvn, trans, res, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load) # get the spectra
-        [_, _,   _,  _, res_og, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_og) # get the original spectra
-
+        [_, _,   _,  _, res_HT, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_HT) # get the original spectra
+        [_, _,   _,  _, res_sd0, _, _, _] = lab.labfit_to_spectra(False, bins, bin_name, d_load=d_load_sd0) # get the original spectra
 
         if plot_spectra: 
             
             if d_load[-3:] != '-og':
             
                 df_calcs = lab.information_df('', bin_name, bins, cutoff_s296, T, df_external_load=df_bin) # <-------------------
-                lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_self'], axis_labels=False) # <-------------------
+                lab.plot_spectra(T,wvn,trans,res,res_HT, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props['delta_self'], axis_labels=False) # <-------------------
                 plt.title(bin_name)
                 
                 df_calcs_dict[bin_name] = df_calcs.copy()
 
         if bin_name == bins_done[0]: # if this is the first one
             
-            df_sceg_all = df_bin.copy()
+            df_sceg_all = df_sceg.copy()
+            df_sd0_all = df_sd0.copy()
             
             T_all = T.copy()
             P_all = P.copy()
             wvn_all = wvn.copy()
             trans_all = trans.copy()
             res_all = res.copy()
-            res_og_all = res_og.copy()
+            res_HT_all = res_HT.copy()
+            res_sd0_all = res_sd0.copy()
 
 
         else: # add on to existing dataframe
 
             
-            df_sceg_all = df_sceg_all.append(df_bin)
+            df_sceg_all = df_sceg_all.append(df_sceg)
+            df_sd0_all = df_sd0_all.append(df_sd0)
             
             T_all.extend(T)
             P_all.extend(P)
             wvn_all.extend(wvn)
             trans_all.extend(trans)
             res_all.extend(res)
-            res_og_all.extend(res_og)
+            res_HT_all.extend(res_HT)
+            res_sd0_all.extend(res_sd0)
             
-
-
 
 # please =sdfsdfssdf
 
@@ -214,31 +218,34 @@ for bin_name in bin_names:
 
 # %% save data
 
+print('fully updated data')
 df_sceg = lab.information_df(False, False, False, cutoff_s296, T_all, df_external_load=df_sceg_all)
+print('sd = 0 data')
+df_sd0 = lab.information_df(False, False, False, cutoff_s296, T_all, df_external_load=df_sd0_all)
 
 if d_type == 'pure': f = open(os.path.join(d_sceg_save,'df_sceg_pure.pckl'), 'wb')
 elif d_type == 'air': f = open(os.path.join(d_sceg_save,'df_sceg_air.pckl'), 'wb')
-pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul], f)
+pickle.dump([df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul, df_sd0], f)
 f.close()
 
 if d_type == 'pure': f = open(os.path.join(d_sceg_save,'spectra_pure.pckl'), 'wb')
 elif d_type == 'air': f = open(os.path.join(d_sceg_save,'spectra_air.pckl'), 'wb')
-pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_og_all], f)
+pickle.dump([T_all, P_all, wvn_all, trans_all, res_all, res_HT_all, res_sd0_all], f)
 f.close()
 
-# please = stopfsdsaasd
+please = stopfsdsaasd
 
 
 # %% load both databases and combine
 
 # load pure water database
 f = open(os.path.join(d_sceg_save,'df_sceg_pure.pckl'), 'rb')
-[df_sceg_pure, _, _, _, _] = pickle.load(f)
+[df_sceg_pure, _, _, _, _, _] = pickle.load(f)
 f.close()
 
 # load pure water database
 f = open(os.path.join(d_sceg_save,'df_sceg_air.pckl'), 'rb')
-[df_sceg_air, _, _, _, _] = pickle.load(f)
+[df_sceg_air, _, _, _, _, _] = pickle.load(f)
 f.close()
 
 # rename SD in air data to SD_air

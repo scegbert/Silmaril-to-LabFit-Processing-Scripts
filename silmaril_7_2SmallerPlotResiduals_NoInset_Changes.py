@@ -40,7 +40,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure, res_sd0] = pickle.load(f)
 f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
@@ -155,7 +155,7 @@ for i, which_file in enumerate(which_files_partial):
     ax20 = fig.add_subplot(gs[2,0], sharex=ax00) # Second row, first column
     ax20.plot(wvn[i],res_updated[i], color=colors[i], label=which_file, 
               linewidth=linewidth)
-       
+    
 #%% arrows pointing to inset
 
 # ax00.arrow(narrow[1], 0.5, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
@@ -214,7 +214,7 @@ if adjust:
     
     ax00.text(0.305, v, '9%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     ax00.text(0.41, v, '0%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
-    ax00.text(0.68, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.67, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     ax00.text(0.8, v, '7%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     ax00.text(0.91, v, '5%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     
@@ -224,5 +224,7 @@ if adjust:
 
 #%% save it
 
-plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
+asdfsdf
+
+plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
 

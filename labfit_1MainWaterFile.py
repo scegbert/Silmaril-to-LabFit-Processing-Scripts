@@ -33,7 +33,7 @@ from copy import deepcopy
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -1437,9 +1437,18 @@ for i_bin, bin_name in enumerate(bin_names_test):
                             feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
                             
                             if feature_error is not None: 
-                        
-                                asdfasdfasdfasdfasdfsadf                            
-                        
+                            
+                                open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+                            
+                                print('\n            trying without shift (but with nu) or SD, still taking things one at a time')
+                                            
+                                # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
+                                lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['nu'], 'inp_new', features_constrain_iter) 
+                                lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
+                                
+                                # run labfit
+                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+                                                    
                         if feature_error is None: 
                             
                             df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
@@ -1465,7 +1474,7 @@ for i_bin, bin_name in enumerate(bin_names_test):
 #%% Set SD = 0
 
 
-d_labfit_kernal = d_labfit_kp3
+d_labfit_kernal = d_labfit_kp4
 d_old_all = r'E:\water database' # for comparing to original input files
 
 lines_main_header = 3 # number of lines at the very very top of inp and rei files
@@ -1475,7 +1484,8 @@ lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if usi
 
 bin_names_all = bin_names.copy()
 
-try_again = []
+error_running = []
+error_plotting = []
 
 # put both air and pure items in the bins dict
 if bin_names_all[0][-1] == 'a' and 'B1' not in bins.keys(): 
@@ -1531,9 +1541,6 @@ for i_bin, bin_name in enumerate(bin_names):
         # extract updated values and compile into dict/list
         [T, P, wvn, trans_og, res_og, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_load_folder, bins, bin_name, og=True) # <-------------------
 
-        d_og = os.path.join(d_old_all, d_type+' water', bin_name, bin_name + '-000-og') # for comparing to original input files
-        # df_calcs = lab.information_df(False, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load_file[:-4]) # <-------------------
-
         # save updated file
         open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_saved)
         
@@ -1541,31 +1548,144 @@ for i_bin, bin_name in enumerate(bin_names):
         feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
         
         if feature_error is None: 
-            
-            # save SD = 0
-            d_save_name = 'SD = 0 (all other floats included)'
-            lab.save_file(d_load_folder, bin_name, d_save_name, d_folder_input=d_labfit_kernal, num_file=-1)
 
-            # # plot SD = 0
-            # [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-            # df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-            # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
-            # plt.title(bin_name)
+            try: 
+                
+                [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_load_folder, bins, bin_name, og=True) # <-------------------
+    
+                [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>0], 2, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
+                plt.title(bin_name)
+                
+                # save SD = 0
+                d_save_name = 'SD = 0 (all other floats included)'
+                lab.save_file(d_load_folder, bin_name, d_save_name, d_folder_input=d_labfit_kernal, num_file=-1)
+                
+            except: error_plotting.append(bin_name)
             
-        else: try_again.append(bin_name)
+        else: error_running.append(bin_name)
             
-            
+
+
+
+#%% final check for SD = 0 
+
+
+bin_name = 'B46a' # haven't done 25a yet
+
+
+if bin_name[-1] == 'a': 
+    d_type = 'air'
+    d_which = 'air'    
+    cutoff_s296 = 5E-24 
+    
+else: 
+    d_type = 'pure'
+    d_which = 'self'
+    cutoff_s296 = 1E-24 
+
+
+offset = 2
+
+d_load_folder = os.path.join(d_old_all, d_type+' water')
+[_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
+d_load_SD = os.path.join(d_load_folder, bin_name, use_which)[:-4]
+
+d_save_name = 'SD = 0 (all other floats included)'
+d_load_noSD = os.path.join(d_load_folder, bin_name, bin_name + '-000-' + d_save_name)
+
+[_, _,   _,     _, res_sd,      _,     _,           _] = lab.labfit_to_spectra(_, bins, bin_name, d_load=d_load_SD) # <-------------------
+
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(_, bins, bin_name, d_load=d_load_noSD) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_load_SD) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_sd, df_calcs[df_calcs.ratio_max>-1.5], offset, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+
+# change = df_calcs[abs(df_calcs.nu - df_calcs.nu_og) > 0.01].index.to_list()
+# plt.title(bin_name + '    ' + ', '.join(map(str, change)))
+# print(df_calcs[abs(df_calcs.nu - df_calcs.nu_og) > 0.01].nu)
+
+
+#%% final touch ups for SD = 0
+
+
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+
+# feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60, use_rei=True) 
+
+# save SD = 0
+if feature_error == None: lab.save_file(d_load_folder, bin_name, d_save_name, d_folder_input=d_labfit_kernal, num_file=-1)
+
+
+res_old = res.copy()
+
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(_, bins, bin_name, d_load=d_load_noSD) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_load_SD) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_old, df_calcs[df_calcs.ratio_max>-1.5], offset, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+
+# change = df_calcs[abs(df_calcs.nu - df_calcs.nu_og) > 0.01].index.to_list()
+# plt.title(bin_name + '    ' + ', '.join(map(str, change)))
+# print(df_calcs[abs(df_calcs.nu - df_calcs.nu_og) > 0.01].nu)
+
+
+
+#%% Set some delta = 0
+
+bin_names_test = ['B19a']
+
+d_labfit_kernal = d_labfit_kp7
+d_old_all = r'E:\water database' # for comparing to original input files
+
+d_type = 'air'
+d_which = 'air'    
+cutoff_s296 = 5E-24 
+
+offset = 2
+
+d_load_folder = os.path.join(d_old_all, d_type+' water')
+
+for bin_name in bin_names_test: 
+    
+    [_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
+    d_load_newest = os.path.join(d_load_folder, bin_name, use_which)[:-4]
         
+    lab.float_lines(d_labfit_kernal, bin_name, [], props['nu'], 'inp_saved', [], d_folder_input=d_load_folder)
+
+
+
+
+#%%
+
+bin_name = 'B19a'
+
+[_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
+d_load_newest = os.path.join(d_load_folder, bin_name, use_which)[:-4]
+
+[_, _,   _,     _, res_prior,      _,     _,           _] = lab.labfit_to_spectra(_, bins, bin_name, d_load=d_load_newest) # <-------------------
+
+
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>-1.5], offset, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
+plt.title(bin_name)
+
+
+#%%
+
+d_save_name = 'set some delta = 0'
+if feature_error == None: lab.save_file(d_load_folder, bin_name, d_save_name, d_folder_input=d_labfit_kernal)
 
 
 
 
 
-
-
-                        
-                        
-                        
+     
 #%%  revert delta_air back to HITRAN, update SD to 0.13, and update y_h2o
 
 

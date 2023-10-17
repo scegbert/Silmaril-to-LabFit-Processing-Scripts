@@ -50,7 +50,7 @@ clipboard_and_style_sheet.style_sheet()
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -185,15 +185,17 @@ colors_grad = ['firebrick','orangered','goldenrod','forestgreen','teal','royalbl
 
 
 
-# %% read in results, re-write quantum assignments in a way that is useful
+# %% read in results, 
 
 if d_type == 'pure': f = open(os.path.join(d_sceg,'df_sceg_pure.pckl'), 'rb')
 elif d_type == 'air': f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
-[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul] = pickle.load(f)
+[df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul, df_sd0] = pickle.load(f)
 f.close()
 
 if d_type == 'air': df_sceg = df_sceg.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
 
+
+#%% update uncertainties
 
 df_sceg.loc[df_sceg.uc_nu==0, 'uc_nu'] = 0.0015 
 df_sceg.loc[df_sceg.uc_sw==0, 'uc_sw'] = df_sceg[df_sceg.uc_nu==0].uc_sw * 0.09
@@ -297,11 +299,15 @@ if d_type == 'air':
 df_sceg_align, df_HT2020_align = df_sceg.align(df_HT2020, join='inner', axis=0)
 df_sceg_align2, df_HT2020_HT_align = df_sceg_align.align(df_HT2020_HT, join='inner', axis=0)
 
-
 if not df_sceg_align.equals(df_sceg_align2): throw = error2please # these should be the same dataframe if everything lines up
 
+df_sceg_align3, df_sd0_align = df_sceg_align.align(df_sd0, join='inner', axis=0)
+
+if not df_sceg_align.equals(df_sceg_align3): throw = error2please # these should be the same dataframe if everything lines up
 
 
+
+#%% align axis for different databases
 
 
 df_sceg['quanta_index'] = df_sceg.quanta.replace(r'\s+', ' ', regex=True)
@@ -356,7 +362,8 @@ df_plot['plot_y'] = (df_plot.sw - df_plot_og.sw) / df_plot_og.sw * 100
 plot_y = df_plot['plot_y']
 plot_RRMS = (df_plot.sw - df_plot_og.sw) / df_plot.uc_sw
 
-plot_y_unc = df_plot.uc_sw
+plot_y_unc = df_plot.uc_sw / df_plot.sw
+
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_c = df_plot.elower
 
@@ -397,7 +404,9 @@ for i, ierr in enumerate(np.sort(sw_error.unique())):
     # elif ierr == '4': RMS = '    μ =  {:.0f}%'.format(delta_avg) 
     # elif ierr == '5': RMS = '      μ =  {:.0f}%'.format(delta_avg) 
     # else: RMS = '        μ = {:.0f}%'.format(delta_avg)
-
+    
+    plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
+    
     sc = plt.scatter(plot_x[which], plot_y[which], marker=markers[i], 
                      c=plot_c[which], cmap='viridis', zorder=2, 
                      label=label+RMS, vmin=0, vmax=6000)
@@ -460,6 +469,7 @@ ax_ins = inset_axes(ax, width='48%', height='30%', loc='center right', bbox_to_a
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
        
+    plt.errorbar(plot_x[which],plot_y[which], yerr=plot_y_unc[which], color='k', ls='none', zorder=1)
     ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
                      label=HT_errors[ierr])
@@ -497,7 +507,7 @@ plot_x = df_plot['plot_x']
 df_plot['plot_y'] = (df_plot.sw_sceg - df_plot.sw_2016) / df_plot.sw_2016 *100
 plot_y = df_plot['plot_y']
 
-plot_y_unc = df_plot.uc_sw_sceg
+plot_y_unc = df_plot.uc_sw_sceg / df_plot.sw_sceg
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_c = df_plot.elower_sceg
 
@@ -509,6 +519,7 @@ ax_ins = inset_axes(ax, width='48%', height='30%', loc='upper right', bbox_to_an
 
 for i, ierr in enumerate(np.sort(sw_error.unique())): 
        
+    plt.errorbar(plot_x[sw_error == ierr],plot_y[sw_error == ierr], yerr=plot_y_unc[sw_error == ierr], color='k', ls='none', zorder=1)
     ax_ins.scatter(plot_x[sw_error == ierr], plot_y[sw_error == ierr], marker=markers[i], 
                      c=plot_c[sw_error == ierr], cmap='viridis', zorder=2, 
                      label=HT_errors[ierr])
@@ -2124,7 +2135,9 @@ which = (df_sceg['uc_n_air'] > -1) # &(df_sceg['uc_n_self'] > -1)
 
 df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
 df_HT2020_align['Jpp'] = df_sceg_align.Jpp
-df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
+df_plot_HT = df_sd0_align[which].sort_values(by=['Jpp'])
+# df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
+
 
 # df_plot['gamma_self'] = df_HT2020_align.gamma_self
 # df_plot['n_self'] = df_HT2020_align.n_self
@@ -2179,7 +2192,7 @@ cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink
 
 line_ = [-0.2, 0.8]
 
-# plt.plot(line_,line_,'k',linewidth=2)
+plt.plot(line_,line_,'k',linewidth=2)
 
 p = np.polyfit(plot_x, plot_y, 1)
 plot_y_fit = np.poly1d(p)(line_)

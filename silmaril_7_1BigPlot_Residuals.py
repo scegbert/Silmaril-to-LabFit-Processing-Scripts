@@ -36,7 +36,7 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 
 #%% load in transmission data (model from labfit results)
 
-d_type = 'air' # 'air'
+d_type = 'pure' # 'air'
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
 d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
@@ -45,7 +45,7 @@ if d_type == 'pure':
     f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
 elif d_type == 'air': 
     f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure, res_sd0] = pickle.load(f)
 f.close()
 
 
@@ -168,7 +168,7 @@ num_files = 6
 
 which_files_partial = which_files[:num_files][::-1]
 
-gs_right = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.02, wspace=0.04) # rows, columns
+gs_right = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.02, wspace=0.06) # rows, columns
 gs = GridSpec(3, 3, width_ratios = [3,1,1], height_ratios=[3,1,1], hspace=0.02, wspace=0.005) # rows, columns
 
 for which_file in which_files_partial: 

@@ -30,7 +30,7 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -57,7 +57,7 @@ d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water comp
 if d_type == 'pure': f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
 elif d_type == 'air': f = open(os.path.join(d_sceg,'spectra_air.pckl'), 'rb')
 
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_og_pure, res_sd0] = pickle.load(f)
 f.close()
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
@@ -196,7 +196,7 @@ colors = ['#d95f02','#1b9e77','k','#514c8e','#f5a9d0', '#4c7c17','#e6ab02', '#fe
 ax00 = fig.add_subplot(gs[0,0]) # First row, first column
 ax00.axvline(narrow[0]-offset0, linewidth=1, color=colors[-2])
 ax00.axvline(narrow[1]+offset0, linewidth=1, color=colors[-2])
-ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at {} K <1mT'.format(which_file.split()[0]), 
+ax00.plot(wvn_data,vac_raw_data, color=colors[0], label='Baseline - Optical Cell at {} K <1mTorr'.format(which_file.split()[0]), 
           linewidth=linewidth)
 ax00.plot(wvn_data,vac_h2o_data, color=colors[1], label='Baseline - Background H$_{2}$O Removed', 
           linewidth=linewidth)
