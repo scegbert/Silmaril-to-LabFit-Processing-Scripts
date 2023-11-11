@@ -30,7 +30,7 @@ import numpy as np
 
 #%% setup things
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -433,13 +433,22 @@ if d_type == 'pure':
 elif d_type == 'air': 
     
     h0 = 0.02
-    h1 = 0.05
+    h1 = 0.07
     v0 = 0.87
     v1 = 0.9
     
     ax00.text(0.405, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
     ax10.text(0.405, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
     ax20.text(0.405, 0.425, "(F)", fontsize=12, transform=ax20.transAxes)
+
+    ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)   
+    ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
+    
+    ax10.text(h0, v1, "C", fontweight="bold", fontsize=12, transform=ax10.transAxes)    
+    ax11.text(h1, v1, "D", fontweight="bold", fontsize=12, transform=ax11.transAxes)
+    
+    ax20.text(h0, v0, "E", fontweight="bold", fontsize=12, transform=ax20.transAxes)   
+    ax21.text(h1, v1, "F", fontweight="bold", fontsize=12, transform=ax21.transAxes)
 
 
 

@@ -89,10 +89,12 @@ for which_file in which_files:
 
 #%%
 
-# wide = [6770.25, 6773.4] # <---- overview plot range
-# y_lim_top = [0.902,1.003]
-# y_lim_bottom = [-0.011,0.011]
-# fig = plt.figure(figsize=(12, 4))
+adjust = False
+
+wide = [6770.25, 6773.4] # <---- overview plot range
+y_lim_top = [0.902,1.003]
+y_lim_bottom = [-0.011,0.011]
+fig = plt.figure(figsize=(12, 4))
 
 # wide = [6771.3, 6772.1] # <---- overview plot mini
 # y_lim_top = [0.902,1.003]
@@ -104,12 +106,12 @@ for which_file in which_files:
 # y_lim_bottom = [-0.009,0.004]
 # fig = plt.figure(figsize=(7.2, 4))
 
-wide = [7377.29, 7378.36] # line strength changes #2
-wide = [7377.07, 7378.36] # line strength changes #2
-y_lim_top = [0.972,1.007]
-y_lim_bottom = [-0.008,0.003]
-fig = plt.figure(figsize=(6.5, 4)) #, dpi=200, facecolor='w', edgecolor='k')
-adjust = True # adjust residual to compensate for the large feature next to the plot (that's not what we're trying to highlight)
+# wide = [7377.29, 7378.36] # line strength changes #2 ************************* in the paper
+# wide = [7377.07, 7378.36] # line strength changes #2
+# y_lim_top = [0.972,1.007]
+# y_lim_bottom = [-0.008,0.003]
+# fig = plt.figure(figsize=(6.5, 4)) #, dpi=200, facecolor='w', edgecolor='k')
+# adjust = True # adjust residual to compensate for the large feature next to the plot (that's not what we're trying to highlight)
 
 # wide = [6718.01, 6719.5] # new feature
 # y_lim_top = [0.95,1.003]
