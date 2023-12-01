@@ -79,7 +79,7 @@ plot_x_fit = [plot_x1, plot_x2, plot_x3]
 df_plot_HT = df_HT2020_align[which]
 
 plot_y = -df_plot_HT[plot_which_y].to_numpy()
-plot_y = df_plot[plot_which_y].to_numpy()
+# plot_y = df_plot[plot_which_y].to_numpy()
 plot_c = df_plot['Jpp']
 
 
@@ -234,9 +234,9 @@ a1, a2, a3, a4 = fit_params
 fit_y = single_saw(plot_x_fit, a1, a2, a3, a4)
 
 
-plt.figure()
-sc = plt.scatter(plot_x1, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
-plt.plot(plot_x1, fit_y, 'kx')
+# plt.figure()
+sc = plt.scatter(plot_x1 + plot_x3/plot_x1, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=16)
+# plt.plot(plot_x1, fit_y, 'kx')
 
 
 mad = np.mean(np.abs(plot_y-fit_y))

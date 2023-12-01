@@ -36,7 +36,7 @@ import pickle
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -132,7 +132,7 @@ d_labfit_kernal = d_labfit_kp4 # d_labfit_main # d_labfit_kp1
 
 
 # d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
-d_old_holder = r'E:\water database\air water'
+d_old_holder = r'E:\water database\pure water'
 d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 # use_rei = True
@@ -764,12 +764,12 @@ finished = True
 
 
 d_labfit_kernal = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
-bin_name = 'B49a'
+bin_name = 'B17'
 d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 iter_labfit = 1
 
-prop_which = 'delta_air'
+prop_which = 'sw'
 
 # prop_which = 'sd_self'
 # features_test = [12589,12590] #, 10994, 10993]
@@ -795,9 +795,10 @@ while feature_error is None and i < iter_labfit: # run X times
 [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
 [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-if bin_name_old == bin_name: lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-# else: lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-# plt.title(bin_name)
+# if bin_name_old == bin_name: lab.plot_spectra(T,wvn,trans,res,res1, df_calcs[df_calcs.ratio_max>ratio_min_plot], 2, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+
+lab.plot_spectra(T,wvn,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+plt.title(bin_name)
 
 bin_name_old = bin_name
 
@@ -815,6 +816,24 @@ plt.title(bin_name)
 
 
        
+#%% plotting for Lockheed
+
+cutoff_s296 = 1.5e-24
+[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+
+
+lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>2], offset, axis_labels=False) # <-------------------
+
+plt.ylim(98.4, 102.96)
+plt.xlim(6882.13, 6882.89)
+
+plt.ylabel('Transmission   &   102+Residual')
+plt.xlabel('Wavenumber [cm$^{-1}$]')
+
+plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\1 labfithelp.png',bbox_inches='tight',dpi=600)
+
+
 #%% look for good yH2O features and features for exploring double power law relationships
 
 d_old = r'E:\water database\air water' # for comparing to original input files

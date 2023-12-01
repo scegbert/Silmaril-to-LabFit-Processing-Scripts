@@ -1994,7 +1994,7 @@ df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
 df_HT2020_align['Jpp'] = df_sceg_align.Jpp
 df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
 
-df_plot_sd0 = df_sd0_align[which].sort_values(by=['Jpp'])
+df_plot_sd0 = df_sd0_align[which].sort_values(by=['Jpp'])	
 
 df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_air'] > -1)]
 g_error = df_plot_ht.ierr.str[2]
