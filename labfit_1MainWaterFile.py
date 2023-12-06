@@ -823,7 +823,7 @@ cutoff_s296 = 1.5e-24
 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
 
 
-lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>2], offset, axis_labels=False) # <-------------------
+lab.plot_spectra(T,wvn,trans,res,False, df_calcs, offset, axis_labels=False) # <-------------------
 
 plt.ylim(98.4, 102.96)
 plt.xlim(6882.13, 6882.89)
