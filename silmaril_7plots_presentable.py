@@ -2112,9 +2112,10 @@ plot_labels = False
 plot_logx = False
 
 
-plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
+f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(13, 3.6*1.5))
+
 plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
+# plt.ylabel(label_y, fontsize=12)
 
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
@@ -2129,15 +2130,15 @@ print('\n\n\n')
 print(rms)
 print('\n\n\n')
  
-sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+sc1 = ax1.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
              # label=HT_errors_nu[err])
              
-sc2 = plt.scatter(plot_x, -plot_y2-1, marker='+', c=plot_c, label='-1 · HITRAN - 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
+sc2 = ax2.scatter(plot_x, -plot_y2, marker='+', c=plot_c, label='-1 · HITRAN - 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
 
 
             
 plot_unc_y = df_plot['uc_'+plot_which_y]
-plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
 
 for key in HT_errors: 
@@ -2155,15 +2156,34 @@ for key in HT_errors:
         print(key)
         print(np.sum(which))
         
-        plt.errorbar(plot_x[which], -plot_y2[which]-1, yerr=yerr, ls='none', color='k', zorder=1)
+        ax2.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
         
         if key == '2' or key == '3':
-            (_, caplines, _,) = plt.errorbar(plot_x[which], -plot_y2[which]-1, yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            (_, caplines, _,) = ax2.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
-    
+
+
+
+ax1.spines['bottom'].set_visible(False)
+ax2.spines['top'].set_visible(False)
+ax1.xaxis.tick_top()
+ax1.tick_params(labeltop='off')  # don't put tick labels at the top
+ax2.xaxis.tick_bottom()
+
+
+
+
+plt.ylim(-2.2,1.15)
+
+ax2.xlim(-.7,20.5)
+plt.xticks(np.arange(0, 19, 2.0))
+
+asdfasdfsd
+
+
 cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
@@ -2176,9 +2196,6 @@ plt.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=
 ax = plt.gca()
 ax.minorticks_on()
 
-plt.xlim(-.7,20.5)
-plt.ylim(-2.2,1.15)
-plt.xticks(np.arange(0, 19, 2.0))
 
 
 # plot inset
