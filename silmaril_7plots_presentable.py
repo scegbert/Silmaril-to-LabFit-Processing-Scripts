@@ -2112,10 +2112,9 @@ plot_labels = False
 plot_logx = False
 
 
-f, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(13, 3.6*1.5))
-
+plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
 plt.xlabel(label_x, fontsize=12)
-# plt.ylabel(label_y, fontsize=12)
+plt.ylabel(label_y, fontsize=12)
 
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
@@ -2130,15 +2129,15 @@ print('\n\n\n')
 print(rms)
 print('\n\n\n')
  
-sc1 = ax1.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
              # label=HT_errors_nu[err])
              
-sc2 = ax2.scatter(plot_x, -plot_y2, marker='+', c=plot_c, label='-1 · HITRAN - 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
+sc2 = plt.scatter(plot_x, plot_y2+1, marker='+', c=plot_c, label='HITRAN + 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
 
 
             
 plot_unc_y = df_plot['uc_'+plot_which_y]
-ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
 
 for key in HT_errors: 
@@ -2156,50 +2155,32 @@ for key in HT_errors:
         print(key)
         print(np.sum(which))
         
-        ax2.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
+        plt.errorbar(plot_x[which], plot_y2[which]+1, yerr=yerr, ls='none', color='k', zorder=1)
         
         if key == '2' or key == '3':
-            (_, caplines, _,) = ax2.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            (_, caplines, _,) = plt.errorbar(plot_x[which], plot_y2[which]+1, yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
-
-
-
-ax1.spines['bottom'].set_visible(False)
-ax2.spines['top'].set_visible(False)
-ax1.xaxis.tick_top()
-ax1.tick_params(labeltop='off')  # don't put tick labels at the top
-ax2.xaxis.tick_bottom()
-
-
-
-
-plt.ylim(-2.2,1.15)
-
-ax2.xlim(-.7,20.5)
-plt.xticks(np.arange(0, 19, 2.0))
-
-asdfasdfsd
-
-
+    
 cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
 plt.show()
 
-plt.hlines(-0.5, 6.5, 16.5, 'k', ':', label='Centerline between TW & HT')
-
-plt.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
 ax = plt.gca()
 ax.minorticks_on()
 
+plt.xlim(-.7,19.5)
+plt.ylim(-1.35,1.99)
+plt.xticks(np.arange(0, 19, 2.0))
 
 
 # plot inset
-ax_ins = inset_axes(ax, width='28%', height='26%', loc='center left', bbox_to_anchor=(0.04,0.02,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax, width='30%', height='35%', loc='lower left', bbox_to_anchor=(0.04,0.05,1,1), bbox_transform=ax.transAxes)
 
 #only plot features where we also floated n_self
 df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
@@ -2218,7 +2199,7 @@ ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
 
 plt.xlim(8.95, 9.97)
-plt.ylim(-0.1,1.1)
+plt.ylim(0.1,1.1)
 
 
 # patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
@@ -2427,8 +2408,8 @@ plt.legend(loc='lower right', edgecolor='k', framealpha=1)
 
 plt.show()
 
-# plt.ylim(-.69,1.29)
-# plt.xlim(0.05,0.57)
+plt.ylim(-.69,1.19)
+plt.xlim(-0.005,0.145)
 
 # plt.xticks(np.arange(0.1, 0.6, 0.1))
 
@@ -2540,7 +2521,7 @@ g_error = df_plot_ht.ierr.str[3]
 g_ref = df_plot_ht.iref.str[6:8]
 g_ref_dict = {}
 
-
+plot_offset = 0.06
 
 # df_plot = df_plot[g_ref == '71']
 # df_plot_ht = df_plot_ht[g_ref == '71']
@@ -2570,7 +2551,7 @@ print('\n\n\n')
 sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
              # label=HT_errors_nu[err])
              
-sc2 = plt.scatter(plot_x, -plot_y2, marker='+', c=plot_c, label='-1 · HITRAN - 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
+sc2 = plt.scatter(plot_x, plot_y2 + plot_offset, marker='+', c=plot_c, label='HITRAN + {:.2f}'.format(plot_offset), cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
 
 
             
@@ -2593,10 +2574,10 @@ for key in HT_errors:
         print(key)
         print(np.sum(which))
         
-        plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
+        plt.errorbar(plot_x[which], plot_y2[which] + plot_offset, yerr=yerr, ls='none', color='k', zorder=1)
         
         if key == '2' or key == '3':
-            (_, caplines, _,) = plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            (_, caplines, _,) = plt.errorbar(plot_x[which], plot_y2[which] + plot_offset, yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
@@ -2609,23 +2590,20 @@ plt.show()
 
 # plt.hlines(-0.005, 6.5, 16.5, 'k', ':', label='Centerline between TW & HT')
 
-plt.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
 ax = plt.gca()
 ax.minorticks_on()
 
-# plt.xlim(-.7,20.5)
-# plt.ylim(-2.2,1.15)
-# plt.xticks(np.arange(0, 19, 2.0))
-
-
-asdfasdfasdf
+plt.ylim(-0.045,0.013+plot_offset)
+plt.xlim(-.7,20.5)
+plt.xticks(np.arange(0, 21, 2.0))
 
 # plot inset
-ax_ins = inset_axes(ax, width='28%', height='26%', loc='center left', bbox_to_anchor=(0.04,0.02,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax, width='25%', height='23%', loc='center left', bbox_to_anchor=(0.05,0.08,1,1), bbox_transform=ax.transAxes)
 
 #only plot features where we also floated n_self
-df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
+df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1) & (df_sceg['uc_n_delta_air'] > -1)] 
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
 plot_x[df_plot.Jpp == 0] = 0
@@ -2640,12 +2618,12 @@ plot_unc_y = df_plot['uc_'+plot_which_y]
 ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
 
-# plt.xlim(8.95, 9.97)
+plt.xlim(8.95, 9.97)
 # plt.ylim(-0.1,1.1)
 
 
 # patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
-patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
+patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=3, loc2a=1, loc2b=2, fc='none', ec='k', zorder=1)
 
 
 # plt.xticks(np.arange(9, 10, 0.2))
@@ -2777,25 +2755,11 @@ linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
 plot_which_y = 'n_delta_air'
 label_y = 'Air-Shift Temperature Exponent, n$_{δ,air}$'
 
-# plot_which_x = 'elower'
-# label_x = 'Lower State Energy, E" [cm$^{-1}$]'
-
 plot_which_x = 'Jpp'
-label_x = 'J" + Kc"/10'
+label_x = 'J" + 0.9 Kc"/J"'
 
-# -----------------------
-# plot_which_y = 'n_delta_air'
-# label_y = 'Temp. Dep. of Pressure Shift'
-
-# plot_which_x = 'delta_air'
-# label_x = 'Self-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
-
-
-legend_dict = {'101': ['101←000 (254)', '#1b9e77'],
-               '200': ['200←000 (140)', '#d95f02'],
-               '021': ['021←000 (87)','#e6ab02'],
-               '111': ['111←010 \u2009(22)','#514c8e'],
-               '002': ['002←000 (6)', 'firebrick']}
+plot_which_c = 'elower'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 
 
 plot_unc_y_bool = True
@@ -2815,9 +2779,11 @@ i=0
 
 
 df_plot = df_sceg[(df_sceg['uc_'+plot_which_y] > -1)]
-plot_x = df_plot[plot_which_x] + df_plot.Kcpp/10
+plot_x = df_plot.Jpp + 0.9 * df_plot.Kcpp/df_plot.Jpp
 plot_y = df_plot[plot_which_y]
 plot_unc_y = df_plot['uc_'+plot_which_y]
+plot_c = df_plot[plot_which_c]
+
 
 # plt.plot(plot_x, plot_y, '+', color='k', label = 'All (This Work)', linewidth=2)
 # plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none')
