@@ -65,7 +65,7 @@ def mark_inset_custom(parent_axes, inset_axes, loc1a=1, loc1b=1, loc2a=2, loc2b=
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -822,7 +822,6 @@ ax2.set_ylabel('HT Self-Width\nγ$_{self,HT}$  ', fontsize=12)
 
 ax2.set_xlim(-.5,20.4)
 ax2.set_xticks(np.arange(0, 21, 2.0))
-ax2.set_xlabel(label_x, fontsize=12)
 
 ax2.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
@@ -833,7 +832,6 @@ ax2.text(0.015, 0.83, "B", fontsize=12, fontweight="bold", transform=ax2.transAx
 
 # residual plot
 which = g_ref!='71'
-# which = (g_ref!='71')|(g_ref=='71')
 
 sc3 = axr.scatter(plot_x[which], plot_y[which]-plot_y2[which], marker='+', c=plot_c[which], label='TW - HITRAN (excluding HT ref. 71)', cmap='viridis', zorder=2, 
                   s=60, linewidth=2, vmin=0, vmax=5000)
@@ -850,10 +848,9 @@ axr.minorticks_on()
 
 axr.text(0.015, 0.75, "C", fontsize=12, fontweight="bold", transform=axr.transAxes)
 
+axr.set_xlabel(label_x, fontsize=12)
 
-
-
-
+# color bar
 
 cbar_ax = fig.add_axes([0.90, 0.1, 0.02, 0.87])
 cbar = fig.colorbar(sc1, cax=cbar_ax)
@@ -863,7 +860,7 @@ plt.show()
 
 
 
-# plot inset
+# inset
 ax_ins = inset_axes(ax1, width='20%', height='34%', loc='upper center', bbox_to_anchor=(-0.132,0,1,1), bbox_transform=ax1.transAxes)
 
 #only plot features where we also floated n_self
@@ -886,14 +883,11 @@ plt.xlim(8.93, 9.975)
 
 plt.ylim(0.001,0.59)
 
-
-# patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
 patch, pp1,pp2 = mark_inset_custom(ax1, ax_ins, loc1a=3, loc1b=3, loc2a=1, loc2b=1, fc='none', ec='k', zorder=1)
 
 plt.yticks(np.arange(0.2, 0.6, 0.2))
 plt.xticks(np.arange(9, 9.9, 0.2))
 
-# ax_ins.text(0.34, 0.1, "γ$_{self}$ & n$_{γ,self}$ floated", fontsize=10, transform=ax_ins.transAxes)
 ax_ins.text(0.03, 0.5, "γ$_{self}$ & n$_{γ,self}$\nfloated", fontsize=12, transform=ax_ins.transAxes)
 
 
@@ -1263,7 +1257,7 @@ ax.minorticks_on()
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 shift.svg',bbox_inches='tight')
 
 
-# %% temperature dependence of the shift (not planning to include this in the final paper)
+# %% temperature dependence of the shift 
 
 markers = ['1','2','3','+','x', '.', '.', '.']
 linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
@@ -1808,9 +1802,6 @@ plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water c
 
 
 plot_which_y = 'gamma_air'
-label_y = 'Air-Width, γ$_{air}$ [cm$^{-1}$/atm]'
-
-
 
 plot_which_x = 'Jpp'
 label_x = 'J" + 0.9 Kc"/J"'
@@ -1818,58 +1809,68 @@ label_x = 'J" + 0.9 Kc"/J"'
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_which_c = 'elower'
 
-df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] #&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
+df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
 
 df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_'+plot_which_y] > -1)]
-g_error = df_plot_ht.ierr.str[3]
-g_ref = df_plot_ht.iref.str[6:8]
+g_error = df_plot_ht.ierr.str[2]
+g_ref = df_plot_ht.iref.str[4:6]
 g_ref_dict = {}
 
 
-
-# df_plot = df_plot[g_ref == '71']
-# df_plot_ht = df_plot_ht[g_ref == '71']
-
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
+fig, (ax1, ax2, axr) = plt.subplots(3, 1, sharex=True, figsize=(13, 3.6*1.7), height_ratios=[5,4,3], 
+                                    gridspec_kw = {'wspace':0, 'hspace':0, 'right':0.89, 'top':0.97, 'bottom':0.1})
 
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
 plot_x[df_plot.Jpp == 0] = 0
+
 plot_y = df_plot[plot_which_y]
+plot_unc_y = df_plot['uc_'+plot_which_y]
+
 plot_c = df_plot[plot_which_c]
 
 plot_y2 = df_plot_ht[plot_which_y]
 
-rms = np.sqrt(np.mean((plot_y - plot_y2)**2))
-print('\n\n\n')
-print(rms)
-print('\n\n\n')
- 
-sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-             # label=HT_errors_nu[err])
-             
-sc2 = plt.scatter(plot_x, -plot_y2, marker='+', c=plot_c, label='-1 · HITRAN', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
 
 
-            
-plot_unc_y = df_plot['uc_'+plot_which_y]
-plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
+# main plot
+sc1 = ax1.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=3, linewidth=2, vmin=0, vmax=5000)
+
+ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+        
+ax1.set_ylabel('TW Air-Width\nγ$_{air,TW}$ [cm$^{-1}$/atm]', fontsize=12)
+
+ax1.set_ylim(-0.009, 0.17)
+
+ax1.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax1.minorticks_on()
+
+ax1.text(0.03, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
+
+
+
+
+# HT plot        
+sc2 = ax2.scatter(plot_x, plot_y2, marker='x', c=plot_c, label='HITRAN (only values updated in TW)', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+
+ax2.set_ylim(-0.009, 0.14)
+ax2.set_ylabel('HT Air-Width\nγ$_{air,HT}$  ', fontsize=12)
+
+ax2.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax2.minorticks_on()
+
+ax2.text(0.03, 0.83, "B", fontsize=12, fontweight="bold", transform=ax2.transAxes)
 
 for key in HT_errors: 
     
-    which = (g_error == key) # &(g_ref != '71')
+    which = (g_error == key) 
 
     if np.any(which): 
          
-        if key == '2' or key == '3': yerr_perc = 0
+        if key == '2' or key == '3': yerr_perc = 0.2
         elif key == '8': yerr_perc = 0.01
         else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
         
@@ -1878,208 +1879,120 @@ for key in HT_errors:
         print(key)
         print(np.sum(which))
         
-        plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
+        ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
         
         if key == '2' or key == '3':
-            (_, caplines, _,) = plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            (_, caplines, _,) = ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
-    
-cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
+
+
+
+# residual plot
+
+sc3 = axr.scatter(plot_x, plot_y-plot_y2, marker='x', c=plot_c, label='TW - HITRAN', cmap='viridis', zorder=2, 
+                  linewidth=2, vmin=0, vmax=5000)
+axr.errorbar(plot_x, plot_y-plot_y2, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+
+line3, = axr.plot([0,23],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+
+axr.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+axr.set_ylim(-0.11, 0.12)
+axr.set_ylabel('Δγ$_{air,TW-HT}$', fontsize=12)
+
+ax2.set_xlim(-0.4,23.4)
+ax2.set_xticks(np.arange(0, 23, 2.0))
+axr.set_xlabel(label_x, fontsize=12)
+
+
+axr.minorticks_on()
+
+axr.text(0.03, 0.75, "C", fontsize=12, fontweight="bold", transform=axr.transAxes)
+
+
+
+# color bar
+
+cbar_ax = fig.add_axes([0.90, 0.1, 0.02, 0.87])
+cbar = fig.colorbar(sc1, cax=cbar_ax)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
 plt.show()
 
-plt.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
 
-ax = plt.gca()
-ax.minorticks_on()
-
-plt.ylim(-0.125,0.169)
-plt.xlim(-0.4,23.4)
 
 
-plt.xticks(np.arange(0, 23, 2.0))
-
-# plot inset
-ax_ins = inset_axes(ax, width='28%', height='26%', loc='upper right', bbox_to_anchor=(0,0,1,1), bbox_transform=ax.transAxes)
-
-#only plot features where we also floated n_self
-df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
-
-plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
-plot_x[df_plot.Jpp == 0] = 0
-plot_y = df_plot[plot_which_y]
-plot_c = df_plot[plot_which_c]
-
+# inset
+ax_ins = inset_axes(ax1, width='20%', height='40%', loc='upper right', bbox_to_anchor=(0,0,1,1), bbox_transform=ax1.transAxes)
 
 ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-              # label=HT_errors_nu[err])
 
-plot_unc_y = df_plot['uc_'+plot_which_y]
 ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
-plt.xlim(8.93, 9.95)
-plt.ylim(-0.005,0.133)
+ax_ins.set_xlim(8.93, 9.95)
+ax_ins.set_ylim(0.001,0.133)
 
-
-# patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
-patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
-
+patch, pp1,pp2 = mark_inset_custom(ax1, ax_ins, loc1a=3, loc1b=4, loc2a=2, loc2b=1, fc='none', ec='k', zorder=1)
 
 plt.xticks(np.arange(9, 9.9, 0.2))
 
+ax = plt.gca()
+ax.minorticks_on()
+
+
+
+# inset # 2
+ax_ins2 = inset_axes(ax2, width='20%', height='50%', loc='upper right', bbox_to_anchor=(0,0,1,1), bbox_transform=ax2.transAxes)
+
+ax_ins2.scatter(plot_x, plot_y2, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+
+for key in HT_errors: 
+    
+    which = (g_error == key) 
+
+    if np.any(which): 
+         
+        if key == '2' or key == '3': yerr_perc = 0.2
+        elif key == '8': yerr_perc = 0.01
+        else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
+        
+        yerr = yerr_perc * plot_y2[which]
+        
+        print(key)
+        print(np.sum(which))
+        
+        ax_ins2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
+        
+        if key == '2' or key == '3':
+            (_, caplines, _,) = ax_ins2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            caplines[1].set_marker('^')
+            caplines[1].set_markersize(3)
+            caplines[0].set_marker('v')
+            caplines[0].set_markersize(3)
+
+ax_ins2.set_xlim(8.93, 9.95)
+ax_ins2.set_ylim(0.001,0.133)
+
+patch, pp1,pp2 = mark_inset_custom(ax2, ax_ins2, loc1a=3, loc1b=4, loc2a=2, loc2b=1, fc='none', ec='k', zorder=1)
+
+plt.xticks(np.arange(9, 9.9, 0.2))
 
 ax = plt.gca()
 ax.minorticks_on()
+
 
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air width J.svg',bbox_inches='tight')
-
-
-
-# %% feature widths vs HITRAN
-
-plot_which = 'gamma_air'
-label_y = 'Air-Width, γ$_{air}$ This Work [cm$^{-1}$/atm]'
-label_x = 'Air-Width, γ$_{air}$ HITRAN [cm$^{-1}$/atm]'
-
-label_c = 'Angular Momentum of Ground State, J"'
-
-which = (df_sceg['uc_gamma_air'] > -1) # &(df_sceg['uc_n_self'] > -1)
-
-df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
-df_HT2020_align['Jpp'] = df_sceg_align.Jpp
-df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
-
-df_plot_sd0 = df_sd0_align[which].sort_values(by=['Jpp'])	
-
-df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_air'] > -1)]
-g_error = df_plot_ht.ierr.str[2]
-g_ref = df_plot_ht.iref.str[4:6]
-
-df_plot['gamma_ref'] = g_ref
-df_plot['gamma_ierr'] = g_error
-df_plot['g_delta'] = df_plot.gamma_air - df_plot_HT.gamma_air
-df_plot['g_perc'] = df_plot['g_delta'] / df_plot_HT.gamma_air
-
-
-plot_unc_y_bool = True
-plot_unc_x_bool = True
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
-
-
-plot_x = df_plot_HT[plot_which]
-# plot_x = df_plot_sd0[plot_which]
-plot_y = df_plot[plot_which]
-plot_c = df_plot_HT.Jpp
-
-
-# which = (df_plot['gamma_ref'] == '24') | (df_plot['gamma_ref'] == '82')
-# plot_x = plot_x[which]
-# plot_y = plot_y[which]
-# plot_c = plot_c[which]
-
-
- 
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=22)
-             # label=HT_errors_nu[err])
-
-if plot_unc_x_bool: 
-
-    for key in HT_errors: 
-        
-        which = (df_plot['gamma_ierr'] == key)
-    
-        if np.any(which): 
-             
-            if key == '2' or key == '3': xerr_perc = 0.2
-            elif key == '8': xerr_perc = 0.01
-            else: xerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
-            
-            xerr = xerr_perc * plot_x[which]
-            
-            plt.errorbar(plot_x[which], plot_y[which], xerr=xerr, ls='none', color='k', zorder=1)
-            
-if plot_unc_y_bool: 
-    plot_unc_y = df_plot['uc_'+plot_which]
-    # plot_unc_y = plot_unc_y[which]
-    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
-    
-
-if plot_logx: 
-    plt.xscale('log')
-    
-# plt.legend()
-
-
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-# cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
-
-
-line_ = [0, 0.11]
-
-# plt.plot(line_,line_,'k',linewidth=2)
-
-p = np.polyfit(plot_x, plot_y, 1)
-plot_y_fit = np.poly1d(p)(line_)
-
-slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
-
-r2 = r_value**2
-
-label = 'γ$_{air,HT}$ '
-plt.plot(line_, plot_y_fit, colors[1], label='Best Fit  (' + str(slope)[:4] + label + str(intercept)[:8] + ')',
-          linewidth=4, linestyle='dashed', zorder=11)
-
-plt.plot(line_, line_, 'k', label='One-to-one Line (γ$_{air,TW}$ = γ$_{air,HT}$)',
-          linewidth=2, linestyle='solid', zorder=10)
-
-plt.legend(loc='upper left', edgecolor='k', framealpha=1, labelspacing=0)
-
-plt.show()
-
-plt.ylim(-.010,0.173)
-plt.xlim(-.001,0.110)
-
-ax = plt.gca()
-ax.minorticks_on()
-
-
-plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air width HT.svg',bbox_inches='tight')
-
-
-mad = np.mean(np.abs(plot_y-np.poly1d(p)(plot_x)))
-rms = np.sqrt(np.sum((plot_y-np.poly1d(p)(plot_x))**2)/ len(plot_y))
-r2 = r2_score(plot_y, np.poly1d(p)(plot_x))
-
-median = np.median((plot_x - plot_y))
-mean = np.mean((plot_x - plot_y)) / np.mean(plot_y)
-std = np.std((plot_x - plot_y))
-
-median = np.median((plot_x - plot_y)/ plot_x) * 100
-mean = np.mean((plot_x - plot_y)/ plot_x) * 100
-std = np.std((plot_x - plot_y)/ plot_x) * 100
-
-print('\n\n\n{}  median   {}   mean   {} std'.format(median, mean, std))
-
 
 
 # %% temp dep of widths - J plot
 
 
 plot_which_y = 'n_air'
-label_y = 'Air-Width Temperature Exponent, n$_{γ,air}$'
 
 plot_which_x = 'Jpp'
 label_x = 'J" + 0.9 Kc"/J"'
@@ -2089,243 +2002,179 @@ plot_which_c = 'elower'
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_air'] > -1)&(df_sceg['uc_n_air'] > -1)] # floating all width parameters
 
-df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_'+plot_which_y] > -1)]
-g_error = df_plot_ht.ierr.str[3]
-g_ref = df_plot_ht.iref.str[6:8]
+df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_air'] > -1)&(df_sceg['uc_n_air'] > -1)]
+g_error = df_plot_ht.ierr.str[4]
+g_ref = df_plot_ht.iref.str[8:10]
 g_ref_dict = {}
 
 
-
-# df_plot = df_plot[g_ref == '71']
-# df_plot_ht = df_plot_ht[g_ref == '71']
-
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
-
+fig, (ax1, ax2, axr) = plt.subplots(3, 1, sharex=True, figsize=(13, 3.6*1.7), height_ratios=[5,4,3], 
+                                    gridspec_kw = {'wspace':0, 'hspace':0, 'right':0.89, 'top':0.97, 'bottom':0.1})
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
 plot_x[df_plot.Jpp == 0] = 0
+
 plot_y = df_plot[plot_which_y]
+plot_unc_y = df_plot['uc_'+plot_which_y]
+
 plot_c = df_plot[plot_which_c]
 
-plot_y2 = df_plot_ht[plot_which_y] 
-
-rms = np.sqrt(np.mean((plot_y - plot_y2)**2))
-print('\n\n\n')
-print(rms)
-print('\n\n\n')
- 
-sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-             # label=HT_errors_nu[err])
-             
-sc2 = plt.scatter(plot_x, plot_y2+1, marker='+', c=plot_c, label='HITRAN + 1', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
+plot_y2 = df_plot_ht[plot_which_y]
 
 
-            
-plot_unc_y = df_plot['uc_'+plot_which_y]
-plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
+# main plot
+sc1 = ax1.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=3, linewidth=2, vmin=0, vmax=4000)
+
+ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+        
+ax1.set_ylabel('TW Air-Width Temperature\nExponent, n$_{γ,air,TW}$ [cm$^{-1}$/atm]', fontsize=12)
+
+# ax1.set_ylim(-0.009, 0.17)
+
+ax1.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax1.minorticks_on()
+
+ax1.text(0.03, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
+
+
+
+
+# HT plot        
+sc2 = ax2.scatter(plot_x, plot_y2, marker='x', c=plot_c, label='HITRAN (only values updated in TW)', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=4000)
+
+# ax2.set_ylim(-0.009, 0.14)
+ax2.set_ylabel('HT Air-Width Temp.\nExp., n$_{γ,air,HT}$  ', fontsize=12)
+
+ax2.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax2.minorticks_on()
+
+ax2.text(0.03, 0.83, "B", fontsize=12, fontweight="bold", transform=ax2.transAxes)
 
 for key in HT_errors: 
     
-    which = (g_error == key) # &(g_ref != '71')
+    which = (g_error == key) 
 
     if np.any(which): 
          
-        if key == '2' or key == '3': yerr_perc = 0
+        if key == '2' or key == '3': yerr_perc = 0.2
         elif key == '8': yerr_perc = 0.01
         else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
         
-        yerr = abs(yerr_perc * plot_y2[which])
+        yerr = yerr_perc * abs(plot_y2[which])
         
         print(key)
         print(np.sum(which))
         
-        plt.errorbar(plot_x[which], plot_y2[which]+1, yerr=yerr, ls='none', color='k', zorder=1)
+        ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
         
         if key == '2' or key == '3':
-            (_, caplines, _,) = plt.errorbar(plot_x[which], plot_y2[which]+1, yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            (_, caplines, _,) = ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
-    
-cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
+
+
+
+# residual plot
+
+sc3 = axr.scatter(plot_x, plot_y-plot_y2, marker='x', c=plot_c, label='TW - HITRAN', cmap='viridis', zorder=2, 
+                  linewidth=2, vmin=0, vmax=4000)
+axr.errorbar(plot_x, plot_y-plot_y2, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+
+line3, = axr.plot([0,23],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+
+axr.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+axr.set_ylim(-0.68, 0.68)
+axr.set_ylabel('Δn$_{γ,air,TW-HT}$', fontsize=12)
+
+ax2.set_xlim(-.5,19.5)
+ax2.set_xticks(np.arange(0, 19, 2.0))
+axr.set_xlabel(label_x, fontsize=12)
+
+
+axr.minorticks_on()
+
+axr.text(0.03, 0.75, "C", fontsize=12, fontweight="bold", transform=axr.transAxes)
+
+
+
+# color bar
+
+cbar_ax = fig.add_axes([0.90, 0.1, 0.02, 0.87])
+cbar = fig.colorbar(sc1, cax=cbar_ax)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
 plt.show()
 
-plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
-
-ax = plt.gca()
-ax.minorticks_on()
-
-plt.xlim(-.7,19.5)
-plt.ylim(-1.35,1.99)
-plt.xticks(np.arange(0, 19, 2.0))
 
 
-# plot inset
-ax_ins = inset_axes(ax, width='30%', height='35%', loc='lower left', bbox_to_anchor=(0.04,0.05,1,1), bbox_transform=ax.transAxes)
-
-#only plot features where we also floated n_self
-df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
-
-plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
-plot_x[df_plot.Jpp == 0] = 0
-plot_y = df_plot[plot_which_y]
-plot_c = df_plot[plot_which_c]
 
 
-ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-              # label=HT_errors_nu[err])
+# inset
+ax_ins = inset_axes(ax1, width='22%', height='35%', loc='lower left', bbox_to_anchor=(0.04,0.1,1,1), bbox_transform=ax1.transAxes)
 
-plot_unc_y = df_plot['uc_'+plot_which_y]
+ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=4000)
+
 ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
+ax_ins.set_xlim(8.93, 9.95)
+ax_ins.set_ylim(0.1,1.1)
 
-plt.xlim(8.95, 9.97)
-plt.ylim(0.1,1.1)
+patch, pp1,pp2 = mark_inset_custom(ax1, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
 
-
-# patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
-patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
-
-
-plt.xticks(np.arange(9, 10, 0.2))
-
+plt.xticks(np.arange(9, 9.9, 0.2))
 
 ax = plt.gca()
 ax.minorticks_on()
 
+
+
+# inset # 2
+ax_ins2 = inset_axes(ax2, width='22%', height='40%', loc='lower left', bbox_to_anchor=(0.04,0.08,1,1), bbox_transform=ax2.transAxes)
+
+ax_ins2.scatter(plot_x, plot_y2, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=4000)
+
+for key in HT_errors: 
+    
+    which = (g_error == key) 
+
+    if np.any(which): 
+         
+        if key == '2' or key == '3': yerr_perc = 0.2
+        elif key == '8': yerr_perc = 0.01
+        else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
+        
+        yerr = yerr_perc * abs(plot_y2[which])
+        
+        print(key)
+        print(np.sum(which))
+        
+        ax_ins2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
+        
+        if key == '2' or key == '3':
+            (_, caplines, _,) = ax_ins2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+            caplines[1].set_marker('^')
+            caplines[1].set_markersize(3)
+            caplines[0].set_marker('v')
+            caplines[0].set_markersize(3)
+
+ax_ins2.set_xlim(8.93, 9.95)
+ax_ins2.set_ylim(0.1,1.1)
+
+patch, pp1,pp2 = mark_inset_custom(ax2, ax_ins2, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
+
+plt.xticks(np.arange(9, 9.9, 0.2))
+
+ax = plt.gca()
+ax.minorticks_on()
 
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air n width J.svg',bbox_inches='tight')
-
-
-
-
-
-# %% temp dep of feature widths vs HITRAN
-
-plot_which = 'n_air'
-label_y = 'n$_{γ,air}$, This Work [cm$^{-1}$/atm]'
-label_x = 'n$_{γ,air}$, HITRAN [cm$^{-1}$/atm]'
-# label_x = 'n$_{γ,air}$, This Work with SD=0 [cm$^{-1}$/atm]'
-
-
-label_c = 'Angular Momentum of Ground State, J"'
-
-which = (df_sceg['uc_n_air'] > -1) # &(df_sceg['uc_n_self'] > -1)
-
-df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
-df_HT2020_align['Jpp'] = df_sceg_align.Jpp
-df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
-df_plot_sd0 = df_sd0_align[which].sort_values(by=['Jpp'])
-
-# the features I accidentally set to 0
-which_oops = (df_sceg_align['uc_n_air'] > -1)&(df_sceg_align['n_air'] > 0.7)&(df_sceg_align['n_air'] < 0.85)&(df_HT2020_align['n_air'] == 0)
-df_plot_HT.loc[which_oops, 'n_air'] = 0.75
-
-# df_plot['gamma_self'] = df_HT2020_align.gamma_self
-# df_plot['n_self'] = df_HT2020_align.n_self
-
-df_plot_ht = df_HT2020_HT_align[which]
-n_error = df_plot_ht.ierr.str[4]
-n_ref = df_plot_ht.iref.str[8:10]
-
-
-plot_unc_y_bool = True
-plot_unc_x_bool = True
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
-
-
-plot_x = df_plot_HT[plot_which]
-plot_y = df_plot[plot_which]
-plot_c = df_plot_HT.Jpp
-
-
-
- 
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=18)
-             # label=HT_errors_nu[err])
-
-if plot_unc_x_bool: 
-    
-    for key in HT_errors: 
-        
-        which = (n_error == key)
-    
-        if np.any(which): 
-             
-            if key == '2' or key == '3': xerr_perc = 0.2
-            elif key == '8': xerr_perc = 0.01
-            else: xerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
-            
-            xerr = abs(xerr_perc * plot_x[which])
-            
-            plt.errorbar(plot_x[which], plot_y[which], xerr=xerr, ls='none', color='k', zorder=1)
-            
-if plot_unc_y_bool: 
-    plot_unc_y = df_plot['uc_'+plot_which]
-    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
-       
-    
-if plot_logx: 
-    plt.xscale('log')
-    
-# plt.legend()
-
-
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-# cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
-
-
-line_ = [0, 0.8]
-
-p = np.polyfit(plot_x, plot_y, 1)
-plot_y_fit = np.poly1d(p)(line_)
-
-slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x[plot_x>0], plot_y[plot_x>0])
-
-r2 = r_value**2
-
-label = ' n$_{γ,air,HT}$ '
-plt.plot(line_, plot_y_fit, colors[1], label='Best Fit  (' + str(slope)[:4] + label + str(intercept)[:7] + ')',
-          linewidth=4, linestyle='dashed', zorder=11)
-
-plt.plot(line_, line_, 'k', label='One-to-one Line (n$_{γ,air,TW}$ = n$_{γ,air,HT}$)',
-          linewidth=2, linestyle='solid', zorder=10)
-
-plt.legend(loc='lower right', edgecolor='k', framealpha=1)
-
-plt.show()
-
-plt.ylim(-1.68,1.15)
-plt.xlim(-0.35,0.97)
-
-plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air n width HT.svg',bbox_inches='tight')
-
-
-mad = np.mean(np.abs(plot_y-np.poly1d(p)(plot_x)))
-rms = np.sqrt(np.sum((plot_y-np.poly1d(p)(plot_x))**2)/ len(plot_y))
-r2 = r2_score(plot_y, np.poly1d(p)(plot_x))
-
-
-print(rms)
 
 
 # %% feature widths vs temp dependence (matching Paul's style)
@@ -2498,7 +2347,6 @@ plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water c
 # %% shift 
 
 plot_which_y = 'delta_air'
-label_y = 'Air-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
 
 plot_which_x = 'Jpp'
 label_x = 'J" + 0.9 Kc"/J"'
@@ -2509,120 +2357,114 @@ plot_which_c = 'elower'
 df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1)] 
 
 df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_'+plot_which_y] > -1)]
-g_error = df_plot_ht.ierr.str[3]
-g_ref = df_plot_ht.iref.str[6:8]
+g_error = df_plot_ht.ierr.str[5]
+g_ref = df_plot_ht.iref.str[10:12]
 g_ref_dict = {}
 
-plot_offset = 0.06
 
-# df_plot = df_plot[g_ref == '71']
-# df_plot_ht = df_plot_ht[g_ref == '71']
-
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
-
+fig, (ax1, ax2, axr) = plt.subplots(3, 1, sharex=True, figsize=(13, 3.6*1.7), height_ratios=[4,4,2], 
+                                    gridspec_kw = {'wspace':0, 'hspace':0, 'right':0.89, 'top':0.97, 'bottom':0.1})
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
 plot_x[df_plot.Jpp == 0] = 0
+
 plot_y = df_plot[plot_which_y]
+plot_unc_y = df_plot['uc_'+plot_which_y]
+
 plot_c = df_plot[plot_which_c]
 
-plot_y2 = df_plot_ht[plot_which_y] 
-
-rms = np.sqrt(np.mean((plot_y - plot_y2)**2))
-print('\n\n\n')
-print(rms)
-print('\n\n\n')
- 
-sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-             # label=HT_errors_nu[err])
-             
-sc2 = plt.scatter(plot_x, plot_y2 + plot_offset, marker='+', c=plot_c, label='HITRAN + {:.2f}'.format(plot_offset), cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
+plot_y2 = df_plot_ht[plot_which_y]
 
 
-            
-plot_unc_y = df_plot['uc_'+plot_which_y]
-plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+# main plot
+sc1 = ax1.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=3, linewidth=2, vmin=0, vmax=4000)
 
+ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+        
+ax1.set_ylabel('TW Air-Shift\nδ$_{air,TW}$ [cm$^{-1}$/atm]', fontsize=12)
+
+ax1.set_ylim(-0.045, 0.019)
+
+ax1.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax1.minorticks_on()
+
+ax1.text(0.03, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
+
+
+
+
+# HT plot        
+sc2 = ax2.scatter(plot_x, plot_y2, marker='x', c=plot_c, label='HITRAN (only values updated in TW)', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=4000)
+
+ax2.set_ylim(-0.045, 0.019)
+ax2.set_ylabel('HT Air-Shift\nδ$_{air,HT}$ [cm$^{-1}$/atm]', fontsize=12)
+
+ax2.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax2.minorticks_on()
+
+ax2.text(0.03, 0.83, "B", fontsize=12, fontweight="bold", transform=ax2.transAxes)
 
 for key in HT_errors: 
     
-    which = (g_error == key) # &(g_ref != '71')
+    which = (g_error == key) 
 
     if np.any(which): 
          
-        if key == '2' or key == '3': yerr_perc = 0
+        if key == '2' or key == '3' or key == '0' or key == '1': yerr_perc = 0.2
         elif key == '8': yerr_perc = 0.01
         else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
         
-        yerr = abs(yerr_perc * plot_y2[which])
+        yerr = yerr_perc * abs(plot_y2[which])
         
         print(key)
         print(np.sum(which))
         
-        plt.errorbar(plot_x[which], plot_y2[which] + plot_offset, yerr=yerr, ls='none', color='k', zorder=1)
+        ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
         
-        if key == '2' or key == '3':
-            (_, caplines, _,) = plt.errorbar(plot_x[which], plot_y2[which] + plot_offset, yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
+        if key == '2' or key == '3' or key == '0' or key == '1':
+            (_, caplines, _,) = ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
             caplines[1].set_marker('^')
             caplines[1].set_markersize(3)
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
-    
-cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
+
+
+
+# residual plot
+
+sc3 = axr.scatter(plot_x, plot_y-plot_y2, marker='x', c=plot_c, label='TW - HITRAN', cmap='viridis', zorder=2, 
+                  linewidth=2, vmin=0, vmax=4000)
+axr.errorbar(plot_x, plot_y-plot_y2, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+
+line3, = axr.plot([0,23],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+
+axr.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+axr.set_ylim(-0.049, 0.049)
+axr.set_ylabel('Δδ$_{air,TW-HT}$', fontsize=12)
+
+ax2.set_xlim(-.5,20.5)
+ax2.set_xticks(np.arange(0, 21, 2.0))
+axr.set_xlabel(label_x, fontsize=12)
+
+
+axr.minorticks_on()
+
+axr.text(0.03, 0.75, "C", fontsize=12, fontweight="bold", transform=axr.transAxes)
+
+
+
+# color bar
+
+cbar_ax = fig.add_axes([0.90, 0.1, 0.02, 0.87])
+cbar = fig.colorbar(sc1, cax=cbar_ax)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
 plt.show()
 
-# plt.hlines(-0.005, 6.5, 16.5, 'k', ':', label='Centerline between TW & HT')
 
-plt.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
-
-ax = plt.gca()
-ax.minorticks_on()
-
-plt.ylim(-0.045,0.013+plot_offset)
-plt.xlim(-.7,20.5)
-plt.xticks(np.arange(0, 21, 2.0))
-
-# plot inset
-ax_ins = inset_axes(ax, width='25%', height='23%', loc='center left', bbox_to_anchor=(0.05,0.08,1,1), bbox_transform=ax.transAxes)
-
-#only plot features where we also floated n_self
-df_plot = df_sceg_align[(df_sceg['uc_'+plot_which_y] > -1) & (df_sceg['uc_n_delta_air'] > -1)] 
-
-plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
-plot_x[df_plot.Jpp == 0] = 0
-plot_y = df_plot[plot_which_y]
-plot_c = df_plot[plot_which_c]
-
-
-ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-              # label=HT_errors_nu[err])
-
-plot_unc_y = df_plot['uc_'+plot_which_y]
-ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
-
-
-plt.xlim(8.95, 9.97)
-plt.ylim(-0.027, 0.003)
-
-
-# patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
-patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=3, loc2a=1, loc2b=2, fc='none', ec='k', zorder=1)
-
-
-# plt.xticks(np.arange(9, 10, 0.2))
-
-
-ax = plt.gca()
-ax.minorticks_on()
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air shift.svg',bbox_inches='tight')
 
