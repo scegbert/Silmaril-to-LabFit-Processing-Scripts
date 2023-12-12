@@ -65,7 +65,7 @@ def mark_inset_custom(parent_axes, inset_axes, loc1a=1, loc1b=1, loc2a=2, loc2b=
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -751,10 +751,6 @@ plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Proce
 # %% feature widths - J plot
 
 plot_which_y = 'gamma_self'
-label_y = 'Self-Width, γ$_{self}$ [cm$^{-1}$/atm]'
-
-# 
-# label_y = 'Self-Width Temperature Exponent, n$_{self}$'
 
 plot_which_x = 'Jpp'
 label_x = 'J" + 0.9 Kc"/J"'
@@ -762,7 +758,7 @@ label_x = 'J" + 0.9 Kc"/J"'
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_which_c = 'elower'
 
-df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)] #&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
+df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)] 
 
 df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_gamma_self'] > -1)]
 g_error = df_plot_ht.ierr.str[3]
@@ -770,107 +766,105 @@ g_ref = df_plot_ht.iref.str[6:8]
 g_ref_dict = {}
 
 
-
-# df_plot = df_plot[g_ref == '71']
-# df_plot_ht = df_plot_ht[g_ref == '71']
-
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(13, 3.6*1.5)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
+# all plots
+fig, (ax1, ax2, axr) = plt.subplots(3, 1, sharex=True, figsize=(13, 3.6*1.5), height_ratios=[5,3,2], 
+                                    gridspec_kw = {'wspace':0, 'hspace':0, 'right':0.89, 'top':0.97, 'bottom':0.1})
+# fig.subplots_adjust(right=0.5, wspace=0.0, hspace=0.0)
 
 
 plot_x = df_plot.Jpp + 0.9*df_plot.Kcpp / df_plot.Jpp
 plot_x[df_plot.Jpp == 0] = 0
+
 plot_y = df_plot[plot_which_y]
+plot_unc_y = df_plot['uc_'+plot_which_y]
+
 plot_c = df_plot[plot_which_c]
 
 plot_y2 = df_plot_ht[plot_which_y]
 
-rms = np.sqrt(np.mean((plot_y - plot_y2)**2))
-print('\n\n\n')
-print(rms)
-print('\n\n\n')
- 
-sc1 = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, label='This Work', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-             # label=HT_errors_nu[err])
-             
-sc2 = plt.scatter(plot_x, -plot_y2, marker='+', c=plot_c, label='-1 · HITRAN', cmap='viridis', zorder=2, s=60, linewidth=2, vmin=0, vmax=5000)
 
+# main plot
+which = g_ref=='71'
+sc1 = ax1.scatter(plot_x[which], plot_y[which], marker='x', c=plot_c[which], label='This Work (updated HT ref. 71)', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+which = g_ref!='71'
+sc1 = ax1.scatter(plot_x[which], plot_y[which], marker='+', c=plot_c[which], label='This Work (excluding HT ref. 71)', cmap='viridis', zorder=3, linewidth=2, vmin=0, vmax=5000)
 
-            
-plot_unc_y = df_plot['uc_'+plot_which_y]
-plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
-
-
-# for key in HT_errors: 
-    
-#     which = (g_error == key)&(g_ref != '71')
-
-#     if np.any(which): 
-         
-#         if key == '2' or key == '3': yerr_perc = 0
-#         elif key == '8': yerr_perc = 0.01
-#         else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
+ax1.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
         
-#         yerr = yerr_perc * plot_y2[which]
-        
-#         print(key)
-#         print(np.sum(which))
-        
-#         plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
-        
-        # if key == '2' or key == '3':
-        #     (_, caplines, _,) = plt.errorbar(plot_x[which], -plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1, capsize=5)
-        #     caplines[1].set_marker('^')
-        #     caplines[1].set_markersize(3)
-        #     caplines[0].set_marker('v')
-        #     caplines[0].set_markersize(3)
-    
+ax1.set_ylabel('TW Self-Width\nγ$_{self,TW}$ [cm$^{-1}$/atm]', fontsize=12)
+
+ax1.set_ylim(-0.05, 1.49)
+
 j_HT = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
 g_HT = [0.50361, 0.47957, 0.45633, 0.43388, 0.41221, 0.39129, 0.37113, 0.3517, 0.333, 0.31501, 
         0.29773, 0.28113, 0.26521, 0.24996, 0.23536, 0.2214, 0.20806, 0.19534, 0.18323, 0.1717, 
         0.16076, 0.15038, 0.14056, 0.13128, 0.12252, 0.11429]
 
-line1, = plt.plot(j_HT,g_HT, colors[0], label='HITRAN/HITEMP Polynomial Fit', linewidth=4)
-# plt.plot([0, 25], [.484, 0.484-0.018*25], colors[1], label='This Work (0.484-0.018J")',
-#          linewidth=4, linestyle='dashed')
-line2, = plt.plot(j_HT, 0.485*np.exp(-0.0633*np.array(j_HT)) + 0.04, colors[1], label='This Work Fit (0.485 exp[-0.0633J"] + 0.04)',
-         linewidth=4, linestyle='dashed')
+line1, = ax1.plot(j_HT,g_HT, colors[0], label='HITRAN/HITEMP Polynomial Fit (HT ref. 71)', linewidth=4, zorder=10)
+
+line2, = ax1.plot(j_HT, 0.485*np.exp(-0.0633*np.array(j_HT)) + 0.04, colors[1], label='This Work Fit (0.485 exp[-0.0633J"] + 0.04)',
+         linewidth=4, linestyle='dashed', zorder=10)
+
+ax1.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax1.minorticks_on()
+
+ax1.text(0.015, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
+
+
+# HT plot        
+sc2 = ax2.scatter(plot_x, plot_y2, marker='x', c=plot_c, label='HITRAN (only values updated in TW)', cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
+
+line12, = ax2.plot(j_HT,[x*1 for x in g_HT], colors[0], label='HITRAN/HITEMP Polynomial Fit (HT ref. 71)', linewidth=4, zorder=1)
+
+ax2.set_ylim(0.05, 0.74)
+ax2.set_ylabel('HT Self-Width\nγ$_{self,HT}$  ', fontsize=12)
+
+ax2.set_xlim(-.5,20.4)
+ax2.set_xticks(np.arange(0, 21, 2.0))
+ax2.set_xlabel(label_x, fontsize=12)
+
+ax2.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+ax2.minorticks_on()
+
+ax2.text(0.015, 0.83, "B", fontsize=12, fontweight="bold", transform=ax2.transAxes)
+
+
+# residual plot
+which = g_ref!='71'
+# which = (g_ref!='71')|(g_ref=='71')
+
+sc3 = axr.scatter(plot_x[which], plot_y[which]-plot_y2[which], marker='+', c=plot_c[which], label='TW - HITRAN (excluding HT ref. 71)', cmap='viridis', zorder=2, 
+                  s=60, linewidth=2, vmin=0, vmax=5000)
+axr.errorbar(plot_x[which], plot_y[which]-plot_y2[which], yerr=plot_unc_y[which], ls='none', color='k', zorder=1)
+
+line3, = axr.plot([-0.4,20.3],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+
+axr.legend(loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+
+axr.set_ylim(-0.31, 0.49)
+axr.set_ylabel('Δγ$_{self,TW-HT}$', fontsize=12)
+
+axr.minorticks_on()
+
+axr.text(0.015, 0.75, "C", fontsize=12, fontweight="bold", transform=axr.transAxes)
 
 
 
-# first_legend = plt.legend(handles=[line1, line2], loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
-# ax = plt.gca().add_artist(first_legend)
-
-# plt.legend(handles=[sc1, sc2], loc='upper right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
 
 
-
-
-cbar = plt.colorbar(sc1, label=label_c, pad=0.01)
+cbar_ax = fig.add_axes([0.90, 0.1, 0.02, 0.87])
+cbar = fig.colorbar(sc1, cax=cbar_ax)
 cbar.ax.tick_params(labelsize=12)
 cbar.set_label(label=label_c, size=12)
 plt.show()
 
-plt.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
 
-
-ax = plt.gca()
-ax.minorticks_on()
-
-plt.xlim(0.51,23.4)
-plt.ylim(-0.87,1.19)
-
-plt.xticks(np.arange(1, 24, 1.0))
 
 # plot inset
-ax_ins = inset_axes(ax, width='20%', height='24%', loc='upper center', bbox_to_anchor=(0.08,0,1,1), bbox_transform=ax.transAxes)
+ax_ins = inset_axes(ax1, width='20%', height='34%', loc='upper center', bbox_to_anchor=(-0.132,0,1,1), bbox_transform=ax1.transAxes)
 
 #only plot features where we also floated n_self
 df_plot = df_sceg_align[(df_sceg['uc_gamma_self'] > -1)&(df_sceg['uc_n_self'] > -1)] # floating all width parameters
@@ -880,35 +874,33 @@ plot_x[df_plot.Jpp == 0] = 0
 plot_y = df_plot[plot_which_y]
 plot_c = df_plot[plot_which_c]
 
-
+which = g_ref=='71'
 ax_ins.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=5000)
-              # label=HT_errors_nu[err])
+which = g_ref!='71'
+ax_ins.scatter(plot_x, plot_y, marker='+', c=plot_c, cmap='viridis', zorder=3, linewidth=2, vmin=0, vmax=5000)
 
-if plot_unc_y_bool: 
-    plot_unc_y = df_plot['uc_'+plot_which_y]
-    ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
+plot_unc_y = df_plot['uc_'+plot_which_y]
+ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
-plt.xlim(8.925, 9.975)
+plt.xlim(8.93, 9.975)
 
 plt.ylim(0.001,0.59)
 
 
 # patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
-patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=4, loc1b=4, loc2a=2, loc2b=2, fc='none', ec='k', zorder=1)
+patch, pp1,pp2 = mark_inset_custom(ax1, ax_ins, loc1a=3, loc1b=3, loc2a=1, loc2b=1, fc='none', ec='k', zorder=1)
 
 plt.yticks(np.arange(0.2, 0.6, 0.2))
 plt.xticks(np.arange(9, 9.9, 0.2))
 
 # ax_ins.text(0.34, 0.1, "γ$_{self}$ & n$_{γ,self}$ floated", fontsize=10, transform=ax_ins.transAxes)
-ax_ins.text(0.03, 0.6, "γ$_{self}$ & n$_{γ,self}$\nfloated", fontsize=12, transform=ax_ins.transAxes)
-
-
-ax = plt.gca()
-ax.minorticks_on()
+ax_ins.text(0.03, 0.5, "γ$_{self}$ & n$_{γ,self}$\nfloated", fontsize=12, transform=ax_ins.transAxes)
 
 
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 width J HT.svg',bbox_inches='tight')
+
+
 
 
 # %% feature temperature dependence of widths - J" plot
@@ -2619,7 +2611,7 @@ ax_ins.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
 
 plt.xlim(8.95, 9.97)
-# plt.ylim(-0.1,1.1)
+plt.ylim(-0.027, 0.003)
 
 
 # patch, pp1,pp2 = mark_inset_custom(ax, ax_ins, loc1a=1, loc1b=4, loc2a=2, loc2b=3, fc='none', ec='k', zorder=10)
@@ -2785,39 +2777,19 @@ plot_unc_y = df_plot['uc_'+plot_which_y]
 plot_c = df_plot[plot_which_c]
 
 
-# plt.plot(plot_x, plot_y, '+', color='k', label = 'All (This Work)', linewidth=2)
-# plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none')
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=3000)
+plt.errorbar(plot_x, plot_y, color='k', yerr=plot_unc_y, ls='none', zorder=1)
 
-
-for vp in legend_dict.keys(): 
-
-    df_plot = df_sceg[(df_sceg['uc_'+plot_which_y] > -1)&(df_sceg.vp == vp)]
-    
-    plot_x = df_plot[plot_which_x] + df_plot.Kcpp/10
-    plot_y = df_plot[plot_which_y]
-
-    
-    print(vp)
-    print(len(df_plot))
-    print()
-
-    plt.plot(plot_x, plot_y, 'x', color=legend_dict[vp][1], label=legend_dict[vp][0], linewidth=2)
-
-    if plot_unc_x_bool: 
-        plot_unc_x = df_plot['uc_'+plot_which_x]
-        plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=legend_dict[vp][1], ls='none')
-    if plot_unc_y_bool: 
-        plot_unc_y = df_plot['uc_'+plot_which_y]
-        plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=legend_dict[vp][1], ls='none')
-        
-        
     
 if plot_logx: 
     plt.xscale('log')
     
-plt.legend(loc='upper center', edgecolor='k', framealpha=1, labelspacing=0, ncol=3, fontsize=12, columnspacing=1.5)
+cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
 
-plt.ylim((-0.4, 2.5))
+    
+# plt.legend(loc='upper center', edgecolor='k', framealpha=1, labelspacing=0, ncol=3, fontsize=12, columnspacing=1.5)
+
+plt.ylim((-0.3, 1.9))
 
 ax = plt.gca()
 ax.minorticks_on()
@@ -2839,19 +2811,9 @@ label_y = 'Air-Shift Temperature Exponent, n$_{δ,air}$'
 plot_which_x = 'delta_air'
 label_x = 'Air-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
 
-# -----------------------
-# plot_which_y = 'n_delta_air'
-# label_y = 'Temp. Dep. of Pressure Shift'
 
-# plot_which_x = 'delta_air'
-# label_x = 'Self-Shift, δ$_{air}$ [cm$^{-1}$/atm]'
-
-
-legend_dict = {'101': ['101←000 (254)', '#1b9e77'],
-               '200': ['200←000 (140)', '#d95f02'],
-               '021': ['021←000 (87)','#e6ab02'],
-               '111': ['111←010 \u2009(22)','#514c8e'],
-               '002': ['002←000 (6)', 'firebrick']}
+plot_which_c = 'elower'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 
 
 plot_unc_y_bool = True
@@ -2875,39 +2837,20 @@ plot_x = df_plot[plot_which_x]
 plot_y = df_plot[plot_which_y]
 plot_unc_y = df_plot['uc_'+plot_which_y]
 
-# plt.plot(plot_x, plot_y, '+', color='k', label = 'All (This Work)', linewidth=2)
-# plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none')
 
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=3000)
+plt.errorbar(plot_x, plot_y, color='k', yerr=plot_unc_y, ls='none', zorder=1)
 
-for vp in legend_dict.keys(): 
-
-    df_plot = df_sceg[(df_sceg['uc_'+plot_which_y] > -1)&(df_sceg.vp == vp)]
-    
-    plot_x = df_plot[plot_which_x]
-    plot_y = df_plot[plot_which_y]
-
-    
-    print(vp)
-    print(len(df_plot))
-    print()
-
-    plt.plot(plot_x, plot_y, 'x', color=legend_dict[vp][1], label=legend_dict[vp][0], linewidth=2)
-
-    if plot_unc_x_bool: 
-        plot_unc_x = df_plot['uc_'+plot_which_x]
-        plt.errorbar(plot_x, plot_y, xerr=plot_unc_x, color=legend_dict[vp][1], ls='none')
-    if plot_unc_y_bool: 
-        plot_unc_y = df_plot['uc_'+plot_which_y]
-        plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, color=legend_dict[vp][1], ls='none')
-        
-        
     
 if plot_logx: 
     plt.xscale('log')
     
-plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=0, ncol=1, fontsize=12) #, columnspacing=1.5)
+cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
+    
+# plt.legend(loc='lower left', edgecolor='k', framealpha=1, labelspacing=0, ncol=1, fontsize=12) #, columnspacing=1.5)
 
 plt.ylim((-0.4, 1.95))
+plt.xlim((-.036, 0.001))
 
 ax = plt.gca()
 ax.minorticks_on()
