@@ -207,8 +207,9 @@ elif d_type == 'air': f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
 [df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul, df_sd0] = pickle.load(f)
 f.close()
 
-if d_type == 'air': df_sceg = df_sceg.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
+df_sceg = df_sd0.copy()
 
+if d_type == 'air': df_sceg = df_sceg.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
 
 #%% update uncertainties
 
@@ -242,9 +243,9 @@ if d_type == 'pure':
     which = (df_sceg.uc_sw>-0.5)
     df_sceg.loc[which, 'uc_sw'] = np.sqrt((df_sceg[which].uc_sw_stat/df_sceg[which].sw)**2 + 
                                    (0.0086)**2) * df_sceg[which].sw
-    
+
     which = (df_sceg.uc_elower>-0.5)
-    df_sceg['uc_elower'] = np.sqrt((df_sceg[which].uc_elower_stat/df_sceg[which].elower)**2 + 
+    df_sceg.loc[which, 'uc_elower'] = np.sqrt((df_sceg[which].uc_elower_stat/df_sceg[which].elower)**2 + 
                                    (0.0081)**2) * df_sceg[which].elower
     
     
@@ -1435,7 +1436,7 @@ df_sceg_save = df_sceg_save.rename(columns={'uc_nu': 'uc_nu_total',
                              'uc_delta_self': 'uc_delta_self_total',
                              'uc_n_delta_self': 'uc_n_delta_self_total'})
 
-df_sceg_save['doublet'] = ''
+df_sceg_save['notes'] = ''
 
 doublets_nu = [[4130,4129],[4885,4884],[5204,5205],[5625,5624],[5820,5819],[5858,5856],[5903,5902],[5930,5929],[5980,5979],[5995,5998],[6145,6144],[6390,6389],[6555,6554],[6606,6605],
                 [6690,6692],[6708,6705],[6770,6768],[6806,6805],[6930,6929],[6960,6959],[6987,6986],[6989,6985],[7163,7162],[7385,7384],[7623,7622],[7754,7753],[7806,7803],[7812,7810],
@@ -1557,8 +1558,6 @@ uncatalogued_features = [6693.5, 6726.38, 6719.01, 6745.72, 6783.36, 6795.2, 681
                          7159, 7160.45, 7188.71, 7187.5, 7178.68, 7228.03, 7243.57, 7248.48, 7258.02, 7247.05, 7250.31, 7256.47, 7280.78, 7287.75, 7282.28, 7291.14, 7332.94, 7334.05, 7382.34,
                          7391.08, 7390.26]
 
-stop_and_add = more_new_feature_notes # (these are only the ones that we couldn't get S296 for)
-
 noise_floor = [6364, 6365, 6772, 7471, 6855, 7204, 7334, 9218, 10940, 10849, 10646, 12399, 12709, 12708, 13195, 14467, 14046, 14969, 15710, 15708, 15753, 16238, 16945, 16953, 18306, 18305, 
                18919, 19330, 19220, 21098, 22449, 22454, 23640, 26429, 26304, 26447, 27801, 27962, 27963, 28597, 28921, 28982, 31218, 31446, 31480, 32353, 32532, 33008, 33064, 33062, 33066, 
                33921, 33920, 35098, 35415, 35614, 35691, 35995, 35994, 36567, 36568, 36876]
@@ -1569,8 +1568,10 @@ indicator_gamma_self = 'gs'
 indicator_n_gamma_self = 'ngs'
 indicator_sd_self = 'sds'
 
-indicator_uncatalogued = 'uf'
-inidicator_noisefloor = 'nf'
+indicator_uncatalogued = 'uncatalogued feature added to database'
+indicator_uncatalogued_nu = 'uncatalogued feature added to database, absorption was too weak for a stable measurement of sw (for reference only)'
+
+inidicator_noisefloor = 'feature not visible above noise floor, sw reduced to measurement noise floor'
 
 
 i_sw = 0
@@ -1581,89 +1582,133 @@ i_sd = 0
 
 for doublet in doublets_nu: 
     
-    indicator = indicator_nu
+    indicator = 'doublet constraints: ' + indicator_nu
     
     if doublet in doublets_sw: indicator += ', ' + indicator_sw
     if doublet in doublets_gamma_self: indicator += ', ' + indicator_gamma_self
     if doublet in doublets_n_gamma_self: indicator += ', ' + indicator_n_gamma_self
-    if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
+    # if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
     
     indicator += ' {}'.format(doublet)
     print(indicator)      
 
-    df_sceg_save.loc[doublet[0], 'doublet'] = indicator
-    df_sceg_save.loc[doublet[1], 'doublet'] = indicator
+    df_sceg_save.loc[doublet[0], 'notes'] = indicator
+    df_sceg_save.loc[doublet[1], 'notes'] = indicator
 
 
 for doublet in doublets_sw: 
         
     if doublet not in doublets_nu:
             
-        indicator = indicator_sw
+        indicator = 'doublet constraints: ' + indicator_sw
 
         if doublet in doublets_gamma_self: indicator += ', ' + indicator_gamma_self
         if doublet in doublets_n_gamma_self: indicator += ', ' + indicator_n_gamma_self
-        if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
+        # if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
         
         i_sw+=1
         
         indicator += ' {}'.format(doublet)
         print(indicator)
         
-        df_sceg_save.loc[doublet[0], 'doublet'] = indicator
-        df_sceg_save.loc[doublet[1], 'doublet'] = indicator
+        df_sceg_save.loc[doublet[0], 'notes'] = indicator
+        df_sceg_save.loc[doublet[1], 'notes'] = indicator
         
 
 for doublet in doublets_gamma_self: 
         
     if (doublet not in doublets_nu) and (doublet not in doublets_sw):
         
-        indicator = indicator_gamma_self
+        indicator = 'doublet constraints: ' + indicator_gamma_self
 
         if doublet in doublets_n_gamma_self: indicator += ', ' + indicator_n_gamma_self
-        if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
+        # if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
     
         i_gs+=1
     
         indicator += ' {}'.format(doublet)  
         print(indicator)
         
-        df_sceg_save.loc[doublet[0], 'doublet'] = indicator
-        df_sceg_save.loc[doublet[1], 'doublet'] = indicator
+        df_sceg_save.loc[doublet[0], 'notes'] = indicator
+        df_sceg_save.loc[doublet[1], 'notes'] = indicator
 
 for doublet in doublets_n_gamma_self: 
         
     if (doublet not in doublets_nu) and (doublet not in doublets_sw) and (doublet not in doublets_gamma_self):
         
-        indicator = indicator_n_gamma_self
+        indicator = 'doublet constraints: ' + indicator_n_gamma_self
 
-        if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
+        # if doublet in doublets_sd_self: indicator += ', ' + indicator_sd_self
     
         i_ngs+=1
     
         indicator += ' {}'.format(doublet)  
         print(indicator)
         
-        df_sceg_save.loc[doublet[0], 'doublet'] = indicator
-        df_sceg_save.loc[doublet[1], 'doublet'] = indicator
+        df_sceg_save.loc[doublet[0], 'notes'] = indicator
+        df_sceg_save.loc[doublet[1], 'notes'] = indicator
 
-for doublet in doublets_sd_self: 
+# for doublet in doublets_sd_self: 
         
-    if (doublet not in doublets_nu) and (doublet not in doublets_sw) and (doublet not in doublets_gamma_self) and (doublet not in doublets_n_gamma_self):
+#     if (doublet not in doublets_nu) and (doublet not in doublets_sw) and (doublet not in doublets_gamma_self) and (doublet not in doublets_n_gamma_self):
         
-        indicator = indicator_sd_self
+#         indicator = 'doublet constraints: ' + indicator_sd_self
 
-        i_sd+=1
+#         i_sd+=1
     
-        indicator += ' {}'.format(doublet)  
-        print(indicator)
+#         indicator += ' {}'.format(doublet)  
+#         print(indicator)
 
-        df_sceg_save.loc[doublet[0], 'doublet'] = indicator
-        df_sceg_save.loc[doublet[1], 'doublet'] = indicator
+#         df_sceg_save.loc[doublet[0], 'notes'] = indicator
+#         df_sceg_save.loc[doublet[1], 'notes'] = indicator
 
-                    
 
-df_sceg_save.to_csv(os.path.join(d_sceg,'sceg_pure_output.csv'))
+
+for feature in noise_floor: 
+    
+    if df_sceg_save.loc[feature, 'notes'] == '': 
+        
+        df_sceg_save.loc[feature, 'notes'] = inidicator_noisefloor
+        
+    else: error = pleasehere # why did we constrain something below the noise floor?
+
+for feature in df_sceg.index[df_sceg.index > 1000000]: 
+        
+    if df_sceg_save.loc[feature, 'notes'] == '': 
+        
+        df_sceg_save.loc[feature, 'notes'] = indicator_uncatalogued
+        
+    else: error = pleasehere # why did we constrain something below the noise floor?
+    
+
+feature_new = df_sceg_save[df_sceg_save.index == 1171226]  
+feature_new.uc_nu_total = -1
+feature_new.uc_nu_stat = -1
+
+
+feature_new.sw = 5e-31
+feature_new.uc_sw_total = -1
+feature_new.uc_sw_stat = -1
+
+feature_new.notes = indicator_uncatalogued_nu
+
+index_new = 2000000
+
+for feature_nu in uncatalogued_features: 
+
+    index_new+=1
+    feature_iter = feature_new.rename(index={1171226:index_new})
+    feature_iter.nu = feature_nu
+    
+    
+    df_sceg_save = df_sceg_save.append(feature_iter)
+        
+
+df_sceg_save = df_sceg_save.sort_values('nu')
+
+df_sceg_save
+
+df_sceg_save.to_csv(os.path.join(d_sceg,'sceg_pure_output.csv'), index=False)
 
 
 #%%
@@ -2417,9 +2462,12 @@ for key in HT_errors:
         else: yerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
         
         yerr = yerr_perc * abs(plot_y2[which])
+        rms = np.sqrt(np.mean((plot_y2[which] - plot_y[which])**2))
         
         print(key)
         print(np.sum(which))
+        print(rms)
+        
         
         ax2.errorbar(plot_x[which], plot_y2[which], yerr=yerr, ls='none', color='k', zorder=1)
         
@@ -2469,114 +2517,6 @@ plt.show()
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air shift.svg',bbox_inches='tight')
 
 
-
-# %% shift vs HITRAN
-
-markers = ['1','2','3','+','x', '.', '.', '.']
-linestyles = [(5, (10, 3)), 'dashed', 'dotted', 'dashdot', 'solid']
-
-#-----------------------
-plot_which = 'delta_air'
-label_y = 'Air-Shift, δ$_{air}$, This Work [cm$^{-1}$/atm]'
-label_x = 'Air-Shift, δ$_{air}$, HITRAN [cm$^{-1}$/atm]'
-
-label_c = 'Angular Momentum of Ground State, J"'
-
-which = (df_sceg['uc_delta_air'] > -0.5) 
-
-df_plot = df_sceg_align[which].sort_values(by=['Jpp'])
-df_HT2020_align['Jpp'] = df_sceg_align.Jpp
-df_plot_HT = df_HT2020_align[which].sort_values(by=['Jpp'])
-# df_plot_HT = df_sd0_align[which].sort_values(by=['Jpp'])
-
-df_plot_ht = df_HT2020_HT_align[(df_sceg['uc_delta_air'] > -0.5)]
-d_error = df_plot_ht.ierr.str[5]
-# g_ref = df_plot_ht.iref.str[6:8]
-# g_ref_dict = {}
-
-# df_plot_HT = df_plot_HT[g_ref == '71']
-
-
-plot_unc_y_bool = True
-plot_unc_x_bool = True
-
-plot_labels = False
-plot_logx = False
-
-
-plt.figure(figsize=(6.5, 3.6)) #, dpi=200, facecolor='w', edgecolor='k')
-plt.xlabel(label_x, fontsize=12)
-plt.ylabel(label_y, fontsize=12)
-
-
-plot_x = df_plot_HT[plot_which]
-plot_y = df_plot[plot_which]
-plot_c = df_plot_HT.Jpp
-
-
- 
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=18)
-             # label=HT_errors_nu[err])
-
-if plot_unc_x_bool: 
-
-    for key in HT_errors: 
-        
-        which = (d_error == key)
-    
-        if np.any(which): 
-             
-            if key in ['2', '3', '0', '1']: xerr_perc = 0.2
-            elif key == '8': xerr_perc = 0.01
-            else: xerr_perc = float(HT_errors[key].split('-')[-1].split('%')[0])/100 
-            
-            xerr = abs(xerr_perc * plot_x[which])
-            
-            plt.errorbar(plot_x[which], plot_y[which], xerr=xerr, ls='none', color='k', zorder=1)    
-
-
-if plot_unc_y_bool: 
-    plot_unc_y = df_plot['uc_'+plot_which]
-    plt.errorbar(plot_x, plot_y, yerr=plot_unc_y, ls='none', color='k', zorder=1)
-       
-    
-if plot_logx: 
-    plt.xscale('log')
-    
-# plt.legend()
-
-
-cbar = plt.colorbar(sc, label=label_c,  pad=0.01) # pad=-0.95, aspect=10, shrink=0.5), fraction=0.5
-# cbar.ax.set_ylabel(label_c, rotation=90, ha='center', va='center')
-
-
-line_ = [-0.04, 0.003]
-
-plt.plot(line_,line_,'k',linewidth=2, label='One-to-one Line (δ$_{air,TW}$ = δ$_{air,HT}$)')
-
-p = np.polyfit(plot_x, plot_y, 1)
-plot_y_fit = np.poly1d(p)(line_)
-
-slope, intercept, r_value, p_value, std_err = ss.linregress(plot_x, plot_y)
-
-r2 = r_value**2
-
-label = 'δ$_{air,HT}$ '
-
-plt.plot(line_, plot_y_fit, colors[1], label='This Work  ('+str(slope)[:5]+ label + str(intercept)[:8]+')',
-          linewidth=4, linestyle='dashed')
-
-plt.legend(loc='lower right', edgecolor='k', framealpha=1)
-
-plt.show()
-
-ax = plt.gca()
-ax.minorticks_on()
-
-plt.ylim((-0.051,0.0059))
-plt.xlim((-0.042,0.012))
-
-plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7 air shift HT.svg',bbox_inches='tight')
 
 
 # %% temperature dependence of the shift 

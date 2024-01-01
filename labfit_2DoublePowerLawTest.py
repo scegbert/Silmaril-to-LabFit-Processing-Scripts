@@ -580,6 +580,7 @@ def DPL(T, c1, n1, c2, n2):
 
 #%% load in the DPL data
 
+
 f = open(os.path.join(d_sceg_save,'DPL exploration.pckl'), 'rb')
 [output_dpl, output_lab, T_conditions, features_strong, features_doublets] = pickle.load(f)
 f.close()     
@@ -609,6 +610,10 @@ prop_names = {'gamma':0,
               'nu':6}
 i_prop = prop_names[prop_name]
 
+
+
+#%% initial plots to explore data
+r'''
 output_type = output_dpl[i_type,:,:,:]
 
 plt.figure()
@@ -691,8 +696,67 @@ plt.xlabel('Temperature (K)')
 plt.ylabel('{}_{}'.format(prop_name, type_name))
 
 print('{}_{}  {:.3f} +/- {:.2f}% for {} features\n\n\n'.format(prop_name, type_name, np.mean(prop_mean), prop_perc_std, np.shape(prop_all)[0]))
+r'''
+
+#%% plots for Bob
 
 
+df_quanta = db.labfit_to_df('E:\water database\pure water\B1\B1-000-HITRAN')
+
+i_type = 1 # pure water absorption
+i=0
+
+features_doublets_flat = [item for sublist in features_doublets for item in sublist]
+features_doublets_flat = [item for sublist in features_doublets_flat for item in sublist]
+
+column_names=['quanta', 
+              'g_300','uc_g_300','g_500','uc_g_500','g_700','uc_g_700','g_900','uc_g_900','g_1100','uc_g_1100','g_1300','uc_g_1300', 
+              'sd_300','uc_sd_300','sd_500','uc_sd_500','sd_700','uc_sd_700','sd_900','uc_sd_900','sd_1100','uc_sd_1100','sd_1300','uc_sd_1300', 
+              'd_300','uc_d_300','d_500','uc_d_500','d_700','uc_d_700','d_900','uc_d_900','d_1100','uc_d_1100','d_1300','uc_d_1300']
+
+df_features = pd.DataFrame(columns=column_names)
+
+list_feature = np.zeros_like(column_names)
+
+for i_feat, feature in enumerate(features_strong_flat): 
+    
+    if feature not in features_doublets_flat: 
+          
+        # confirm all vlaues are floated
+        if np.all(output_dpl[i_type,i_feat,1:,1] != -1) & np.all(output_dpl[i_type,i_feat,1:,3] != -1) & (
+            np.all(output_dpl[i_type,i_feat,1:,5] != -1)) & np.all(output_dpl[i_type,i_feat,1:,7] == -1): 
+            
+            for i_T, T in enumerate(T_conditions): 
+                
+                T_str = str(int(T))
+                
+                list_feature[i_T*2 + 0 + 1] = output_dpl[i_type,i_feat,i_T,0]
+                list_feature[i_T*2 + 1 + 1] = output_dpl[i_type,i_feat,i_T,1]
+
+                list_feature[i_T*2 + 12 + 1] = output_dpl[i_type,i_feat,i_T,2]
+                list_feature[i_T*2 + 13 + 1] = output_dpl[i_type,i_feat,i_T,3]
+
+                list_feature[i_T*2 + 24 + 1] = output_dpl[i_type,i_feat,i_T,4]
+                list_feature[i_T*2 + 25 + 1] = output_dpl[i_type,i_feat,i_T,5]
+                
+            df_features.loc[feature] = list_feature
+                
+            df_features.quanta[feature] = df_quanta.quanta[feature]
+            
+df_features.to_csv('DPL_parameters.csv')
+            
+
+
+# output_dpl[i_type,i_feat,i_T,0] = df_calcs.loc[feat]['gamma_'+d_which]
+# output_dpl[i_type,i_feat,i_T,1] = df_calcs.loc[feat]['uc_gamma_'+d_which]
+
+# output_dpl[i_type,i_feat,i_T,2] = df_calcs.loc[feat].sd_self
+# output_dpl[i_type,i_feat,i_T,3] = df_calcs.loc[feat].uc_sd_self
+# output_dpl[i_type,i_feat,i_T,4] = df_calcs.loc[feat]['delta_'+d_which]
+# output_dpl[i_type,i_feat,i_T,5] = df_calcs.loc[feat]['uc_delta_'+d_which]
+
+# output_dpl[i_type,i_feat,i_T,6] = df_calcs.loc[feat].nu
+# output_dpl[i_type,i_feat,i_T,7] = df_calcs.loc[feat].uc_nu
 
 
 
