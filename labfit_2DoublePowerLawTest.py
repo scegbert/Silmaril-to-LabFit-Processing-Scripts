@@ -13,6 +13,7 @@ import subprocess
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit as fit
 
 import os
 from sys import path
@@ -32,6 +33,9 @@ clipboard_and_style_sheet.style_sheet()
 from copy import deepcopy
 
 import pickle
+
+from matplotlib.gridspec import GridSpec
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 
 
 # %% define some dictionaries and parameters
@@ -169,11 +173,113 @@ d_labfit_main = d_old_holder
 features_new = None
 
 
-please = stophere
+# %% read in Labfit results
 
-r'''
+# pure water data
+d_sceg = os.path.join(os.path.abspath(''),'data - sceg')
 
-#%% Calculated shifts and widths at each temperature for manual temperature dependence 
+f = open(os.path.join(d_sceg,'df_sceg_pure.pckl'), 'rb')
+[df_sceg_pure, _, df_HT2020_HT, _, _, _] = pickle.load(f)
+f.close()
+
+df_sceg_pure.loc[df_sceg_pure.uc_nu==0, 'uc_nu'] = 0.0015 
+df_sceg_pure.loc[df_sceg_pure.uc_gamma_self==0, 'uc_gamma_self'] = 0.1
+df_sceg_pure.loc[df_sceg_pure.uc_n_self==0, 'uc_n_self'] = 0.13
+df_sceg_pure.loc[df_sceg_pure.uc_sd_self==0, 'uc_sd_self'] = 0.1 
+
+
+df_sceg_pure['uc_nu_stat'] = df_sceg_pure.uc_nu.copy()
+
+df_sceg_pure['uc_gamma_self_stat'] = df_sceg_pure.uc_gamma_self.copy()
+df_sceg_pure['uc_n_self_stat'] = df_sceg_pure.uc_n_self.copy()
+df_sceg_pure['uc_sd_self_stat'] = df_sceg_pure.uc_sd_self.copy()
+
+df_sceg_pure['uc_delta_self_stat'] = df_sceg_pure.uc_delta_self.copy()
+df_sceg_pure['uc_n_delta_self_stat'] = df_sceg_pure.uc_n_delta_self.copy()
+
+
+which = (df_sceg_pure.uc_nu>-0.5)
+df_sceg_pure.loc[which, 'uc_nu'] = np.sqrt(df_sceg_pure[which].uc_nu_stat**2 + 
+                               (1.7E-4)**2)
+
+    
+# self parameters
+which = (df_sceg_pure.uc_gamma_self>-0.5)
+df_sceg_pure.loc[which, 'uc_gamma_self'] = np.sqrt((df_sceg_pure[which].uc_gamma_self_stat/df_sceg_pure[which].gamma_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2) * df_sceg_pure[which].gamma_self
+which = (df_sceg_pure.uc_n_self>-0.5)
+df_sceg_pure.loc[which, 'uc_n_self'] = np.sqrt((df_sceg_pure[which].uc_n_self_stat/df_sceg_pure[which].n_self)**2 + 
+                                   (0.9645*df_sceg_pure[which].uc_gamma_self/df_sceg_pure[which].gamma_self)**2) * abs(df_sceg_pure[which].n_self)
+which = (df_sceg_pure.uc_sd_self>-0.5)
+df_sceg_pure.loc[which, 'uc_sd_self'] = np.sqrt((df_sceg_pure[which].uc_sd_self_stat/df_sceg_pure[which].sd_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2 + 0.039**2) * df_sceg_pure[which].sd_self
+
+which = (df_sceg_pure.uc_delta_self>-0.5)
+df_sceg_pure.loc[which, 'uc_delta_self'] = np.sqrt((df_sceg_pure[which].uc_delta_self_stat/df_sceg_pure[which].delta_self)**2 + 
+                                       (0.0027)**2 + (0.0081)**2 + #) * df_sceg_pure[which].delta_self
+                                       (1.7E-4 / (0.021*df_sceg_pure[which].delta_self))**2) * abs(df_sceg_pure[which].delta_self)
+
+which = (df_sceg_pure.uc_n_delta_self>-0.5)
+df_sceg_pure.loc[which, 'uc_n_delta_self'] = np.sqrt((df_sceg_pure[which].uc_n_delta_self_stat/df_sceg_pure[which].n_delta_self)**2 + 
+					   (0.9645*df_sceg_pure[which].uc_delta_self/df_sceg_pure[which].delta_self)**2) * abs(df_sceg_pure[which].n_delta_self)
+
+
+
+# air water data
+f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
+[df_sceg_air, _, _, _, _, _] = pickle.load(f)
+f.close()
+
+df_sceg_air = df_sceg_air.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
+
+
+df_sceg_air.loc[df_sceg_air.uc_gamma_self==0, 'uc_gamma_air'] = 0.012
+df_sceg_air.loc[df_sceg_air.uc_n_self==0, 'uc_n_air'] = 0.13
+df_sceg_air.loc[df_sceg_air.uc_sd_air==0, 'uc_sd_air'] = 0.1 
+
+
+df_sceg_air['uc_gamma_air_stat'] = df_sceg_air.uc_gamma_air.copy()
+df_sceg_air['uc_n_air_stat'] = df_sceg_air.uc_n_air.copy()
+df_sceg_air['uc_sd_air_stat'] = df_sceg_air.uc_sd_air.copy()
+
+df_sceg_air['uc_delta_air_stat'] = df_sceg_air.uc_delta_air.copy()
+df_sceg_air['uc_n_delta_air_stat'] = df_sceg_air.uc_n_delta_air.copy()
+
+   
+# air parameters
+which = (df_sceg_air.uc_gamma_air>-0.5)
+df_sceg_air.loc[which, 'uc_gamma_air'] = np.sqrt((df_sceg_air[which].uc_gamma_air_stat/df_sceg_air[which].gamma_air)**2 + 
+						   (0.0025)**2 + (0.029)**2 + (0.0082)**2) * df_sceg_air[which].gamma_air
+which = (df_sceg_air.uc_n_air>-0.5)
+df_sceg_air.loc[which, 'uc_n_air'] = np.sqrt((df_sceg_air[which].uc_n_air_stat/df_sceg_air[which].n_air)**2 + 
+					   (0.9645*df_sceg_air[which].uc_gamma_air/df_sceg_air[which].gamma_air)**2) * abs(df_sceg_air[which].n_air)
+
+which = (df_sceg_air.uc_sd_air>-0.5)
+df_sceg_air.loc[which, 'uc_sd_air'] = np.sqrt((df_sceg_air[which].uc_sd_air_stat/df_sceg_air[which].sd_air)**2 + 
+						   (0.0025)**2 + (0.029)**2 + (0.0082)**2 + 0.052**2) * df_sceg_air[which].sd_air
+
+which = (df_sceg_air.uc_delta_air>-0.5)
+df_sceg_air.loc[which, 'uc_delta_air'] = np.sqrt((df_sceg_air[which].uc_delta_air_stat/df_sceg_air[which].delta_air)**2 + 
+						   (0.0025)**2 + (0.029)**2 + (0.0082)**2 + #) * df_sceg_air[which].delta_air
+						   (1.7E-4 / (0.789*df_sceg_air[which].delta_air))**2) * abs(df_sceg_air[which].delta_air) # 0.789 atm = 600 Torr
+
+which = (df_sceg_air.uc_n_delta_air>-0.5)
+df_sceg_air.loc[which, 'uc_n_delta_air'] = np.sqrt((df_sceg_air[which].uc_n_delta_air_stat/df_sceg_air[which].n_delta_air)**2 + 
+					   (0.9645*df_sceg_air[which].uc_delta_air/df_sceg_air[which].delta_air)**2) * abs(df_sceg_air[which].n_delta_air)
+
+
+df_sceg_pure = df_sceg_pure[['nu','uc_nu','gamma_self','uc_gamma_self','n_self','uc_n_self','sd_self','uc_sd_self',
+                             'delta_self','uc_delta_self','n_delta_self','uc_n_delta_self']]
+
+df_sceg_air = df_sceg_air[['gamma_air','uc_gamma_air','n_air','uc_n_air','sd_air','uc_sd_air',
+                           'delta_air','uc_delta_air','n_delta_air','uc_n_delta_air',
+                           'quanta','local_iso_id','vp','vpp','Jp','Kap','Kcp','Jpp','Kapp','Kcpp','m','doublets']]
+
+
+df_sceg = pd.merge(df_sceg_pure, df_sceg_air, on='index')
+
+
+#%% prepare transitions we will use to explore DPL
 
 
 bin_names_test = ['B10', 
@@ -279,7 +385,8 @@ features_doublets = [[],
                      []]
 
 
-features_strong_flat = [item for sublist in features_strong for item in sublist]
+features_strong_flat_all = [item for sublist in features_strong for item in sublist]
+features_strong_flat = features_strong_flat_all.copy()
 
 for doublet in features_doublets: 
     if doublet != []: 
@@ -288,8 +395,27 @@ for doublet in features_doublets:
 
 T_conditions = list(dict.fromkeys([i.split()[0] for i in d_conditions]))
 
-output_dpl = np.zeros((2,len(features_strong_flat), len(T_conditions), 8)) # values at each temperature
-output_lab = np.zeros((2,len(features_strong_flat), 12)) # values as originally calculated by Labfit
+df_sceg = df_sceg[df_sceg.index.isin(features_strong_flat_all)]
+
+
+
+extra_params_base = ['gs','sds','ds','ga','sda','da'] # self and air width, SD, and shift
+extra_params = ['nu_300', 'uc_nu_300']
+
+for i_p, param in enumerate(extra_params_base): 
+    for i_T, T in enumerate(T_conditions):
+        
+        name = param + '_' + T
+        
+        extra_params.append(name)
+        extra_params.append('uc_' + name)
+    
+    
+
+df_sceg.reindex(columns=extra_params)
+
+
+#%% perform DPL calculations
 
 d_labfit_kernal = d_labfit_kp1
 d_old_all = r'E:\water database' # for comparing to original input files
@@ -556,7 +682,45 @@ pickle.dump([output_dpl, output_lab, T_conditions, features_strong, features_dou
 f.close()               
 
 
-r'''
+
+#%% load in the DPL data
+
+
+f = open(os.path.join(d_sceg_save,'DPL exploration.pckl'), 'rb')
+[output_dpl, output_lab, T_conditions, features_strong, features_doublets] = pickle.load(f)
+f.close()     
+
+T_conditions = [float(T) for T in T_conditions]
+T_conditions = np.asarray(T_conditions)
+
+features_strong_flat = [item for sublist in features_strong for item in sublist] # list of all transitions, only one from each doublet included
+
+for doublet in features_doublets: 
+    if doublet != []: 
+        for sub_doublet in doublet: 
+            features_strong_flat.remove(sub_doublet[1])
+
+df_sceg
+
+
+
+
+
+
+type_name = 'air' 
+
+type_names = {'pure':0,
+              'air':1}
+i_type = type_names[type_name]
+
+
+prop_name = 'sd'
+
+prop_names = {'gamma':0,
+              'sd':2, 
+              'delta':4, 
+              'nu':6}
+i_prop = prop_names[prop_name]
 
 
 #%% fit the data for n values
@@ -578,133 +742,16 @@ def DPL(T, c1, n1, c2, n2):
     return c1*(296/T)**n1 + c2*(296/T)**n2
 
 
-#%% load in the DPL data
 
-
-f = open(os.path.join(d_sceg_save,'DPL exploration.pckl'), 'rb')
-[output_dpl, output_lab, T_conditions, features_strong, features_doublets] = pickle.load(f)
-f.close()     
-
-T_conditions = [float(T) for T in T_conditions]
-T_conditions = np.asarray(T_conditions)
-
-features_strong_flat = [item for sublist in features_strong for item in sublist]
-
-for doublet in features_doublets: 
-    if doublet != []: 
-        for sub_doublet in doublet: 
-            features_strong_flat.remove(sub_doublet[1])
-
-type_name = 'air' 
-
-type_names = {'pure':0,
-              'air':1}
-i_type = type_names[type_name]
-
-
-prop_name = 'sd'
-
-prop_names = {'gamma':0,
-              'sd':2, 
-              'delta':4, 
-              'nu':6}
-i_prop = prop_names[prop_name]
-
-
-
-#%% initial plots to explore data
-r'''
-output_type = output_dpl[i_type,:,:,:]
-
-plt.figure()
-i = 0
-
-for i_feat, feat in enumerate(features_strong_flat): 
-    
-    prop = output_type[i_feat,:,i_prop]
-    uc_prop = output_type[i_feat,:,i_prop+1]
-    
-    if (-1 not in uc_prop) and (max(uc_prop)<0.2): # and (min(prop>0.01)): 
-        
-        T_plot = [T+i_feat/10 for T in T_conditions]
-        
-        plt.plot(T_plot, prop)
-        plt.errorbar(T_plot, prop, yerr=uc_prop)
-        
-        if i == 0: 
-            prop_all = prop.copy()
-            i+=1
-        else: 
-            prop_all = np.vstack((prop_all,prop))
-            
-            
-prop_median = np.median(prop_all, axis=0)
-
-prop_mean = np.mean(prop_all, axis=0)
-prop_perc = 100*(prop_mean-np.mean(prop_mean)) / np.mean(prop_mean)
-prop_perc_std = np.std(prop_perc)
-
-plt.plot(T_conditions, prop_mean, 'k', linewidth=10, zorder=100, label='mean (T)')
-plt.plot(T_conditions, prop_median, 'r', linewidth=10, zorder=100, label='median (T)')
-
-
-# SPL(T, c, n)
-fit_x = T_conditions.copy()
-fit_y = prop_median.copy()
-
-    
-n = 1
-
-if prop_name == 'sd' and type_name == 'air': 
-    c1 = 0.1
-    c2 = 0.1
-    
-    # fit the data using the function  
-    fit_params, _ = curve_fit(SPLoff, fit_x, fit_y, p0=[c1,c2,n])
-
-    c1, c2, n = fit_params
-
-    prop_fit = SPLoff(fit_x, c1, c2, n)
-    
-else: 
-    c = 0.1
-    
-    # fit the data using the function  
-    fit_params, _ = curve_fit(SPL, fit_x, fit_y, p0=[c,n])
-
-    c, n = fit_params
-
-    prop_fit = SPL(fit_x, c, n)
-
-
-
-
-plt.plot(fit_x, prop_fit, 'X', color='darkgreen', markersize=10, linewidth=10, zorder=101, label='SPL fit (to median)')
-
-
-mad = np.mean(np.abs(fit_y-prop_fit))
-rms = np.sqrt(np.sum((fit_y-prop_fit)**2)/ len(fit_y))
-r2 = r2_score(fit_y, prop_fit)
-
-
-print('n={:.3f}'.format(n))
-print('{}    {}     {}'.format(mad, rms, r2))
-
-plt.legend()
-
-plt.xlabel('Temperature (K)')
-plt.ylabel('{}_{}'.format(prop_name, type_name))
-
-print('{}_{}  {:.3f} +/- {:.2f}% for {} features\n\n\n'.format(prop_name, type_name, np.mean(prop_mean), prop_perc_std, np.shape(prop_all)[0]))
-r'''
+please = stophere_fullyloaded
 
 #%% plots for Bob
 
-
+T_smooth = np.linspace(T_conditions[0], T_conditions[-1], num=1000)
 df_quanta = db.labfit_to_df('E:\water database\pure water\B1\B1-000-HITRAN')
 
-i_type = 1 # pure water absorption
-i=0
+i_type = 1 # 0 = pure water, 1 = air-water absorption
+i_RMS = False
 
 features_doublets_flat = [item for sublist in features_doublets for item in sublist]
 features_doublets_flat = [item for sublist in features_doublets_flat for item in sublist]
@@ -722,15 +769,15 @@ for i_feat, feature in enumerate(features_strong_flat):
     
     if feature not in features_doublets_flat: 
           
-        # confirm all vlaues are floated
-        if np.all(output_dpl[i_type,i_feat,1:,1] != -1) & np.all(output_dpl[i_type,i_feat,1:,3] != -1) & (
-            np.all(output_dpl[i_type,i_feat,1:,5] != -1)) & np.all(output_dpl[i_type,i_feat,1:,7] == -1): 
-            
+        # confirm all values are floated
+        if np.all(output_dpl[:,i_feat,:,1] != -1) & np.all(output_dpl[:,i_feat,:,3] != -1) & (
+            np.all(output_dpl[:,i_feat,:,5] != -1)) & np.all(output_dpl[:,i_feat,1,7] == -1): 
+             
             for i_T, T in enumerate(T_conditions): 
                 
                 T_str = str(int(T))
                 
-                list_feature[i_T*2 + 0 + 1] = output_dpl[i_type,i_feat,i_T,0]
+                list_feature[i_T*2 + 0 + 1] = output_dpl[i_type,i_feat,i_T,0] 
                 list_feature[i_T*2 + 1 + 1] = output_dpl[i_type,i_feat,i_T,1]
 
                 list_feature[i_T*2 + 12 + 1] = output_dpl[i_type,i_feat,i_T,2]
@@ -740,23 +787,330 @@ for i_feat, feature in enumerate(features_strong_flat):
                 list_feature[i_T*2 + 25 + 1] = output_dpl[i_type,i_feat,i_T,5]
                 
             df_features.loc[feature] = list_feature
-                
+            
             df_features.quanta[feature] = df_quanta.quanta[feature]
             
-df_features.to_csv('DPL_parameters.csv')
             
+            fig, axs = plt.subplots(4,2, figsize=(14,25), sharex = 'col', gridspec_kw={'hspace':0}) # sharex = 'col', sharey = 'row', 
+            
+            fig.subplots_adjust(top=0.95)
+            
+           
+            quanta = df_quanta.quanta[feature].split()
+            try: kcJ = float(quanta[8])/float(quanta[6])
+            except: kcJ = 0.
+            
+            plt.suptitle('{}{}{} ← {}{}{}      {}$_{}$$_{}$ ← {}$_{}$$_{}$      Kc" / J" = {:.3f}'.format(quanta[0],quanta[1],quanta[2],quanta[3],quanta[4],quanta[5],
+                                                                            quanta[6],quanta[7],quanta[8],quanta[9],quanta[10],quanta[11], kcJ))
+            RMS_params = 9
+            RMS_extra = 3
+
+            RMS_iter = np.empty((1,RMS_extra + RMS_params*2))
+            RMS_iter[:] = np.nan
+                        
+            RMS_iter[0,0] = feature
+            RMS_iter[0,1] = float(quanta[6]) # J"
+            RMS_iter[0,2] = kcJ # Kc / J"
+            
+            
+            for i_type, name_type in enumerate(['H2O-H2O','air-H2O ']): 
+                
+                # --------------------- collisional widths           
+                # fit the data           
+                y_data = output_dpl[i_type,i_feat,:,0]
+                y_unc = output_dpl[i_type,i_feat,:,1]
+                
+                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2) * y_data
+                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2) * y_data
+                
+                p_labfit = [output_lab[i_type,i_feat,2], output_lab[i_type,i_feat,4]]
+    
+                # plot the data
+                axs[0,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                axs[0,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
+                
+                axs[0,i_type].plot(T_smooth, SPL(T_smooth, *p_labfit), label='SPL (Labfit)') 
+                RMS_iter[0,RMS_extra + 0 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
+                
+                try: 
+                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
+                    axs[0,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)') 
+                    RMS_iter[0,RMS_extra + 1 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_SPL) - y_data)**2))
+                except: pass
+            
+                try: 
+                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
+                    axs[0,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
+                    RMS_iter[0,RMS_extra + 2 + i_type*RMS_params] = np.sqrt(np.mean((DPL(T_conditions, *p_DPL) - y_data)**2))
+                except: pass
+                
+                axs[0,i_type].set_ylabel(name_type + ' Width')
+    
+                axs[0,i_type].legend(loc='upper right')
+    
+                
+                
+                # --------------------- collisional shifts       
+                # fit the data           
+                y_data = output_dpl[i_type,i_feat,:,4]
+                y_unc = output_dpl[i_type,i_feat,:,5]
+                
+                
+                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2 + (1.7E-4 / (0.021*y_data))**2) * abs(y_data)
+                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2 + (1.7E-4 / (0.789*y_data))**2) * abs(y_data)
+                
+                
+                p_labfit = [output_lab[i_type,i_feat,8], output_lab[i_type,i_feat,10]]
+    
+                # plot collisional shifts
+                axs[1,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                axs[1,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
+                
+                delta_nu = output_lab[i_type,i_feat,0] - output_dpl[i_type,i_feat,i_T,6]
+                
+                axs[1,i_type].plot(T_smooth, SPL(T_smooth, *p_labfit), label='SPL (Labfit)') 
+                RMS_iter[0,RMS_extra + 3 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
+                
+                try: 
+                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
+                    axs[1,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)') 
+                    RMS_iter[0,RMS_extra + 4 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
+                except: pass
+            
+                try: 
+                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
+                    axs[1,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
+                    RMS_iter[0,RMS_extra + 5 + i_type*RMS_params] = np.sqrt(np.mean((DPL(T_conditions, *p_DPL) - y_data)**2))
+                except: pass
+    
+    
+                axs[1,i_type].set_ylabel(name_type + ' Shift')
+    
+                axs[1,i_type].legend()
+                
+              
+                
+                # --------------------- aw (SD)
+                
+                y_data = output_dpl[i_type,i_feat,:,2]*output_dpl[i_type,i_feat,:,0]
+                y_unc = output_dpl[i_type,i_feat,:,1] # estimate - using width uncertianty as stand-in
+                
+                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2 + 0.039**2) * y_data
+                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2 + 0.052**2) * y_data               
+                
+                
+                # plot the data
+                axs[2,i_type].plot(T_conditions, output_dpl[i_type,i_feat,:,2], color='k', marker='x', markersize=10, markeredgewidth=3, 
+                            linestyle='None', label='Measurement', zorder=10)
+                axs[2,i_type].errorbar(T_conditions, output_dpl[i_type,i_feat,:,2], output_dpl[i_type,i_feat,:,3], 
+                                color='k', fmt='none', capsize=5, zorder=10)
+            
+                axs[2,i_type].plot(T_smooth, output_lab[i_type,i_feat,6]*np.ones_like(T_smooth), label='Average (Labfit)')          
+    
+                axs[2,i_type].set_ylabel(name_type + ' SD aw')
+    
+                axs[2,i_type].legend()
+    
+                
+                
+                # --------------------- gamma_SD
+                # fit the data           
+                y_data = output_dpl[i_type,i_feat,:,2]*output_dpl[i_type,i_feat,:,0]
+                y_unc = output_dpl[i_type,i_feat,:,1] # estimate - using width uncertianty as stand-in
+                
+                p_labfit = [output_lab[i_type,i_feat,2], output_lab[i_type,i_feat,4]] # estimate - using width SPL as stand-in
+    
+                # plot the data
+                axs[3,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                axs[3,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
+                
+                axs[3,i_type].plot(T_smooth, output_lab[i_type,i_feat,6] * SPL(T_smooth, *p_labfit), label='SPL (Labfit - width)')
+                RMS_iter[0,RMS_extra + 6 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * SPL(T_conditions, *p_labfit) - y_data)**2))
+                
+                try: 
+                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
+                    axs[3,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)')
+                    RMS_iter[0,RMS_extra + 7 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * SPL(T_conditions, *p_SPL) - y_data)**2))
+                except: pass
+            
+                try: 
+                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
+                    axs[3,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
+                    RMS_iter[0,RMS_extra + 8 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * DPL(T_conditions, *p_DPL) - y_data)**2))
+                except: pass
+    
+                
+                axs[3,i_type].set_ylabel(name_type + ' SD Width')
+    
+                axs[3,i_type].legend(loc='upper right')
+                
+                # set up x-axis for all plots
+                axs[-1,i_type].set_xlabel('Temperature (K)')
+                axs[-1,i_type].set_xticks(np.arange(300, 1301, 200))
+                axs[-1,i_type].set_xlim(200, 1400)
+                
+                
+                for i_axs in range(len(axs)): 
+                    axs[i_axs,i_type].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+                    axs[i_axs,i_type].xaxis.set_minor_locator(AutoMinorLocator(5))
+                    axs[i_axs,i_type].yaxis.set_minor_locator(AutoMinorLocator(5))
+                
+            
+            # plt.savefig(os.path.abspath('')+r'\plots\DPL\{}.png'.format(feature))
+            plt.close()
+                     
+            if i_RMS: 
+                RMS = np.vstack((RMS.copy(), RMS_iter.copy()))
+                quanta_all.append(quanta[0:6].copy())
+            else: 
+                RMS = RMS_iter.copy(); i_RMS = True
+                quanta_all = [quanta[0:6].copy()]
+            
+            
+# df_features.to_csv('DPL_parameters.csv')
 
 
-# output_dpl[i_type,i_feat,i_T,0] = df_calcs.loc[feat]['gamma_'+d_which]
-# output_dpl[i_type,i_feat,i_T,1] = df_calcs.loc[feat]['uc_gamma_'+d_which]
+#%% plot RMS data 
 
-# output_dpl[i_type,i_feat,i_T,2] = df_calcs.loc[feat].sd_self
-# output_dpl[i_type,i_feat,i_T,3] = df_calcs.loc[feat].uc_sd_self
-# output_dpl[i_type,i_feat,i_T,4] = df_calcs.loc[feat]['delta_'+d_which]
-# output_dpl[i_type,i_feat,i_T,5] = df_calcs.loc[feat]['uc_delta_'+d_which]
 
-# output_dpl[i_type,i_feat,i_T,6] = df_calcs.loc[feat].nu
-# output_dpl[i_type,i_feat,i_T,7] = df_calcs.loc[feat].uc_nu
+fig, axs = plt.subplots(3,3, figsize=(10,10), sharey = 'row', sharex = 'col', gridspec_kw={'hspace':0.03, 'wspace':0.01, 'width_ratios': [5,5,6]}) # sharex = 'col', sharey = 'row', 
+
+
+x_off = 10
+y_off = 100
+
+y_offset = [(float(v1p) + float(v2p))/y_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta_all]
+x_offset = [(float(v3p) + float(v2p))/x_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta_all]
+
+# width RMS values
+axs[0,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,3], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
+axs[0,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,4], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
+sp1 = axs[0,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,5], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
+
+fig.colorbar(sp1, shrink=0.9, label='Width - RMS meas vs fit',  pad=0.01)
+
+
+
+# shift RMS values
+axs[1,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,6], cmap='viridis', zorder=2, linewidth=2) #, vmin=0, vmax=18)
+axs[1,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,7], cmap='viridis', zorder=2, linewidth=2)
+sp2 = axs[1,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,8], cmap='viridis', zorder=2, linewidth=2)
+
+fig.colorbar(sp2, shrink=0.9, label='Shift - RMS meas vs fit',  pad=0.01)
+
+# SD RMS values
+axs[2,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,9], cmap='viridis', zorder=2, linewidth=2) #, vmin=0, vmax=18)
+axs[2,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,10], cmap='viridis', zorder=2, linewidth=2)
+sp3 = axs[2,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,11], cmap='viridis', zorder=2, linewidth=2)
+
+fig.colorbar(sp3, shrink=0.9, label='SD - RMS meas vs fit',  pad=0.01)
+
+
+axs[0,0].set_title('SPL (Labfit)')
+axs[0,1].set_title('SPL (Scipy)')
+axs[0,2].set_title('DPL (Scipy)')
+
+axs[0,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+axs[1,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+axs[2,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+
+axs[2,0].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+axs[2,1].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+axs[2,2].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+
+
+
+for i_axs in [0,1,2]: 
+    for j_axs in [0,1,2]: 
+        axs[i_axs,j_axs].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+        axs[i_axs,j_axs].xaxis.set_minor_locator(AutoMinorLocator(5))
+        axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
+
+        axs[i_axs,j_axs].text(4.5, 0, 'RMS = {:.3f}±{:.3f}'.format(np.nanmean(RMS[:,3+i_axs+3*j_axs]),np.nanstd(RMS[:,3+i_axs+3*j_axs])))
+
+        # axs[i_axs,j_axs].scatter(RMS[:,1], RMS[:,2], marker='.', color='r', s=1, zorder=10)
+
+
+
+plt.savefig(os.path.abspath('')+r'\plots\DPL\RMS.png')
+
+
+
+#%% plot RMS data as histograms
+
+
+
+
+fig, axs = plt.subplots(3,3, figsize=(10,10), sharey = 'row', sharex = 'col', gridspec_kw={'hspace':0.01, 'wspace':0.03, 'width_ratios': [5,5,5]}) # sharex = 'col', sharey = 'row', 
+
+
+
+bins = 115
+ylim = 29
+
+xlim_low = -0.002
+xlim_high = 0.095
+
+# width RMS values
+axs[0,0].hist(RMS[:,3], bins=bins)
+axs[1,0].hist(RMS[:,4], bins=bins)
+axs[2,0].hist(RMS[:,5], bins=bins)
+
+axs[0,0].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,3]))))
+axs[1,0].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,4]))))
+axs[2,0].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,5]))))
+
+axs[2,0].set_xlim((xlim_low,xlim_high))
+axs[2,0].set_xlabel('RMS - Collisional Width')
+
+# shift RMS values
+axs[0,1].hist(RMS[:,6], bins=bins)
+axs[1,1].hist(RMS[:,7], bins=bins)
+axs[2,1].hist(RMS[:,8], bins=bins)
+
+axs[0,1].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,6]))))
+axs[1,1].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,7]))))
+axs[2,1].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,8]))))
+
+axs[2,1].set_xlim((xlim_low,xlim_high))
+axs[2,1].set_xlabel('RMS - Collisional Shift')
+
+# SD RMS values
+axs[0,2].hist(RMS[:,9], bins=bins)
+axs[1,2].hist(RMS[:,10], bins=bins)
+axs[2,2].hist(RMS[:,11], bins=bins)
+
+axs[0,2].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,9]))))
+axs[1,2].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,10]))))
+axs[2,2].text(0.05, 26, 'Count = {}'.format(np.count_nonzero(~np.isnan(RMS[:,11]))))
+
+axs[2,2].set_xlim((xlim_low,xlim_high))
+axs[2,2].set_xlabel('RMS - Speed Dependence')
+
+
+
+axs[0,0].set_ylim((0,ylim))
+axs[1,0].set_ylim((0,ylim))
+axs[2,0].set_ylim((0,ylim))
+
+axs[0,0].set_ylabel('SPL (Labfit)')
+axs[1,0].set_ylabel('SPL (Scipy)')
+axs[2,0].set_ylabel('DPL (Scipy)')
+
+
+
+
+for i_axs in [0,1,2]: 
+    for j_axs in [0,1,2]: 
+        axs[i_axs,j_axs].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+        axs[i_axs,j_axs].xaxis.set_minor_locator(AutoMinorLocator(5))
+        axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
+
+
+
+
+plt.savefig(os.path.abspath('')+r'\plots\DPL\RMS - histogram.png')
+
 
 
 

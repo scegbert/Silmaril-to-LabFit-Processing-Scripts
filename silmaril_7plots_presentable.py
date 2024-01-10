@@ -207,7 +207,7 @@ elif d_type == 'air': f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
 [df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul, df_sd0] = pickle.load(f)
 f.close()
 
-df_sceg = df_sd0.copy()
+# df_sceg = df_sd0.copy() # activate this line if you only want to look at SD = 0 data
 
 if d_type == 'air': df_sceg = df_sceg.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
 
@@ -2233,7 +2233,8 @@ label_y = 'Air-Width Temperature Exponent, n$_{γ,air}$'
 plot_which_x = 'gamma_air'
 label_x = 'Air-Width, γ$_{air}$ [cm$^{-1}$/atm]'
 
-label_c = 'Angular Momentum of Ground State, J"'
+label_c = 'Lower State Energy, E" [cm$^{-1}$]'
+plot_which_c = 'elower'
 
 df_plot = df_sceg_align[(df_sceg['uc_gamma_air'] > -1)&(df_sceg['uc_n_air'] > -1)].sort_values(by=['Jpp']).sort_values(by=['Jpp'])
 
@@ -2252,11 +2253,11 @@ plt.ylabel(label_y, fontsize=12)
 
 plot_x = df_plot[plot_which_x]
 plot_y = df_plot[plot_which_y]
-plot_c = df_plot.Jpp
+plot_c = df_plot[plot_which_c]
 
 
  
-sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=18)
+sc = plt.scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=4000)
              # label=HT_errors_nu[err])
 
 if plot_unc_x_bool: 
@@ -2317,7 +2318,7 @@ plot_which_y = 'sd_air'
 label_y = 'Speed Dependence of the Air-Width, a$_{w}$'
 
 plot_which_x = 'Jpp'
-label_x = 'J" + Kc"/10'
+label_x = 'J" + 0.9 Kc"/J"'
 
 label_c = 'Lower State Energy, E" [cm$^{-1}$]'
 plot_which_c = 'elower'
@@ -2339,7 +2340,7 @@ plt.ylabel(label_y, fontsize=12)
 
 
 # plot_x = df_plot[plot_which_x]
-plot_x = df_plot[plot_which_x] + df_plot['Kcpp'] / 10
+plot_x = df_plot['Jpp'] + 0.9 * df_plot['Kcpp'] / df_plot['Jpp']
 plot_y = df_plot[plot_which_y]
 plot_c = df_plot[plot_which_c]
 

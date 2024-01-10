@@ -455,6 +455,7 @@ ax02.text(h1, v0, "C", fontweight="bold", fontsize=12, transform=ax02.transAxes)
 ax00.text(hb, vb, "(B)", fontsize=12, transform=ax00.transAxes)
 ax00.text(hc, vc, "(C)", fontsize=12, transform=ax00.transAxes)
 
+ax02.text(0.18, 0.85, "*", fontweight="bold", fontsize=12, transform=ax02.transAxes)
 
 
 #%% save it

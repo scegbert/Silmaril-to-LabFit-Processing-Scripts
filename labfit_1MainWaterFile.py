@@ -36,7 +36,7 @@ import pickle
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -864,11 +864,11 @@ for i, bin_name in enumerate(bin_names_test):
     [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
     # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
-    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props[prop_which], props[prop_which2], features=features_strong[i], axis_labels=False) # <-------------------
+    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, features=features_strong[i], axis_labels=False) # <-------------------
     plt.title(bin_name)
 
 
-
+    
 pausehere
 
 
