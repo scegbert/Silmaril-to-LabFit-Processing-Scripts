@@ -273,7 +273,8 @@ df_sceg_pure = df_sceg_pure[['nu','uc_nu','gamma_self','uc_gamma_self','n_self',
 
 df_sceg_air = df_sceg_air[['gamma_air','uc_gamma_air','n_air','uc_n_air','sd_air','uc_sd_air',
                            'delta_air','uc_delta_air','n_delta_air','uc_n_delta_air',
-                           'quanta','local_iso_id','vp','vpp','Jp','Kap','Kcp','Jpp','Kapp','Kcpp','m','doublets']]
+                           'quanta','local_iso_id','vp','vpp','Jp','Kap','Kcp','Jpp','Kapp','Kcpp','m','doublets', 
+                           'ratio_300','ratio_500','ratio_700','ratio_900','ratio_1100','ratio_1300']]
 
 
 df_sceg = pd.merge(df_sceg_pure, df_sceg_air, on='index')
@@ -399,21 +400,24 @@ df_sceg = df_sceg[df_sceg.index.isin(features_strong_flat_all)]
 
 
 
-extra_params_base = ['gs','sds','ds','ga','sda','da'] # self and air width, SD, and shift
+d_whiches = ['self', 'air']
+extra_params_base = ['gamma','sd','delta'] # self and air width, SD, and shift
 extra_params = ['nu_300', 'uc_nu_300']
 
-for i_p, param in enumerate(extra_params_base): 
-    for i_T, T in enumerate(T_conditions):
-        
-        name = param + '_' + T
-        
-        extra_params.append(name)
-        extra_params.append('uc_' + name)
+for d_which in d_whiches: 
+    for param in extra_params_base: 
+        for T_iter in T_conditions:
+            
+            name = param + '_' + d_which + '_' + T_iter
+            
+            extra_params.append(name)
+            extra_params.append('uc_' + name)
     
     
 
-df_sceg.reindex(columns=extra_params)
+df_sceg = pd.merge(df_sceg, df_sceg.reindex(columns=extra_params), on='index')
 
+sdfsdfsdfsdf
 
 #%% perform DPL calculations
 
@@ -425,13 +429,15 @@ lines_per_asc = 134 # number of lines per asc measurement file in inp or rei fil
 lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
 
 
+
+
 for i_bin, bin_name in enumerate(bin_names_test):
 
     features = features_strong[i_bin]
     features_constrain = features_doublets[i_bin]
             
     for i_type, d_type in enumerate(['pure', 'air']): 
-
+        
         if d_type == 'pure': 
             d_which = 'self'
             
@@ -448,7 +454,7 @@ for i_bin, bin_name in enumerate(bin_names_test):
         
         num_asc = int(inp_saved[0].split()[2])
         num_features = int(inp_saved[0].split()[3])
-        
+         
         line_first_feature = lines_main_header + num_asc * lines_per_asc # all of the header down to the spectra
         line_first_constraint = line_first_feature + num_features * lines_per_feature
         
@@ -471,34 +477,17 @@ for i_bin, bin_name in enumerate(bin_names_test):
 
         for feat in features: 
             
-            if feat in features_strong_flat: 
+            # set all temperature dependences to 0 
+            i_guess = feat*lines_per_feature
             
-                i_feat = features_strong_flat.index(feat)
-            
-                output_lab[i_type,i_feat,0] = df_calcs.loc[feat].nu
-                output_lab[i_type,i_feat,1] = df_calcs.loc[feat].uc_nu
-                output_lab[i_type,i_feat,2] = df_calcs.loc[feat]['gamma_'+d_which]
-                output_lab[i_type,i_feat,3] = df_calcs.loc[feat]['uc_gamma_'+d_which]
-                output_lab[i_type,i_feat,4] = df_calcs.loc[feat]['n_'+d_which]
-                output_lab[i_type,i_feat,5] = df_calcs.loc[feat]['uc_n_'+d_which]
-                output_lab[i_type,i_feat,6] = df_calcs.loc[feat].sd_self
-                output_lab[i_type,i_feat,7] = df_calcs.loc[feat].uc_sd_self
-                output_lab[i_type,i_feat,8] = df_calcs.loc[feat]['delta_'+d_which]
-                output_lab[i_type,i_feat,9] = df_calcs.loc[feat]['uc_delta_'+d_which]
-                output_lab[i_type,i_feat,10] = df_calcs.loc[feat]['n_delta_'+d_which]
-                output_lab[i_type,i_feat,11] = df_calcs.loc[feat]['uc_n_delta_'+d_which]
+            if int(inp_features[i_guess].split()[0]) != feat: 
+                i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
+                i_guess -=2
                 
-            
-                # set all temperature dependences to 0 
-                i_guess = feat*lines_per_feature
-                
-                if int(inp_features[i_guess].split()[0]) != feat: 
-                    i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
-                    i_guess -=2
-                    
-                inp_features[i_guess] = inp_features[i_guess][:65] + ' 0.0000 ' + inp_features[i_guess][73:84] + ' 0.00000000 ' + inp_features[i_guess][96:]
-                inp_features[i_guess+1] = inp_features[i_guess+1][:11] + ' 0.0000 ' + inp_features[i_guess+1][19:30] + ' 0.00000000 ' + inp_features[i_guess+1][42:]
-            
+            inp_features[i_guess] = inp_features[i_guess][:65] + ' 0.0000 ' + inp_features[i_guess][73:84] + ' 0.00000000 ' + inp_features[i_guess][96:]
+            inp_features[i_guess+1] = inp_features[i_guess+1][:11] + ' 0.0000 ' + inp_features[i_guess+1][19:30] + ' 0.00000000 ' + inp_features[i_guess+1][42:]
+    
+        
         for i_T, T_iter in enumerate(T_conditions): 
             
             for i_meas, meas_condition in enumerate(d_conditions): 
@@ -522,36 +511,33 @@ for i_bin, bin_name in enumerate(bin_names_test):
                             iter_asc+=1
                             inp_asc.extend(inp_saved[line_asc:line_asc+lines_per_asc]) # if multiple instances of this ASC file
                         
-            # update nu for all conditions that aren't this one
+            # update nu for all conditions that aren't 300 K, pure H2O
             if (T_iter == '300' and d_type == 'pure') is False:
                 
                 for feat in features: 
+                                                
+                    # wavenumber as string
+                    nu_str = '{:.7f}'.format(df_sceg.nu_300[feat]) 
                     
-                    if feat in features_strong_flat: 
+                    # find the feature
+                    i_guess = feat*lines_per_feature
                     
-                        i_feat = features_strong_flat.index(feat) 
+                    if int(inp_features[i_guess].split()[0]) != feat: 
+                        i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
+                        i_guess -=2
                         
-                        # wavenumber as string
-                        nu_str = '{:.7f}'.format(output_dpl[0,i_feat,0,6]) 
+                    inp_features[i_guess] = inp_features[i_guess][:15] + nu_str + inp_features[i_guess][27:]
+                    
+                    # update width and shift to match values obtained for that conditions
+                    if d_type == 'air': 
+ 
+                        g_self_T = '{:.5f}'.format(df_sceg.loc[feat, 'gamma_self_'+T_iter])
+                        d_self_T = '{:.7f}'.format(df_sceg.loc[feat, 'delta_self_'+T_iter])
+                        if d_self_T[0] != '-': d_self_T = ' '+d_self_T
                         
-                        # find the feature
-                        i_guess = feat*lines_per_feature
-                        
-                        if int(inp_features[i_guess].split()[0]) != feat: 
-                            i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
-                            i_guess -=2
-                            
-                        inp_features[i_guess] = inp_features[i_guess][:15] + nu_str + inp_features[i_guess][27:]
-                        
-                        # update width and shift to match values obtained for that conditions
-                        if d_type == 'air': 
-    
-                            g_self_T = '{:.5f}'.format(output_dpl[0,i_feat,i_T,0])
-                            d_self_T = '{:.7f}'.format(output_dpl[0,i_feat,i_T,4])
-                            if d_self_T[0] != '-': d_self_T = ' '+d_self_T
-                            
-                            inp_features[i_guess+1] = '   ' + g_self_T + inp_features[i_guess+1][10:19] + d_self_T + inp_features[i_guess+1][29:]
-                            
+                        inp_features[i_guess+1] = '   ' + g_self_T + inp_features[i_guess+1][10:19] + d_self_T + inp_features[i_guess+1][29:]
+            
+            # document number of files included and save INP            
             inp_header[0] = inp_header[0][:25] + '    {}  '.format(iter_asc) + inp_header[0][32:]
             
             inp_updated = inp_header.copy()
@@ -561,7 +547,7 @@ for i_bin, bin_name in enumerate(bin_names_test):
             open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
             
             print('\n************************            {}          {}        {}\n'.format(bin_name, d_type, T_iter))
-                        
+            
             # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
             if T_iter == '300' and d_type == 'pure': 
                 lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', features_constrain) 
@@ -582,39 +568,41 @@ for i_bin, bin_name in enumerate(bin_names_test):
                 # plt.title(bin_name + ' - ' + T_iter)
         
         
-                # extract updated values and compile into dict/list
+                # extract updated values and compile 
                 for feat in features: 
                     
-                    if feat in features_strong_flat: 
-                    
-                        i_feat = features_strong_flat.index(feat) 
-                    
-                        output_dpl[i_type,i_feat,i_T,0] = df_calcs.loc[feat]['gamma_'+d_which]
-                        output_dpl[i_type,i_feat,i_T,1] = df_calcs.loc[feat]['uc_gamma_'+d_which]
+                    for i_p, param in enumerate(extra_params_base): 
+
+                        name_df = param + '_' + d_which + '_' + T_iter
+                        name_labfit = param + '_' + d_which
                         
-                        output_dpl[i_type,i_feat,i_T,2] = df_calcs.loc[feat].sd_self
-                        output_dpl[i_type,i_feat,i_T,3] = df_calcs.loc[feat].uc_sd_self
-                        output_dpl[i_type,i_feat,i_T,4] = df_calcs.loc[feat]['delta_'+d_which]
-                        output_dpl[i_type,i_feat,i_T,5] = df_calcs.loc[feat]['uc_delta_'+d_which]
                         
-                        output_dpl[i_type,i_feat,i_T,6] = df_calcs.loc[feat].nu
-                        output_dpl[i_type,i_feat,i_T,7] = df_calcs.loc[feat].uc_nu
+                        if name_labfit == 'sd_air':
+                            name_labfit = 'sd_self' # labfit calls everything SD self
+                            
+                        df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
+                        df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
+                                         
                         
+                        if name_df == 'gamma_self_300': 
+
+                            df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
+                            df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu']                            
+
+
             else:  
                  
                 for feat in features: 
                                         
                     if feat in features_strong_flat: 
                     
-                        i_feat = features_strong_flat.index(feat)
-                        
+                        # go through data one feature (or doublet pair) at a time                        
                         features_iter = [feat].copy()
                         features_constrain_iter = []
                         for doublet in features_constrain: 
                             if feat in doublet: 
                                 features_iter = doublet.copy()
                                 features_constrain_iter = [doublet.copy()]
-                        # features_constrain = Just constrain them all, but don't float them all
                         
                         open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
                         
@@ -629,23 +617,30 @@ for i_bin, bin_name in enumerate(bin_names_test):
                         lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['delta_'+d_which], 'inp_new', []) 
                         
                         # run labfit
-                        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+                        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
+
+                        if feature_error is None: 
+                            try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                            except: feature_error = '\t\t\t df_calc error'; print(feature_error)
     
                         if feature_error is not None: 
-    
-    
-                            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
-                        
+                                                   
                             print('\n            trying without shift (but with nu), still taking things one at a time')
-                                        
+                            
+                            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+                            
                             # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
                             lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['nu'], 'inp_new', features_constrain_iter) 
                             lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
                             lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['sd_self'], 'inp_new', features_constrain_iter)  
                             
                             # run labfit
-                            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
-                            
+                            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
+
+                            if feature_error is None: 
+                                try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                except: feature_error = 'df_calc error'; print(feature_error)
+                                
                             if feature_error is not None: 
                             
                                 open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
@@ -657,28 +652,39 @@ for i_bin, bin_name in enumerate(bin_names_test):
                                 lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
                                 
                                 # run labfit
-                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
-                                                    
+                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
+                                
+                                if feature_error is None: 
+                                    try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                    except: feature_error = 'df_calc error'; print(feature_error)
+                                
                         if feature_error is None: 
                             
-                            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                            
-                            output_dpl[i_type,i_feat,i_T,0] = df_calcs.loc[feat]['gamma_'+d_which]
-                            output_dpl[i_type,i_feat,i_T,1] = df_calcs.loc[feat]['uc_gamma_'+d_which]
-        
-                            output_dpl[i_type,i_feat,i_T,2] = df_calcs.loc[feat].sd_self
-                            output_dpl[i_type,i_feat,i_T,3] = df_calcs.loc[feat].uc_sd_self
-                            output_dpl[i_type,i_feat,i_T,4] = df_calcs.loc[feat]['delta_'+d_which]
-                            output_dpl[i_type,i_feat,i_T,5] = df_calcs.loc[feat]['uc_delta_'+d_which]
-                            
-                            output_dpl[i_type,i_feat,i_T,6] = df_calcs.loc[feat].nu
-                            output_dpl[i_type,i_feat,i_T,7] = df_calcs.loc[feat].uc_nu
+                            for feat in features_iter:  
+                                
+                                for i_p, param in enumerate(extra_params_base): 
+            
+                                    name_df = param + '_' + d_which + '_' + T_iter
+                                    name_labfit = param + '_' + d_which
+                                    
+                                    
+                                    if name_labfit == 'sd_air':
+                                        name_labfit = 'sd_self' # labfit calls everything SD self
+                                        
+                                    df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
+                                    df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
+                                                     
+                                    
+                                    if name_df == 'gamma_self_300': 
+            
+                                        df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
+                                        df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu'] 
 
 
 
 
-f = open(os.path.join(d_sceg_save,'DPL exploration.pckl'), 'wb')
-pickle.dump([output_dpl, output_lab, T_conditions, features_strong, features_doublets], f)
+f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
+pickle.dump([df_sceg, T_conditions, features_strong, features_doublets], f)
 f.close()               
 
 
