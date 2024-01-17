@@ -36,6 +36,7 @@ import pickle
 
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+import matplotlib.colors as colors
 
 
 # %% define some dictionaries and parameters
@@ -172,7 +173,7 @@ print('     ******************************************\n\n\n')
 d_labfit_main = d_old_holder
 features_new = None
 
-
+r'''
 # %% read in Labfit results
 
 # pure water data
@@ -278,6 +279,11 @@ df_sceg_air = df_sceg_air[['gamma_air','uc_gamma_air','n_air','uc_n_air','sd_air
 
 
 df_sceg = pd.merge(df_sceg_pure, df_sceg_air, on='index')
+
+df_HT2020_HT = df_HT2020_HT[['gamma_self','gamma_air','n_air','delta_air','ierr','iref']]
+df_sceg_align, df_HT2020_HT_align = df_sceg.align(df_HT2020_HT, join='inner', axis=0)
+
+df_sceg = pd.merge(df_sceg_align, df_HT2020_HT_align, left_index=True, right_index=True, suffixes=('', 'HT'))
 
 
 #%% prepare transitions we will use to explore DPL
@@ -415,9 +421,11 @@ for d_which in d_whiches:
     
     
 
-df_sceg = pd.merge(df_sceg, df_sceg.reindex(columns=extra_params), on='index')
+df_sceg = pd.merge(df_sceg, df_sceg.reindex(columns=extra_params), left_index=True, right_index=True)
 
-sdfsdfsdfsdf
+stop = DPL_processing_next
+
+
 
 #%% perform DPL calculations
 
@@ -687,30 +695,43 @@ f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
 pickle.dump([df_sceg, T_conditions, features_strong, features_doublets], f)
 f.close()               
 
-
-
+r'''
 #%% load in the DPL data
 
 
-f = open(os.path.join(d_sceg_save,'DPL exploration.pckl'), 'rb')
-[output_dpl, output_lab, T_conditions, features_strong, features_doublets] = pickle.load(f)
+# for param in extra_params: 
+#     df_sceg[param] = df_sceg2[param]
+
+
+f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'rb')
+[df_sceg, T_conditions, features_strong, features_doublets] = pickle.load(f)
 f.close()     
+
+types_RMS = ['labfit', 'HT', 'SPL', 'DPL']  
+d_whiches = ['self', 'air']
+extra_params_base = ['gamma','sd','delta'] # self and air width, SD, and shift
+
+# RMS for all values
+columns_RMS = []
+for d_which in d_whiches: 
+    for param in extra_params_base: 
+        for type_RMS in types_RMS:
+            
+            name = 'RMS_' + type_RMS + '_' + param + '_' + d_which
+            columns_RMS.append(name)
+
+# check for over conditioning for only scipy calculated values
+for d_which in d_whiches: 
+    for param in extra_params_base: 
+        for type_RMS in types_RMS[2:]: 
+            
+            name = 'condition_' + type_RMS + '_' + param + '_' + d_which
+            columns_RMS.append(name)
+
+df_sceg = pd.merge(df_sceg, df_sceg.reindex(columns=columns_RMS), left_index=True, right_index=True)
 
 T_conditions = [float(T) for T in T_conditions]
 T_conditions = np.asarray(T_conditions)
-
-features_strong_flat = [item for sublist in features_strong for item in sublist] # list of all transitions, only one from each doublet included
-
-for doublet in features_doublets: 
-    if doublet != []: 
-        for sub_doublet in doublet: 
-            features_strong_flat.remove(sub_doublet[1])
-
-df_sceg
-
-
-
-
 
 
 type_name = 'air' 
@@ -726,14 +747,11 @@ prop_names = {'gamma':0,
               'sd':2, 
               'delta':4, 
               'nu':6}
+
 i_prop = prop_names[prop_name]
 
 
 #%% fit the data for n values
-
-from scipy.optimize import curve_fit
-
-from sklearn.metrics import r2_score
 
 def SPL(T, c, n): 
     
@@ -748,297 +766,453 @@ def DPL(T, c1, n1, c2, n2):
     return c1*(296/T)**n1 + c2*(296/T)**n2
 
 
-
 please = stophere_fullyloaded
 
 #%% plots for Bob
 
-T_smooth = np.linspace(T_conditions[0], T_conditions[-1], num=1000)
+plot_aw = False
+
+T_smooth = np.linspace(T_conditions[0]-110, T_conditions[-1]+110, num=500)
 df_quanta = db.labfit_to_df('E:\water database\pure water\B1\B1-000-HITRAN')
 
-i_type = 1 # 0 = pure water, 1 = air-water absorption
-i_RMS = False
+T_unc_pure = np.array([2/295, 4/505, 5/704, 8/901, 11/1099, 19/1288])
+T_unc_air = np.array([2/295, 4/505, 5/704, 8/901, 11/1099, 20/1288])
 
-features_doublets_flat = [item for sublist in features_doublets for item in sublist]
-features_doublets_flat = [item for sublist in features_doublets_flat for item in sublist]
+P_unc_pure = 0.0027
+P_unc_air = 0.0025
+y_unc_air = 0.029
 
-column_names=['quanta', 
-              'g_300','uc_g_300','g_500','uc_g_500','g_700','uc_g_700','g_900','uc_g_900','g_1100','uc_g_1100','g_1300','uc_g_1300', 
-              'sd_300','uc_sd_300','sd_500','uc_sd_500','sd_700','uc_sd_700','sd_900','uc_sd_900','sd_1100','uc_sd_1100','sd_1300','uc_sd_1300', 
-              'd_300','uc_d_300','d_500','uc_d_500','d_700','uc_d_700','d_900','uc_d_900','d_1100','uc_d_1100','d_1300','uc_d_1300']
+colors_fits = ['lime','darkorange','blue', 'red']
 
-df_features = pd.DataFrame(columns=column_names)
 
-list_feature = np.zeros_like(column_names)
 
-for i_feat, feature in enumerate(features_strong_flat): 
+data_labfit = ['n_self', 
+               'n_delta_self', 
+               'sd_self', 
+               'n_air', 
+               'n_delta_air', 
+               'sd_air']
+
+data_HT = [['gamma_self','n_air'], 
+           False, 
+           False, 
+           ['gamma_air', 'n_air'], 
+           ['delta_air', False], 
+           False]
+
+name_plot = ['Self-Width\nγ$_{self}$ [cm$^{-1}$/atm]', 
+             'Self-Shift\nδ$_{self}$ [cm$^{-1}$/atm]', 
+             'SD Self-Width\nγ$_{SD,self}$  [cm$^{-1}$/atm]',
+             'Air-Width\nγ$_{air}$ [cm$^{-1}$/atm]', 
+             'Air-Shift\nδ$_{air}$ [cm$^{-1}$/atm]', 
+             'SD Air-Width\nγ$_{SD,air}$  [cm$^{-1}$/atm]',
+             'a$_{w,air}$\n(γ$_{SD,air}$ / γ$_{air}$)', 
+             'a$_{w,self}$\n(γ$_{SD,self}$ / γ$_{self}$)']
+
+
+for i_feat, feat in enumerate(df_sceg.index): 
     
-    if feature not in features_doublets_flat: 
-          
-        # confirm all values are floated
-        if np.all(output_dpl[:,i_feat,:,1] != -1) & np.all(output_dpl[:,i_feat,:,3] != -1) & (
-            np.all(output_dpl[:,i_feat,:,5] != -1)) & np.all(output_dpl[:,i_feat,1,7] == -1): 
-             
-            for i_T, T in enumerate(T_conditions): 
-                
-                T_str = str(int(T))
-                
-                list_feature[i_T*2 + 0 + 1] = output_dpl[i_type,i_feat,i_T,0] 
-                list_feature[i_T*2 + 1 + 1] = output_dpl[i_type,i_feat,i_T,1]
+    feat = int(feat)
+    
+    df_feat = df_sceg.loc[feat]   
+    
+    # confirm all values are floated and not doublets (overly restrictive for now, will ease up later)
+    if ~np.any(df_feat[-74:]==-1): 
 
-                list_feature[i_T*2 + 12 + 1] = output_dpl[i_type,i_feat,i_T,2]
-                list_feature[i_T*2 + 13 + 1] = output_dpl[i_type,i_feat,i_T,3]
-
-                list_feature[i_T*2 + 24 + 1] = output_dpl[i_type,i_feat,i_T,4]
-                list_feature[i_T*2 + 25 + 1] = output_dpl[i_type,i_feat,i_T,5]
+        df_gamma_self = df_feat[df_feat.index.str.startswith('gamma_self_')]
+        df_uc_gamma_self = df_feat[df_feat.index.str.startswith('uc_gamma_self_')]
+        
+        
+        df_uc_gamma_self[:] = np.sqrt((df_uc_gamma_self.to_numpy(float)/df_gamma_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2) * df_gamma_self
+        
+        df_sd_self = df_feat[df_feat.index.str.startswith('sd_self_')]
+        df_uc_sd_self = df_feat[df_feat.index.str.startswith('uc_sd_self_')]
+        df_uc_sd_self[:] = np.sqrt((df_uc_sd_self.to_numpy(float)/df_sd_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2) * df_sd_self # droped 3.9% due to TD of SD
+        
+        df_delta_self = df_feat[df_feat.index.str.startswith('delta_self_')]
+        df_uc_delta_self = df_feat[df_feat.index.str.startswith('uc_delta_self_')]
+        df_uc_delta_self[:] = np.sqrt((df_uc_delta_self.to_numpy(float)/df_delta_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2 + 
+                                      (1.7E-4 / (0.021*df_delta_self.to_numpy(float)))**2) * abs(df_delta_self)
+                                      
+        
+        df_gamma_air = df_feat[df_feat.index.str.startswith('gamma_air_')]
+        df_uc_gamma_air = df_feat[df_feat.index.str.startswith('uc_gamma_air_')]
+        df_uc_gamma_air[:] = np.sqrt((df_uc_gamma_air.to_numpy(float)/df_gamma_air.to_numpy(float))**2 + (P_unc_air)**2 + (T_unc_air)**2 + (y_unc_air)**2) * df_gamma_air
                 
-            df_features.loc[feature] = list_feature
-            
-            df_features.quanta[feature] = df_quanta.quanta[feature]
-            
-            
-            fig, axs = plt.subplots(4,2, figsize=(14,25), sharex = 'col', gridspec_kw={'hspace':0}) # sharex = 'col', sharey = 'row', 
-            
-            fig.subplots_adjust(top=0.95)
-            
-           
-            quanta = df_quanta.quanta[feature].split()
-            try: kcJ = float(quanta[8])/float(quanta[6])
-            except: kcJ = 0.
-            
-            plt.suptitle('{}{}{} ← {}{}{}      {}$_{}$$_{}$ ← {}$_{}$$_{}$      Kc" / J" = {:.3f}'.format(quanta[0],quanta[1],quanta[2],quanta[3],quanta[4],quanta[5],
-                                                                            quanta[6],quanta[7],quanta[8],quanta[9],quanta[10],quanta[11], kcJ))
-            RMS_params = 9
-            RMS_extra = 3
+        df_sd_air = df_feat[df_feat.index.str.startswith('sd_air_')]
+        df_uc_sd_air = df_feat[df_feat.index.str.startswith('uc_sd_air_')]
+        df_uc_sd_air[:] = np.sqrt((df_uc_sd_air.to_numpy(float)/df_sd_air.to_numpy(float))**2 + (P_unc_air)**2 + (T_unc_air)**2 + (y_unc_air)**2) * df_sd_air # droped 5.2
+        
+        df_delta_air = df_feat[df_feat.index.str.startswith('delta_air_')]
+        df_uc_delta_air = df_feat[df_feat.index.str.startswith('uc_delta_air_')]
+        df_uc_delta_air[:] = np.sqrt((df_uc_delta_air.to_numpy(float)/df_delta_air.to_numpy(float))**2 + (P_unc_air)**2 + (T_unc_air)**2 +  (y_unc_air)**2 +
+                                      (1.7E-4 / (0.789*df_delta_air.to_numpy(float)))**2) * abs(df_delta_air)
+        
+        
+        
+        if plot_aw: fig, axs = plt.subplots(4,2, figsize=(15, 10), sharex = 'col', gridspec_kw={'hspace':0.01, 'wspace':0.25}) 
+        else: fig, axs = plt.subplots(3,2, figsize=(15, 10), sharex = 'col', gridspec_kw={'hspace':0.01, 'wspace':0.25}) 
+        
+        fig.subplots_adjust(top=0.95)
+       
+        quanta = df_feat.quanta.split()
+        try: kcJ = float(quanta[8])/float(quanta[6])
+        except: kcJ = 0.
+               
+        title = '{}{}{} ← {}{}{}      {}$_{}$$_{}$ ← {}$_{}$$_{}$      Kc" / J" = {:.3f}'.format(quanta[0],quanta[1],quanta[2],quanta[3],quanta[4],quanta[5],
+                                                                        quanta[6],quanta[7],quanta[8],quanta[9],quanta[10],quanta[11], kcJ)
+        
+        if df_feat.doublets != []: title = '** Overlapping Doublet Transition ** ' + title 
+        
+        plt.suptitle(title)
+        
+        RMS_params = 9
+        RMS_extra = 3
 
-            RMS_iter = np.empty((1,RMS_extra + RMS_params*2))
-            RMS_iter[:] = np.nan
+        RMS_iter = np.empty((1,RMS_extra + RMS_params*2))
+        RMS_iter[:] = np.nan
+        
+        RMS_iter[0,0] = feat
+        RMS_iter[0,1] = float(quanta[6]) # J"
+        RMS_iter[0,2] = kcJ # Kc / J"
+        
+        
+        data_plots = [[df_gamma_self, df_uc_gamma_self], 
+                      [df_delta_self, df_uc_delta_self], 
+                      [df_sd_self, df_uc_sd_self], 
+                      [df_gamma_air, df_uc_gamma_air], 
+                      [df_delta_air, df_uc_delta_air], 
+                      [df_sd_air, df_uc_sd_air]]
+                                
+        for i_plot, [data, uc_data] in enumerate(data_plots): 
+            
+            i_1 = i_plot - 3*(i_plot//3)
+            i_2 = i_plot//3            
                         
-            RMS_iter[0,0] = feature
-            RMS_iter[0,1] = float(quanta[6]) # J"
-            RMS_iter[0,2] = kcJ # Kc / J"
+            if data_labfit[i_plot][:2] == 'sd': 
+                
+                if plot_aw: 
+
+                    # plot SD aw data
+                    axs[i_1,i_2].plot(T_conditions, data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                    axs[i_1,i_2].errorbar(T_conditions, data, uc_data, color='k', fmt='none', capsize=5, zorder=10)
+                    
+                    if df_feat['uc_' + data_labfit[i_plot]] != -1: 
+                        
+                        y_center = np.ones_like(T_smooth) * df_feat[data.index[0][:-4]]
+                        axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[0], label='Labfit (constant)')
+                        
+                        axs[i_1,i_2].set_ylabel(name_plot[-1*(1+i_2)])
+                        axs[i_1,i_2].legend()
+                        
+                    i_1+=1
+
+                # plot SD gamma data
+                axs[i_1,i_2].plot(T_conditions, data*df_feat[df_feat.index.str.startswith('gamma'+data_labfit[i_plot][2:]+'_')].to_numpy(float),
+                                  color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                axs[i_1,i_2].errorbar(T_conditions, data*df_feat[df_feat.index.str.startswith('gamma'+data_labfit[i_plot][2:]+'_')].to_numpy(float),
+                                      uc_data, color='k', fmt='none', capsize=5, zorder=10)
+
+            
+            else:     
+                
+                # plot the data (non-SD)
+                axs[i_1,i_2].plot(T_conditions, data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+                axs[i_1,i_2].errorbar(T_conditions, data, uc_data, color='k', fmt='none', capsize=5, zorder=10)
+
+                
+            # overlay HITRAN prediction
+            if data_HT[i_plot]: 
+                
+                base = df_feat[data_HT[i_plot][0] + 'HT']
+                if data_HT[i_plot][1]:
+                    n = df_feat[data_HT[i_plot][1] + 'HT']
+                else: 
+                    n=0
+                
+                y_center = SPL(T_smooth, base, n)
+                
+                if data_HT[i_plot][0] == 'gamma_self': 
+                    axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$ (using n$_{{{}}}$)'.format(base,n,'air'))
+                elif data_HT[i_plot][0] == 'gamma_air': 
+                    axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+                elif data_HT[i_plot][0] == 'delta_air': 
+                    axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD)'.format(base,n))
+                    
+                df_sceg.loc[feat, 'RMS_HT_'+data.index[0][:-4]] = np.sqrt(np.sum((SPL(T_conditions, base, n) - data)**2))
+                    
+            
+            # overlay Labfit prediction (if there is one)
+            if df_feat['uc_' + data_labfit[i_plot]] != -1: 
+                
+                if data_labfit[i_plot][:2] == 'sd':  
+                   
+                    base = df_feat[data.index[0][:-4]] * df_feat['gamma'+data_labfit[i_plot][2:]]
+                    uc_base = df_feat['uc_'+data.index[0][:-4]]
+                    
+                    n = df_feat['n'+data_labfit[i_plot][2:]]
+                    uc_n = df_feat['uc_n'+data_labfit[i_plot][2:]]
+                    
+                    data *= data_plots[3*i_2][0].to_numpy(float)
+                    
+                else:                       
+                    
+                    base = df_feat[data.index[0][:-4]]
+                    uc_base = df_feat['uc_'+data.index[0][:-4]]
+                    
+                    n = df_feat[data_labfit[i_plot]]
+                    uc_n = df_feat['uc_'+data_labfit[i_plot]]
+                
+                y_center = SPL(T_smooth, base, n)
+                y_unc = np.array([SPL(T_smooth, base+uc_base, n+uc_n), 
+                                SPL(T_smooth, base+uc_base, n-uc_n), 
+                                SPL(T_smooth, base-uc_base, n+uc_n),
+                                SPL(T_smooth, base-uc_base, n-uc_n)])
+                y_max = np.max(y_unc,axis=0)
+                y_min = np.min(y_unc,axis=0)
+                
+                if data_labfit[i_plot][:2] == 'sd': axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[0], label='Labfit (from a$_w$), {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+                else: axs[i_1,i_2].plot(T_smooth, y_center, color=colors_fits[0], label='Labfit {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+                axs[i_1,i_2].fill_between(T_smooth, y_min, y_max, color=colors_fits[0], alpha=.2)
+            
+                df_sceg.loc[feat, 'RMS_labfit_'+data.index[0][:-4]] = np.sqrt(np.sum((SPL(T_conditions, base, n) - data)**2))
+            
+            # # fit the data using SPL (weighted by Labfit uncertainties)
+            # else: 
+            #     solving=True
+            #     i_solve=-1
+            #     p0s = [[base, n], [base, -1*n]]
+            #     while solving:
+            #         i_solve+=1
+            #         try: 
+            #             p_SPL, cov = fit(SPL, T_conditions, data, p0=p0s[i_solve], maxfev=5000, sigma=uc_data.to_numpy(float))
+            #             p_err = np.sqrt(np.diag(cov))
+                        
+            #             solving=False # you solved it!
+                        
+            #             axs[i_1,i_2].plot(T_smooth, SPL(T_smooth, *p_SPL), color=colors_fits[1], label='SPL (Labfit not reported) {:.3f}(T/T)$^{{{:.2f}}}$'.format(p_SPL[0],p_SPL[1]))
+                        
+            #             y_unc = np.array([SPL(T_smooth, p_SPL[0]+p_err[0], p_SPL[1]+p_err[1]), 
+            #                               SPL(T_smooth, p_SPL[0]+p_err[0], p_SPL[1]-p_err[1]), 
+            #                               SPL(T_smooth, p_SPL[0]-p_err[0], p_SPL[1]+p_err[1]),
+            #                               SPL(T_smooth, p_SPL[0]-p_err[0], p_SPL[1]-p_err[1])])
+            #             y_max = np.max(y_unc,axis=0)
+            #             y_min = np.min(y_unc,axis=0)
+            #             axs[i_1,i_2].fill_between(T_smooth, y_min, y_max, color=colors_fits[1], alpha=.2)
+                        
+            #             df_sceg.loc[feat, 'RMS_SPL_'+data.index[0][:-4]] = np.sqrt(np.sum((SPL(T_conditions, *p_SPL) - data)**2))
+            #             df_sceg.loc[feat, 'condition_SPL_'+data.index[0][:-4]] = np.linalg.cond(cov)
+                        
+            #         except: print('could not solve SPL for {}'.format(feat))    
+            #         if i_solve == len(p0s)-1: solving=False # you didn't solve it, but it's time to move on
+            
+            # fit the data using DPL (weighted by Labfit uncertainties)
+            solving=True
+            i_solve=-1
+            p0s = [[base, n, base/10, n/10], [base, -1*n, base/10, n/10], [base, -1*n, 0, 0]]
+            while solving:
+                i_solve+=1
+                try: 
+                    p_DPL, cov = fit(DPL, T_conditions, data, p0=p0s[i_solve], maxfev=5000, sigma=uc_data.to_numpy(float))
+                    p_err = np.sqrt(np.diag(cov))
+
+                    solving=False # you solved it!
+                    axs[i_1,i_2].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], label='DPL {:.3f}(T/T)$^{{{:.2f}}}$+{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],p_DPL[2],p_DPL[3]))
+                    
+                    # calculate uncertainties (too many Infs and NANS - haven't been using much)
+                    y_unc = np.array([DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]-p_err[2], p_DPL[3]+p_err[3]),
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]-p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]-p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]-p_err[1], p_DPL[2]+p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]-p_err[1], p_DPL[2]-p_err[2], p_DPL[3]+p_err[3]),
+                                      DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]-p_err[1], p_DPL[2]-p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]+p_err[1], p_DPL[2]-p_err[2], p_DPL[3]+p_err[3]),
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]+p_err[1], p_DPL[2]-p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]-p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]-p_err[1], p_DPL[2]+p_err[2], p_DPL[3]-p_err[3]), 
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]-p_err[1], p_DPL[2]-p_err[2], p_DPL[3]+p_err[3]),
+                                      DPL(T_smooth, p_DPL[0]-p_err[0], p_DPL[1]-p_err[1], p_DPL[2]-p_err[2], p_DPL[3]-p_err[3])])
+                    y_max = np.max(y_unc,axis=0)
+                    y_min = np.min(y_unc,axis=0)
+                    # if np.all(np.isfinite(y_max)) & np.all(np.isfinite(y_min)): 
+                        # axs[i_1,i_2].fill_between(T_smooth, y_min, y_max, color=colors_fits[2], alpha=.2)
+                    
+                    df_sceg.loc[feat, 'RMS_DPL_'+data.index[0][:-4]] = np.sqrt(np.sum((DPL(T_conditions, *p_DPL) - data)**2))
+                    df_sceg.loc[feat, 'condition_DPL_'+data.index[0][:-4]] = np.linalg.cond(cov)
+                    
+                except: print('could not solve DPL for {}'.format(feat))    
+                if i_solve == len(p0s)-1: solving=False # you didn't solve it, but it's time to move on
+            
+            # housekeeping to make the plots look nice
+            axs[i_1,i_2].set_ylabel(name_plot[i_plot])
+            
+            # DPL makes axis zoom out too much. specify zoom. 
+            y_min = min(data-uc_data.to_numpy(float))
+            y_max = max(data+uc_data.to_numpy(float))
+            axs[i_1,i_2].set_ylim(y_min-0.1*np.abs(y_min), y_max+0.1*np.abs(y_max))
+            
+            axs[i_1,i_2].legend()
             
             
-            for i_type, name_type in enumerate(['H2O-H2O','air-H2O ']): 
-                
-                # --------------------- collisional widths           
-                # fit the data           
-                y_data = output_dpl[i_type,i_feat,:,0]
-                y_unc = output_dpl[i_type,i_feat,:,1]
-                
-                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2) * y_data
-                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2) * y_data
-                
-                p_labfit = [output_lab[i_type,i_feat,2], output_lab[i_type,i_feat,4]]
-    
-                # plot the data
-                axs[0,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
-                axs[0,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
-                
-                axs[0,i_type].plot(T_smooth, SPL(T_smooth, *p_labfit), label='SPL (Labfit)') 
-                RMS_iter[0,RMS_extra + 0 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
-                
-                try: 
-                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
-                    axs[0,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)') 
-                    RMS_iter[0,RMS_extra + 1 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_SPL) - y_data)**2))
-                except: pass
-            
-                try: 
-                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
-                    axs[0,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
-                    RMS_iter[0,RMS_extra + 2 + i_type*RMS_params] = np.sqrt(np.mean((DPL(T_conditions, *p_DPL) - y_data)**2))
-                except: pass
-                
-                axs[0,i_type].set_ylabel(name_type + ' Width')
-    
-                axs[0,i_type].legend(loc='upper right')
-    
-                
-                
-                # --------------------- collisional shifts       
-                # fit the data           
-                y_data = output_dpl[i_type,i_feat,:,4]
-                y_unc = output_dpl[i_type,i_feat,:,5]
-                
-                
-                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2 + (1.7E-4 / (0.021*y_data))**2) * abs(y_data)
-                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2 + (1.7E-4 / (0.789*y_data))**2) * abs(y_data)
-                
-                
-                p_labfit = [output_lab[i_type,i_feat,8], output_lab[i_type,i_feat,10]]
-    
-                # plot collisional shifts
-                axs[1,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
-                axs[1,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
-                
-                delta_nu = output_lab[i_type,i_feat,0] - output_dpl[i_type,i_feat,i_T,6]
-                
-                axs[1,i_type].plot(T_smooth, SPL(T_smooth, *p_labfit), label='SPL (Labfit)') 
-                RMS_iter[0,RMS_extra + 3 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
-                
-                try: 
-                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
-                    axs[1,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)') 
-                    RMS_iter[0,RMS_extra + 4 + i_type*RMS_params] = np.sqrt(np.mean((SPL(T_conditions, *p_labfit) - y_data)**2))
-                except: pass
-            
-                try: 
-                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
-                    axs[1,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
-                    RMS_iter[0,RMS_extra + 5 + i_type*RMS_params] = np.sqrt(np.mean((DPL(T_conditions, *p_DPL) - y_data)**2))
-                except: pass
-    
-    
-                axs[1,i_type].set_ylabel(name_type + ' Shift')
-    
-                axs[1,i_type].legend()
-                
-              
-                
-                # --------------------- aw (SD)
-                
-                y_data = output_dpl[i_type,i_feat,:,2]*output_dpl[i_type,i_feat,:,0]
-                y_unc = output_dpl[i_type,i_feat,:,1] # estimate - using width uncertianty as stand-in
-                
-                if i_type == 0: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0027)**2 + (0.0081)**2 + 0.039**2) * y_data
-                elif i_type == 1: y_unc = np.sqrt((y_unc/y_data)**2 + (0.0025)**2 + (0.029)**2 + (0.0082)**2 + 0.052**2) * y_data               
-                
-                
-                # plot the data
-                axs[2,i_type].plot(T_conditions, output_dpl[i_type,i_feat,:,2], color='k', marker='x', markersize=10, markeredgewidth=3, 
-                            linestyle='None', label='Measurement', zorder=10)
-                axs[2,i_type].errorbar(T_conditions, output_dpl[i_type,i_feat,:,2], output_dpl[i_type,i_feat,:,3], 
-                                color='k', fmt='none', capsize=5, zorder=10)
-            
-                axs[2,i_type].plot(T_smooth, output_lab[i_type,i_feat,6]*np.ones_like(T_smooth), label='Average (Labfit)')          
-    
-                axs[2,i_type].set_ylabel(name_type + ' SD aw')
-    
-                axs[2,i_type].legend()
-    
-                
-                
-                # --------------------- gamma_SD
-                # fit the data           
-                y_data = output_dpl[i_type,i_feat,:,2]*output_dpl[i_type,i_feat,:,0]
-                y_unc = output_dpl[i_type,i_feat,:,1] # estimate - using width uncertianty as stand-in
-                
-                p_labfit = [output_lab[i_type,i_feat,2], output_lab[i_type,i_feat,4]] # estimate - using width SPL as stand-in
-    
-                # plot the data
-                axs[3,i_type].plot(T_conditions, y_data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
-                axs[3,i_type].errorbar(T_conditions, y_data, y_unc, color='k', fmt='none', capsize=5, zorder=10)
-                
-                axs[3,i_type].plot(T_smooth, output_lab[i_type,i_feat,6] * SPL(T_smooth, *p_labfit), label='SPL (Labfit - width)')
-                RMS_iter[0,RMS_extra + 6 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * SPL(T_conditions, *p_labfit) - y_data)**2))
-                
-                try: 
-                    p_SPL, _ = fit(SPL, T_conditions, y_data, p0=p_labfit, maxfev=5000)
-                    axs[3,i_type].plot(T_smooth, SPL(T_smooth, *p_SPL), label='SPL (Scipy)')
-                    RMS_iter[0,RMS_extra + 7 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * SPL(T_conditions, *p_SPL) - y_data)**2))
-                except: pass
-            
-                try: 
-                    p_DPL, _ = fit(DPL, T_conditions, y_data, p0=p_labfit + [x/10 for x in p_labfit], maxfev=5000)
-                    axs[3,i_type].plot(T_smooth, DPL(T_smooth, *p_DPL), label='DPL (Scipy)') 
-                    RMS_iter[0,RMS_extra + 8 + i_type*RMS_params] = np.sqrt(np.mean((output_lab[i_type,i_feat,6] * DPL(T_conditions, *p_DPL) - y_data)**2))
-                except: pass
-    
-                
-                axs[3,i_type].set_ylabel(name_type + ' SD Width')
-    
-                axs[3,i_type].legend(loc='upper right')
+        for i_1 in range(np.shape(axs)[0]): 
+            for i_2 in range(np.shape(axs)[1]):
+                axs[i_1,i_2].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+                axs[i_1,i_2].xaxis.set_minor_locator(AutoMinorLocator(5))
+                axs[i_1,i_2].yaxis.set_minor_locator(AutoMinorLocator(5))
                 
                 # set up x-axis for all plots
-                axs[-1,i_type].set_xlabel('Temperature (K)')
-                axs[-1,i_type].set_xticks(np.arange(300, 1301, 200))
-                axs[-1,i_type].set_xlim(200, 1400)
-                
-                
-                for i_axs in range(len(axs)): 
-                    axs[i_axs,i_type].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-                    axs[i_axs,i_type].xaxis.set_minor_locator(AutoMinorLocator(5))
-                    axs[i_axs,i_type].yaxis.set_minor_locator(AutoMinorLocator(5))
-                
+                axs[-1,i_2].set_xlabel('Temperature (K)')
+                axs[-1,i_2].set_xticks(np.arange(300, 1301, 200))
+                axs[-1,i_2].set_xlim(200, 1400)
             
-            # plt.savefig(os.path.abspath('')+r'\plots\DPL\{}.png'.format(feature))
-            plt.close()
-                     
-            if i_RMS: 
-                RMS = np.vstack((RMS.copy(), RMS_iter.copy()))
-                quanta_all.append(quanta[0:6].copy())
-            else: 
-                RMS = RMS_iter.copy(); i_RMS = True
-                quanta_all = [quanta[0:6].copy()]
-            
-            
-# df_features.to_csv('DPL_parameters.csv')
-
+        plt.tight_layout()
+                
+        if df_feat.doublets != []: plt.savefig(os.path.abspath('')+r'\plots\DPL\doublet {}.png'.format(feat), bbox_inches='tight',pad_inches = 0.1)
+        else: plt.savefig(os.path.abspath('')+r'\plots\DPL\{}.png'.format(feat), bbox_inches='tight',pad_inches = 0.1)
+        
+        
+        
+        plt.close()
+                 
 
 #%% plot RMS data 
 
 
-fig, axs = plt.subplots(3,3, figsize=(10,10), sharey = 'row', sharex = 'col', gridspec_kw={'hspace':0.03, 'wspace':0.01, 'width_ratios': [5,5,6]}) # sharex = 'col', sharey = 'row', 
 
 
 x_off = 10
 y_off = 100
 
-y_offset = [(float(v1p) + float(v2p))/y_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta_all]
-x_offset = [(float(v3p) + float(v2p))/x_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta_all]
+quanta = df_sceg.quanta.to_numpy(str)
+quanta = [x.split()[0:6] for x in quanta]
+y_offset = [(float(v1p) + float(v2p))/y_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta]
+x_offset = [(float(v3p) + float(v2p))/x_off for v1p,v2p,v3p, v1pp,v2pp,v3pp in quanta]
 
-# width RMS values
-axs[0,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,3], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
-axs[0,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,4], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
-sp1 = axs[0,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,5], cmap='viridis', zorder=2, linewidth=2, vmin=0, vmax=np.nanmax(RMS[:,3:5+1]))
+plot_x = df_sceg.Jpp + x_offset
+plot_y = df_sceg.Kcpp / df_sceg.Jpp + x_offset
 
-fig.colorbar(sp1, shrink=0.9, label='Width - RMS meas vs fit',  pad=0.01)
+names_base = ['RMS_HT_','RMS_labfit_','RMS_SPL_','RMS_DPL_']
+
+# RMS for all values
+for i_which, d_which in enumerate(d_whiches): 
+    
+    fig, axs = plt.subplots(3,4, figsize=(18,10), sharey = 'row', sharex = 'col', gridspec_kw={'hspace':0.03, 'wspace':0.01, 'width_ratios': [5,5,5,6]}) # sharex = 'col', sharey = 'row', 
+
+    for i_param, param in enumerate(extra_params_base): 
+        
+        names_base_param = [x+param+'_'+d_which for x in names_base]
+        plot_cmax = np.nanmax(df_sceg[names_base_param])
+        plot_cmin = np.nanmin(df_sceg[names_base_param])
+        
+        for i_base, which_base in enumerate(names_base):
+            
+            if np.any(df_sceg[names_base_param[i_base]]): 
+                
+                plot_c = df_sceg[names_base_param[i_base]]
+                
+                sp1 = axs[i_param,i_base].scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', 
+                                              norm=colors.LogNorm(vmin=plot_cmin, vmax=plot_cmax), zorder=2, linewidth=2)
+                
+                axs[i_param,i_base].text(7.5, 0.1, 'RMS = {:.3f}±{:.3f}'.format(np.nanmean(plot_c),np.nanstd(plot_c)))
+                
+            else: 
+                
+                axs[i_param,i_base].text(6.5, 0.1, 'No Data for Comparison')
+        
+        fig.colorbar(sp1, shrink=0.9, label='Width - RMS meas vs fit',  pad=0.01)
+
+    axs[0,0].set_title('HITRAN')
+    axs[0,1].set_title('SPL (Labfit)')
+    axs[0,2].set_title('SPL (Scipy)')
+    axs[0,3].set_title('DPL (Scipy)')
+    
+    axs[0,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    axs[1,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    axs[2,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    
+    axs[2,0].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    axs[2,1].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    axs[2,2].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    
+    
+    
+    for i_axs in [0,1,2]: 
+        for j_axs in [0,1,2]: 
+            axs[i_axs,j_axs].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+            axs[i_axs,j_axs].xaxis.set_minor_locator(AutoMinorLocator(5))
+            axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
+    
+
+    saaaaaaaaaaaaaaaaaaaaaaa
+
+    plt.savefig(os.path.abspath('')+r'\plots\DPL\RMS {}.png'.format(d_which), bbox_inches='tight',pad_inches = 0.1)
 
 
 
-# shift RMS values
-axs[1,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,6], cmap='viridis', zorder=2, linewidth=2) #, vmin=0, vmax=18)
-axs[1,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,7], cmap='viridis', zorder=2, linewidth=2)
-sp2 = axs[1,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,8], cmap='viridis', zorder=2, linewidth=2)
 
-fig.colorbar(sp2, shrink=0.9, label='Shift - RMS meas vs fit',  pad=0.01)
-
-# SD RMS values
-axs[2,0].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,9], cmap='viridis', zorder=2, linewidth=2) #, vmin=0, vmax=18)
-axs[2,1].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,10], cmap='viridis', zorder=2, linewidth=2)
-sp3 = axs[2,2].scatter(RMS[:,1]+x_offset, RMS[:,2]+y_offset, marker='x', c=RMS[:,11], cmap='viridis', zorder=2, linewidth=2)
-
-fig.colorbar(sp3, shrink=0.9, label='SD - RMS meas vs fit',  pad=0.01)
+#%% plot condition data (are we over fitting)
 
 
-axs[0,0].set_title('SPL (Labfit)')
-axs[0,1].set_title('SPL (Scipy)')
-axs[0,2].set_title('DPL (Scipy)')
+names_base = ['condition_SPL_','condition_DPL_']
 
-axs[0,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
-axs[1,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
-axs[2,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
-
-axs[2,0].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
-axs[2,1].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
-axs[2,2].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+fig, axs = plt.subplots(3,4, figsize=(18,10), sharey = 'row', sharex = 'col', gridspec_kw={'hspace':0.03, 'wspace':0.01, 'width_ratios': [5,6,5,6]}) # sharex = 'col', sharey = 'row', 
 
 
+for i_which, d_which in enumerate(d_whiches): 
+    
+    for i_param, param in enumerate(extra_params_base): 
+        
+        names_base_param = [x+param+'_'+d_which for x in names_base]
+        plot_cmax = np.nanmax(df_sceg[names_base_param][df_sceg[names_base_param] != np.inf])
+        plot_cmin = np.nanmin(df_sceg[names_base_param])
+        
+        for i_base, which_base in enumerate(names_base):
+            
+            if np.any(df_sceg[names_base_param[i_base]]): 
+                
+                plot_c = df_sceg[names_base_param[i_base]]
+                
+                sp1 = axs[i_param,i_base].scatter(plot_x, plot_y, marker='x', c=plot_c, cmap='viridis', 
+                                              norm=colors.LogNorm(vmin=plot_cmin, vmax=plot_cmax), zorder=2, linewidth=2)
+                
+                axs[i_param,i_base+2*i_which].text(7.5, 0.1, 'RMS = {:.3f}±{:.3f}'.format(np.nanmean(plot_c),np.nanstd(plot_c)))
+        
+        if i_base+2*i_which == 3: 
+            fig.colorbar(sp1, shrink=0.9, label='Width - RMS meas vs fit',  pad=0.01)
 
-for i_axs in [0,1,2]: 
-    for j_axs in [0,1,2]: 
-        axs[i_axs,j_axs].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-        axs[i_axs,j_axs].xaxis.set_minor_locator(AutoMinorLocator(5))
-        axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
+    axs[0,0].set_title('SPL (H$_{2}$O-H$_{2}$O)')
+    axs[0,1].set_title('DPL (H$_{2}$O-H$_{2}$O)')
+    axs[0,2].set_title('SPL (H$_{2}$O-air)')
+    axs[0,3].set_title('DPL (H$_{2}$O-air)')
+    
+    axs[0,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    axs[1,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    axs[2,0].set_ylabel('Kc" / J" + (ν$_{1}$+ν$_{2}$)/100')
+    
+    axs[2,0].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    axs[2,1].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    axs[2,2].set_xlabel('J" + (ν$_{2}$+ν$_{3}$)/10')
+    
+    
+    
+    for i_axs in [0,1,2]: 
+        for j_axs in [0,1,2]: 
+            axs[i_axs,j_axs].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+            axs[i_axs,j_axs].xaxis.set_minor_locator(AutoMinorLocator(5))
+            axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
+    
 
-        axs[i_axs,j_axs].text(4.5, 0, 'RMS = {:.3f}±{:.3f}'.format(np.nanmean(RMS[:,3+i_axs+3*j_axs]),np.nanstd(RMS[:,3+i_axs+3*j_axs])))
 
-        # axs[i_axs,j_axs].scatter(RMS[:,1], RMS[:,2], marker='.', color='r', s=1, zorder=10)
-
+plt.savefig(os.path.abspath('')+r'\plots\DPL\z - condition.png')
 
 
-plt.savefig(os.path.abspath('')+r'\plots\DPL\RMS.png')
+
+
+
 
 
 
