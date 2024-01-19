@@ -2431,12 +2431,13 @@ ax1.set_ylabel('TW Air-Shift\nδ$_{air,TW}$ [cm$^{-1}$/atm]', fontsize=12)
 
 ax1.set_ylim(-0.045, 0.019)
 
-ax1.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+ax1.legend(loc='lower left', edgecolor='k', framealpha=1, fontsize=12)
 
 ax1.minorticks_on()
 
 ax1.text(0.03, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
 
+ax1.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
 
 
 
@@ -2446,7 +2447,7 @@ sc2 = ax2.scatter(plot_x, plot_y2, marker='x', c=plot_c, label='HITRAN (only val
 ax2.set_ylim(-0.045, 0.019)
 ax2.set_ylabel('HT Air-Shift\nδ$_{air,HT}$ [cm$^{-1}$/atm]', fontsize=12)
 
-ax2.legend(loc='lower left', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+ax2.legend(loc='lower left', edgecolor='k', framealpha=1, fontsize=12)
 
 ax2.minorticks_on()
 
@@ -2479,6 +2480,7 @@ for key in HT_errors:
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
 
+ax2.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
 
 
 # residual plot
@@ -2487,9 +2489,9 @@ sc3 = axr.scatter(plot_x, plot_y-plot_y2, marker='x', c=plot_c, label='TW - HITR
                   linewidth=2, vmin=0, vmax=4000)
 axr.errorbar(plot_x, plot_y-plot_y2, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
-line3, = axr.plot([0,23],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+axr.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
 
-axr.legend(loc='lower right', ncol=1, edgecolor='k', framealpha=1, labelspacing=0.5, fontsize=12)
+axr.legend(loc='lower right', edgecolor='k', framealpha=1, fontsize=12)
 
 axr.set_ylim(-0.049, 0.049)
 axr.set_ylabel('Δδ$_{air,TW-HT}$', fontsize=12)

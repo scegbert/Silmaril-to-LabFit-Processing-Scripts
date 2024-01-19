@@ -1074,7 +1074,7 @@ for i_feat, feat in enumerate(df_sceg.index):
         if df_feat.doublets != []: plt.savefig(os.path.abspath('')+r'\plots\DPL\doublet {}.png'.format(feat), bbox_inches='tight',pad_inches = 0.1)
         else: plt.savefig(os.path.abspath('')+r'\plots\DPL\{}.png'.format(feat), bbox_inches='tight',pad_inches = 0.1)
         
-        
+        ssssssssssssssssssssssssssss
         
         plt.close()
                  
@@ -1147,9 +1147,8 @@ for i_which, d_which in enumerate(d_whiches):
             axs[i_axs,j_axs].yaxis.set_minor_locator(AutoMinorLocator(5))
     
 
-    saaaaaaaaaaaaaaaaaaaaaaa
-
     plt.savefig(os.path.abspath('')+r'\plots\DPL\RMS {}.png'.format(d_which), bbox_inches='tight',pad_inches = 0.1)
+
 
 
 
