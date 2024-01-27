@@ -46,7 +46,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 d_sceg_save = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
@@ -135,6 +135,17 @@ for which_file in which_files:
 
 # plt.legend()
 
+#%% HITRAN uncertainties
+
+HT_uncertainty = {'0': False,  # '0 (unreported)', 
+                  '1': False,  # '1 (default)', 
+                  '2': False,  # '2 (average)', 
+                  '3': False, # '3 (over 20%)', 
+                  '4': 0.20, # '4 (10-20%)', 
+                  '5': 0.10, # '5 (5-10%)', 
+                  '6': 0.05, # '6 (2-5%)', 
+                  '7': 0.02, # '7 (1-2%)', 
+                  '8': 0.01} # '8 (under 1%)'}
 
 
 please = stophere_fullyloaded
@@ -144,10 +155,15 @@ please = stophere_fullyloaded
 
 if d_type == 'pure': 
 
-    features_plot = [14817, 7094, 35036, 12952]
-    nu_span =  [0.06, 0.06, 0.08, 0.08]
-    y_span0 = [0.76, 0.67, 0.12, 0.21]
-    y_span1 = [[-0.049, 0.02], [-0.075, 0.036], [-0.075, 0.041], [-0.075, 0.031]]
+    features_plot = [14817, 12952]
+    nu_span =  [0.06, 0.08]
+    y_span0 = [0.76, 0.21]
+    y_span1 = [[-0.049, 0.02], [-0.075, 0.031]]
+
+    # features_plot = [14817, 7094, 35036, 12952, 26463]
+    # nu_span =  [0.06, 0.06, 0.08, 0.08]
+    # y_span0 = [0.76, 0.67, 0.12, 0.21]
+    # y_span1 = [[-0.049, 0.02], [-0.075, 0.036], [-0.075, 0.041], [-0.075, 0.031]]
 
 elif d_type == 'air':
     
@@ -176,9 +192,13 @@ if d_type == 'pure':
                  'Self-Shift\nδ$_{self}$ [cm$^{-1}$/atm]', 
                  'Speed Dependence\nof the Self-Width, a$_{w}$']
     
-    data_HT = [['gamma_self','n_air'], 
+    data_HT = [['gamma_self',False], 
                False, 
                False]
+
+    uc_HT = [[3,False],
+              [False],
+              [False]]
 
     data_labfit = ['n_self', 
                    'n_delta_self', 
@@ -193,13 +213,17 @@ elif d_type == 'air':
     data_HT = [['gamma_air', 'n_air'], 
                ['delta_air', False], 
                False]
+
+    uc_HT = [[2,4],
+              [5, False],
+              [False]]
     
     data_labfit = ['n_air', 
                    'n_delta_air', 
                    'sd_air']
 
 
-for i_feat, feat in enumerate(df_sceg.index): 
+for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): # 
     
     feat = int(feat)
     
@@ -300,19 +324,41 @@ for i_feat, feat in enumerate(df_sceg.index):
                 else: 
                     n=0
                 
+                if uc_HT[i_plot]: 
+                    uc_base_str = df_feat.ierr[uc_HT[i_plot][0]]
+                    
+                    if HT_uncertainty[uc_base_str]: 
+                        uc_base = base * HT_uncertainty[uc_base_str]
+                    else: uc_base = 0
+                    
+                    if uc_HT[i_plot][1]: 
+                        uc_n_str = df_feat.ierr[uc_HT[i_plot][1]]
+                        
+                        if HT_uncertainty[uc_n_str]: 
+                            uc_n = n * HT_uncertainty[uc_n_str]
+                        else: uc_n = 0
+                    else: uc_n = 0
+                        
                 y_center = SPL(T_smooth, base, n)
+                y_unc = np.array([SPL(T_smooth, base+uc_base, n+uc_n), 
+                                SPL(T_smooth, base+uc_base, n-uc_n), 
+                                SPL(T_smooth, base-uc_base, n+uc_n),
+                                SPL(T_smooth, base-uc_base, n-uc_n)])
+                y_max = np.max(y_unc,axis=0)
+                y_min = np.min(y_unc,axis=0)
                 
                 if data_HT[i_plot][0] == 'gamma_self': 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$ (using n$_{{{}}}$)'.format(base,n,'air'))
+                    axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}'.format(base))
                 elif data_HT[i_plot][0] == 'gamma_air': 
                     axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
                 elif data_HT[i_plot][0] == 'delta_air': 
                     axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD)'.format(base))
+                axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=colors_fits[3], alpha=.2)
                     
-                    
-            
             # overlay Labfit prediction (if there is one)
-            if df_feat['uc_' + data_labfit[i_plot]] != -1: 
+            if df_feat['uc_'+data.index[0][:-4]] != -1: 
+                
+                color_labfit = colors_fits[0]
                 
                 if data_labfit[i_plot][:2] == 'sd':  
                    
@@ -329,7 +375,10 @@ for i_feat, feat in enumerate(df_sceg.index):
                     
                     n = df_feat[data_labfit[i_plot]]
                     uc_n = df_feat['uc_'+data_labfit[i_plot]]
-                
+                    if uc_n == -1: 
+                        uc_n = 0  
+                        color_labfit = 'darkgreen'
+                    
                     y_center = SPL(T_smooth, base, n)
                     y_unc = np.array([SPL(T_smooth, base+uc_base, n+uc_n), 
                                     SPL(T_smooth, base+uc_base, n-uc_n), 
@@ -337,22 +386,25 @@ for i_feat, feat in enumerate(df_sceg.index):
                                     SPL(T_smooth, base-uc_base, n-uc_n)])
                     y_max = np.max(y_unc,axis=0)
                     y_min = np.min(y_unc,axis=0)
-                
+                                        
                 if data_labfit[i_plot][:2] == 'sd': 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[0], label='Labfit a$_w$ = {:.2f}'.format(sd))
+                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='MSF TW a$_w$ = {:.2f}'.format(sd))
                 else: 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[0], label='Labfit {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
-                axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=colors_fits[0], alpha=.2)
+                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='MSF TW {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+                axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=color_labfit, alpha=.2)
             
             if data_labfit[i_plot].split('_')[1] == 'delta': 
                 axs_data[i_plot].plot(T_smooth,np.zeros_like(T_smooth), color='k', linestyle=':')
-            
+                            
             if data_labfit[i_plot][:2] != 'sd': 
     
                 # fit the data using DPL (weighted by Labfit uncertainties)
                 solving=True
                 i_solve=-1
-                p0s = [[base, n, base/10, n/10], [base, -1*n, base/10, n/10], [base, -1*n, 0, 0]]
+                
+                if df_feat['uc_' + data_labfit[i_plot]] == -1: n = 0.75
+                
+                p0s = [[2*data[0], n, -2*data[0], -1*n], [data[0], n, -1*data[0], -1*n], [data[0]/2, n, data[0]/2, -1*n]]
                 while solving:
                     i_solve+=1
                     try: 
@@ -360,7 +412,7 @@ for i_feat, feat in enumerate(df_sceg.index):
                         p_err = np.sqrt(np.diag(cov))
     
                         solving=False # you solved it!
-                        axs_data[i_plot].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], label='DPL {:.3f}(T/T)$^{{{:.2f}}}$+{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],p_DPL[2],p_DPL[3]))
+                        axs_data[i_plot].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], label='DPL Fit {:.3f}(T/T)$^{{{:.2f}}}$+{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],p_DPL[2],p_DPL[3]))
                         
                         # calculate uncertainties (too many Infs and NANS - haven't been using much)
                         y_unc = np.array([DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
@@ -382,7 +434,7 @@ for i_feat, feat in enumerate(df_sceg.index):
                         y_max = np.max(y_unc,axis=0)
                         y_min = np.min(y_unc,axis=0)
                         # if np.all(np.isfinite(y_max)) & np.all(np.isfinite(y_min)): 
-                            # axs[i_1,i_2].fill_between(T_smooth, y_min, y_max, color=colors_fits[2], alpha=.2)
+                        #     axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=colors_fits[2], alpha=.2)
                         
                     except: print('could not solve DPL for {}'.format(feat))    
                     if i_solve == len(p0s)-1: solving=False # you didn't solve it, but it's time to move on
@@ -426,8 +478,17 @@ for i_feat, feat in enumerate(df_sceg.index):
         linewidth = 2
         colors_trans = ['k', '#0028ff','#0080af','#117d11','#be961e','#ff0000',     '#e6ab02', '#fee9ac']
         nu_center = df_feat.nu
-        nu_min = nu_center-nu_span[features_plot.index(feat)]
-        nu_max = nu_center+2*nu_span[features_plot.index(feat)]
+        
+        if feat in features_plot:
+            nu_min = nu_center - nu_span[features_plot.index(feat)]
+            nu_max = nu_center + 2*nu_span[features_plot.index(feat)]
+        
+        else: 
+            nu_min = nu_center - 0.08 
+            nu_max = nu_center + 2*0.08 
+
+        
+        y_min = 1
         
         for i_trans, which_file in enumerate(which_files): 
             
@@ -436,9 +497,12 @@ for i_feat, feat in enumerate(df_sceg.index):
             axs_trans[0].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10)
 
             [istart, istop] = td.bandwidth_select_td(wvn[i_trans], [nu_min, nu_max], max_prime_factor=500, print_value=False)
+            
+            try: 
+                if y_min == 1: y_min = min(trans[i_trans][istart:istop])
+                else: y_min = min(y_min, min(trans[i_trans][istart:istop]))
+            except: pass
 
-            if i_trans == 1: y_min = min(trans[i_trans][istart:istop])
-            else: y_min = min(y_min, min(trans[i_trans][istart:istop]))
             
             axs_trans[1].plot(wvn[i_trans],res_HT[i_trans], color=colors_trans[i_trans], label=which_file, 
                       linewidth=linewidth)
@@ -451,12 +515,15 @@ for i_feat, feat in enumerate(df_sceg.index):
             
         # set axis
         axs_trans[0].set_xlim(nu_min, nu_max)
-        # axs_trans[0].set_ylim(y_span0[features_plot.index(feat)], 1.02)
-        
-        axs_trans[0].set_ylim(y_min-(1-y_min)/50, 1.02)
-        
-        axs_trans[1].set_ylim(y_span1[features_plot.index(feat)])
-        axs_trans[2].set_ylim(y_span1[features_plot.index(feat)])
+
+        if feat in features_plot:
+            axs_trans[0].set_ylim(y_span0[features_plot.index(feat)], 1.02)
+            axs_trans[1].set_ylim(y_span1[features_plot.index(feat)])
+            axs_trans[2].set_ylim(y_span1[features_plot.index(feat)])
+        else: 
+            axs_trans[0].set_ylim(y_min-(1-y_min)/50, 1.02)
+            axs_trans[1].set_ylim(-0.08, 0.08)
+            axs_trans[2].set_ylim(-0.08, 0.08)
         
         
         #  remove x label on upper plots (mostly covered)
@@ -470,7 +537,7 @@ for i_feat, feat in enumerate(df_sceg.index):
         
         axs_trans[0].set_ylabel('Measured\nTransmission')
         axs_trans[1].set_ylabel('Meas-\nHITRAN')
-        axs_trans[2].set_ylabel('Meas-\nT.W.')
+        axs_trans[2].set_ylabel('Meas-\nMSF TW')
 
         axs_trans[0].yaxis.set_label_position("right")
         axs_trans[1].yaxis.set_label_position("right")
@@ -513,17 +580,51 @@ for i_feat, feat in enumerate(df_sceg.index):
             axs_data[1].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10)        
             axs_data[2].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10)    
 
+        
+        axs_data[0].text(0.015, 0.9, "A", fontsize=12, transform=axs_data[0].transAxes) 
+        axs_data[1].text(0.015, 0.9, "B", fontsize=12, transform=axs_data[1].transAxes) 
+        axs_data[2].text(0.015, 0.9, "C", fontsize=12, transform=axs_data[2].transAxes) 
+        
+        axs_trans[0].text(0.015, 0.95, "D", fontsize=12, transform=axs_trans[0].transAxes) 
+        axs_trans[1].text(0.015, 0.5, "E", fontsize=12, transform=axs_trans[1].transAxes) 
+        axs_trans[2].text(0.015, 0.8, "F", fontsize=12, transform=axs_trans[2].transAxes) 
+        
+        
+        sssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+        
 
-        
-        plt.tight_layout()
-        
-        
+
         plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
-        
-        
+        # plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
         
         plt.close()
-                 
+                  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -176,7 +176,6 @@ features_new = None
 r'''
 # %% read in Labfit results
 
-# pure water data
 d_sceg = os.path.join(os.path.abspath(''),'data - sceg')
 
 f = open(os.path.join(d_sceg,'df_sceg_pure.pckl'), 'rb')
@@ -381,10 +380,10 @@ features_doublets = [[],
                      [],
                      [],
                      [],
-                     [[30610, 30612]],
+                     [[30610, 30612]], # not a doublet, different J (don't use)')
                      [],
                      [],
-                     [[33055, 33056]],
+                     [[33055, 33056]], # not a doublet but same J
                      [[34245, 34243]],
                      [[34906, 34907]],
                      [],
@@ -695,7 +694,10 @@ f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
 pickle.dump([df_sceg, T_conditions, features_strong, features_doublets], f)
 f.close()               
 
+df_sceg.to_csv('DPL results.csv', float_format='%g')
+
 r'''
+
 #%% load in the DPL data
 
 
