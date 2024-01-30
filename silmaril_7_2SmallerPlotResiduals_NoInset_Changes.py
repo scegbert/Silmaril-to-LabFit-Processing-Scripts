@@ -37,11 +37,14 @@ wvn2_data = [6615, 7650] # where there is actually useful data that we would wan
 #%% load in transmission data (model from labfit results)
 
 # load in labfit stuff (transmission, wvn, residuals before and after, conditions)
-d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+# d_sceg = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
+d_sceg = r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
 f = open(os.path.join(d_sceg,'spectra_pure.pckl'), 'rb')
-[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure, res_sd0] = pickle.load(f)
+# [T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure, res_sd0] = pickle.load(f)
+[T_pure, P_pure, wvn_pure, trans_pure, res_pure, res_HT_pure] = pickle.load(f)
 f.close()
+
 
 [T_all, P_all] = np.asarray([T_pure, P_pure])
 
@@ -197,7 +200,7 @@ ax20.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
 ax00.set_ylabel('Measured\nTransmission')
 ax10.set_ylabel('Meas-\nHITRAN')
-ax20.set_ylabel('Meas-\nT.W.')
+ax20.set_ylabel('Meas-\nTW')
 
 
 
@@ -216,8 +219,8 @@ if adjust:
     
     ax00.text(0.305, v, '9%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     ax00.text(0.41, v, '0%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
-    ax00.text(0.67, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
-    ax00.text(0.8, v, '7%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.66, v, '1247%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
+    ax00.text(0.805, v, '7%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     ax00.text(0.91, v, '5%', fontweight="bold", fontsize=12, transform=ax00.transAxes)
     
     
@@ -226,7 +229,7 @@ if adjust:
 
 #%% save it
 
-asdfsdf
+
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
 
