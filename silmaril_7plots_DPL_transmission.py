@@ -46,7 +46,7 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 d_sceg_save = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\data - sceg'
 
@@ -167,10 +167,10 @@ if d_type == 'pure':
 
 elif d_type == 'air':
     
-    features_plot = [35195, 9298]
+    features_plot = [17112, 13950]
     nu_span =  [0.08, 0.08]
-    y_span0 = [0.69, 0.51]
-    y_span1 = [[-0.055, 0.03], [-0.059, 0.049]]
+    y_span0 = [0.44, 0.701]
+    y_span1 = [[-0.055, 0.019], [-0.04, 0.017]]
 
 
 T_smooth = np.linspace(T_conditions[0]-110, T_conditions[-1]+110, num=500)
@@ -388,9 +388,9 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
                     y_min = np.min(y_unc,axis=0)
                                         
                 if data_labfit[i_plot][:2] == 'sd': 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='MSF TW a$_w$ = {:.2f}'.format(sd))
+                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='Multispectrum Fit TW a$_w$ = {:.2f}'.format(sd))
                 else: 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='MSF TW {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+                    axs_data[i_plot].plot(T_smooth, y_center, color=color_labfit, label='Multispectrum Fit TW {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
                 axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=color_labfit, alpha=.2)
             
             if data_labfit[i_plot].split('_')[1] == 'delta': 
@@ -412,7 +412,11 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
                         p_err = np.sqrt(np.diag(cov))
     
                         solving=False # you solved it!
-                        axs_data[i_plot].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], label='DPL Fit {:.3f}(T/T)$^{{{:.2f}}}$+{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],p_DPL[2],p_DPL[3]))
+                        
+                        if p_DPL[2] > 0: sign = '+'
+                        else: sign = ''
+                        axs_data[i_plot].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], 
+                                              label='DPL Fit TW {:.3f}(T/T)$^{{{:.2f}}}${}{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],sign,p_DPL[2],p_DPL[3]))
                         
                         # calculate uncertainties (too many Infs and NANS - haven't been using much)
                         y_unc = np.array([DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
@@ -574,30 +578,55 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
             
             axs_data[0].set_ylim((0.08, 0.55))
             axs_data[1].set_ylim((-0.064, 0.025))
-        
+                
         if feat == 14817: 
             axs_data[0].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10)   
             axs_data[1].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10)        
             axs_data[2].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10)    
 
+        if (feat == 13950) and (d_type == 'air'):
+            
+            axs_data[1].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10)        
+            
+            axs_data[1].set_ylim((-0.033, 0.0015))
+            axs_data[2].set_ylim((0.14, 0.63))
         
-        axs_data[0].text(0.015, 0.9, "A", fontsize=12, transform=axs_data[0].transAxes) 
-        axs_data[1].text(0.015, 0.9, "B", fontsize=12, transform=axs_data[1].transAxes) 
-        axs_data[2].text(0.015, 0.9, "C", fontsize=12, transform=axs_data[2].transAxes) 
+        if (feat == 17112) and (d_type == 'air'):
+            
+            axs_data[0].legend(loc = 'upper right', framealpha=1, edgecolor='black', fontsize=10, ncol=2)
+            axs_data[1].legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)        
+            axs_data[2].legend(loc = 'lower center', framealpha=1, edgecolor='black', fontsize=10)        
+            
+            axs_data[0].set_ylim((-0.019, 0.15))
+            axs_data[1].set_ylim((-0.019, 0.001))
+            axs_data[2].set_ylim((0.04, 0.25))  
+
         
-        axs_trans[0].text(0.015, 0.95, "D", fontsize=12, transform=axs_trans[0].transAxes) 
+        axs_data[0].text(0.015, 0.88, "A", fontsize=12, transform=axs_data[0].transAxes) 
+        
+        if (feat in [17112, 13950]) and (d_type == 'air'):
+            axs_data[1].text(0.015, 0.88, "B", fontsize=12, transform=axs_data[1].transAxes) 
+        else: 
+            axs_data[1].text(0.015, 0.88, "B", fontsize=12, transform=axs_data[1].transAxes) 
+            
+        axs_data[2].text(0.015, 0.88, "C", fontsize=12, transform=axs_data[2].transAxes) 
+        
+        if ((feat == 12952) and (d_type == 'pure')) or ((feat in [17112]) and (d_type == 'air')): 
+            axs_trans[0].text(0.015, 0.87, "D", fontsize=12, transform=axs_trans[0].transAxes) 
+        else: 
+            axs_trans[0].text(0.015, 0.95, "D", fontsize=12, transform=axs_trans[0].transAxes) 
+                
         axs_trans[1].text(0.015, 0.5, "E", fontsize=12, transform=axs_trans[1].transAxes) 
         axs_trans[2].text(0.015, 0.8, "F", fontsize=12, transform=axs_trans[2].transAxes) 
         
         
-        sssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
         
 
 
-        plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+        # plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
         # plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
         
-        plt.close()
+        # plt.close()
                   
 
 
