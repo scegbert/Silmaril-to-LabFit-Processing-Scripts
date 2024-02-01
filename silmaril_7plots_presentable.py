@@ -2437,7 +2437,7 @@ ax1.minorticks_on()
 
 ax1.text(0.03, 0.9, "A", fontsize=12, fontweight="bold", transform=ax1.transAxes)
 
-ax1.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+ax1.plot([0,20],[0,0], 'k', zorder=1, linestyle=':')
 
 
 
@@ -2480,7 +2480,7 @@ for key in HT_errors:
             caplines[0].set_marker('v')
             caplines[0].set_markersize(3)
 
-ax2.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+ax2.plot([0,20],[0,0], 'k', zorder=1, linestyle=':')
 
 
 # residual plot
@@ -2489,7 +2489,7 @@ sc3 = axr.scatter(plot_x, plot_y-plot_y2, marker='x', c=plot_c, label='TW - HITR
                   linewidth=2, vmin=0, vmax=4000)
 axr.errorbar(plot_x, plot_y-plot_y2, yerr=plot_unc_y, ls='none', color='k', zorder=1)
 
-axr.plot([0,20],[0,0], 'k', linewidth=2, zorder=1, linestyle='dashed')
+axr.plot([0,20],[0,0], 'k', zorder=1, linestyle=':')
 
 axr.legend(loc='lower right', edgecolor='k', framealpha=1, fontsize=12)
 

@@ -54,16 +54,19 @@ d_sceg_save = r'C:\Users\silmaril\Documents\from scott - making silmaril a water
 #%% load in the DPL data
 
 
-# for param in extra_params: 
-#     df_sceg[param] = df_sceg2[param]
-
-
 f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'rb')
 [df_sceg, T_conditions, features_strong, features_doublets] = pickle.load(f)
 f.close()     
 
 T_conditions = [float(T) for T in T_conditions]
 T_conditions = np.asarray(T_conditions)
+
+df_sceg_ex = pd.read_excel(os.path.join(d_sceg_save,'DPL results.xlsx'), index_col=0)
+
+# replace values that were updated manually, constrained doublets are now rows of NAN (not in excel file)
+df_sceg.iloc[:, 48:] = df_sceg_ex.iloc[:, 49:]
+
+
 
 
 
@@ -223,7 +226,7 @@ elif d_type == 'air':
                    'sd_air']
 
 
-for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): # 
+for i_feat, feat in  enumerate(df_sceg.index): # enumerate(features_plot): #
     
     feat = int(feat)
     
@@ -234,10 +237,10 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
 
     if d_type == 'pure': 
         pure_T_index = [index for index in df_feat.index if '_self_' in index]
-        which = ~np.any(df_feat[pure_T_index]==-1)
+        which = ~np.any(df_feat[pure_T_index].isna())
     elif d_type == 'air': 
         air_T_index = [index for index in df_feat.index if '_air_' in index]
-        which = ~np.any(df_feat[air_T_index]==-1)
+        which = ~np.any(df_feat[air_T_index].isna())
         
     if which:
 
@@ -352,9 +355,12 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
                 elif data_HT[i_plot][0] == 'gamma_air': 
                     axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
                 elif data_HT[i_plot][0] == 'delta_air': 
-                    axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD)'.format(base))
+                    if uc_base_str in ['0','1','2']: 
+                        axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD, no uncertainty listed)'.format(base))
+                    else: 
+                        axs_data[i_plot].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD)'.format(base))
                 axs_data[i_plot].fill_between(T_smooth, y_min, y_max, color=colors_fits[3], alpha=.2)
-                    
+            
             # overlay Labfit prediction (if there is one)
             if df_feat['uc_'+data.index[0][:-4]] != -1: 
                 
@@ -448,6 +454,9 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
             
             # DPL makes axis zoom out too much. specify zoom. 
             y_min = min(data-uc_data.to_numpy(float))
+            if data_labfit[i_plot][:2] == 'sd': 
+                if y_min < 0: y_min = -0.01
+            
             y_max = max(data+uc_data.to_numpy(float))
             axs_data[i_plot].set_ylim(y_min-0.15*np.abs(y_min), y_max+0.15*np.abs(y_max))
             
@@ -605,7 +614,7 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
         axs_data[0].text(0.015, 0.88, "A", fontsize=12, transform=axs_data[0].transAxes) 
         
         if (feat in [17112, 13950]) and (d_type == 'air'):
-            axs_data[1].text(0.015, 0.88, "B", fontsize=12, transform=axs_data[1].transAxes) 
+            axs_data[1].text(0.015, 0.85, "B", fontsize=12, transform=axs_data[1].transAxes) 
         else: 
             axs_data[1].text(0.015, 0.88, "B", fontsize=12, transform=axs_data[1].transAxes) 
             
@@ -623,10 +632,10 @@ for i_feat, feat in  enumerate(features_plot): #enumerate(df_sceg.index): #
         
 
 
-        # plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+        plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
         # plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
         
-        # plt.close()
+        plt.close()
                   
 
 

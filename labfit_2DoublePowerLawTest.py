@@ -173,7 +173,7 @@ print('     ******************************************\n\n\n')
 d_labfit_main = d_old_holder
 features_new = None
 
-r'''
+
 # %% read in Labfit results
 
 d_sceg = os.path.join(os.path.abspath(''),'data - sceg')
@@ -294,6 +294,8 @@ bin_names_test = ['B10',
                   'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
                   'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
 
+d_types = ['pure', 'air']
+
 # put both air and pure items in the bins dict
 if bin_names[0][-1] == 'a' and 'B1' not in bins.keys(): 
     bin_names2 = [item[:-1] for item in bin_names]
@@ -319,85 +321,44 @@ features_strong =  [[7094], # features with a clean absorption peak at all condi
                     [10165],
                     [10827],
                     [11063, 11124],
-                    [11787, 11788, 12001, 12136],
-                    [12647, 12837, 12922, 12923, 12952, 13048],
-                    [13848, 13867, 13873, 13886, 13950, 14026, 14025],
-                    [14045, 14060, 14169, 14172, 14459, 14509, 14740, 14742, 14817],
-                    [15077, 15097, 15128, 15126, 15146, 15144, 15194, 15487, 15535, 15596],
-                    [15812, 16182, 16210, 16209, 16259, 16295, 16467, 16551, 16558, 16572, 16594, 16596],
-                    [16735, 17112, 17170, 17290, 17295, 17300, 17304, 17309, 17339, 17383, 17423, 17428, 17475, 17473],
+                    [12001, 12136],
+                    [12647, 12837, 12952, 13048],
+                    [13848, 13867, 13873, 13886, 13950],
+                    [14045, 14060, 14459, 14509, 14740, 14742, 14817],
+                    [15077, 15097, 15194, 15487, 15535, 15596],
+                    [15812, 16182, 16259, 16295, 16467, 16551, 16558, 16572],
+                    [16735, 17112, 17170, 17290, 17295, 17300, 17339, 17383, 17423, 17428],
                     [17677, 17856, 17955, 18011],
                     [18339, 18398, 18406, 18478, 18555, 18611, 18974, 19055],
-                    [19207, 19281, 19333, 19339, 19346, 19398, 19406, 19421, 19422, 19463, 19707, 19814, 19812],
-                    [20283, 20315, 20320, 20349, 20429, 20464, 20465, 20550, 20835],
-                    [21075, 21189, 21361, 21430, 21455, 21459, 21484],
+                    [19207, 19281, 19333, 19339, 19346, 19398, 19406, 19463, 19707],
+                    [20283, 20315, 20320, 20349, 20429, 20550, 20835],
+                    [21075, 21189, 21361, 21430, 21484],
                     [21873, 21929, 21991, 22025, 22060, 22337, 22422, 22431, 22455],
                     [22562, 22611, 22707, 22855, 22893, 23161, 23200, 23250, 23360, 23378],
-                    [23499, 23615, 24128, 24166, 24167],
-                    [24324, 24469, 24467, 24484, 24506, 24605, 24802, 24840, 24841],
-                    [25117, 25118, 25176, 25210, 25233, 25341, 25340, 25495, 25502, 25534, 25695, 25732],
-                    [25931, 25935, 26046, 26067, 26117, 26118, 26134, 26190, 26365, 26463, 26578, 26611],
-                    [26691, 26745, 26750, 27034, 27107, 27181, 27194, 27227, 27244, 27268, 27282, 27307, 27334, 27348, 27442, 27475],
+                    [23499, 23615, 24128],
+                    [24324, 24484, 24506, 24605, 24802],
+                    [25176, 25210, 25233, 25495, 25502, 25534, 25695, 25732],
+                    [26046, 26067, 26134, 26190, 26365, 26463, 26578, 26611],
+                    [26691, 27034, 27107, 27181, 27194, 27227, 27244, 27268, 27282, 27307, 27334, 27348, 27442, 27475],
                     [27622, 27698, 27730, 27839, 28117, 28152, 28187],
                     [28492, 28543, 28805, 28824, 29054, 29069],
                     [29433, 29524, 29550, 29743, 29840, 29937, 30022, 30272],
-                    [30697, 30781, 30851, 30999, 31006, 30610, 30612],
+                    [30697, 30781, 30851, 30999, 31006],
                     [31330, 31379, 31504, 31555, 31565, 31680, 31761, 32034],
                     [32116, 32145, 32215, 32308, 32453, 32506, 32634, 32767, 32805, 32870],
-                    [32958, 33055, 33056, 33197, 33209, 33330, 33347, 33596, 33603, 33612],
-                    [33706, 33757, 33786, 33801, 33811, 33956, 34111, 34228, 34245, 34243, 34360],
-                    [34403, 34413, 34508, 34537, 34617, 34662, 34834, 34892, 34906, 34907, 34917, 34962, 35005, 35036],
+                    [32958, 33197, 33209, 33330, 33347, 33596, 33603, 33612],
+                    [33706, 33757, 33786, 33801, 33811, 33956, 34111, 34228, 34360],
+                    [34403, 34413, 34508, 34537, 34617, 34662, 34834, 34892, 34917, 34962, 35005, 35036],
                     [35195, 35251, 35348, 35597],
                     [35745, 35926, 36029],
                     [36383]]
 
-features_doublets = [[],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [],
-                     [[11787, 11788]],
-                     [[12922, 12923]],
-                     [[14026, 14025]],
-                     [[14169, 14172]],
-                     [[15128, 15126], [15146, 15144]],
-                     [[16210, 16209], [16594, 16596]],
-                     [[17304, 17309], [17475, 17473]],
-                     [],
-                     [],
-                     [[19421, 19422], [19814, 19812]],
-                     [[20464, 20465]],
-                     [[21455, 21459]],
-                     [],
-                     [],
-                     [[24166, 24167]],
-                     [[24469, 24467], [24841, 24840]],
-                     [[25118, 25117], [25340, 25341]],
-                     [[25935, 25931], [26117, 26118]],
-                     [[26750, 26745]],
-                     [],
-                     [],
-                     [],
-                     [[30610, 30612]], # not a doublet, different J (don't use)')
-                     [],
-                     [],
-                     [[33055, 33056]], # not a doublet but same J
-                     [[34245, 34243]],
-                     [[34906, 34907]],
-                     [],
-                     [],
-                     []]
+
 
 
 features_strong_flat_all = [item for sublist in features_strong for item in sublist]
 features_strong_flat = features_strong_flat_all.copy()
 
-for doublet in features_doublets: 
-    if doublet != []: 
-        for sub_doublet in doublet: 
-            features_strong_flat.remove(sub_doublet[1])
 
 T_conditions = list(dict.fromkeys([i.split()[0] for i in d_conditions]))
 
@@ -422,13 +383,74 @@ for d_which in d_whiches:
 
 df_sceg = pd.merge(df_sceg, df_sceg.reindex(columns=extra_params), left_index=True, right_index=True)
 
+
+bin_names_test2 = bin_names_test.copy()
+features_strong2 = features_strong.copy()
+d_types2 = d_types.copy()
+
+T_conditions2 = T_conditions.copy()
+
 stop = DPL_processing_next
-
-
 
 #%% perform DPL calculations
 
-d_labfit_kernal = d_labfit_kp1
+
+testing_one = False
+
+# skip to a specific transition and condition
+if testing_one: 
+    
+    feat = 12136
+    T_target = '900'
+    d_types = d_types2 # ['pure']  # not to run pure first to get to air
+    
+    bin_names_test = [bin_names_test2[[i for i, sublist in enumerate(features_strong2) if feat in sublist][0]]]
+    features_strong = [[feat]]
+    features_doublets = [[]]
+
+    if T_target == '300': T_conditions = ['300']
+    else: T_conditions = ['300',T_target]
+    
+    df_feat1 = None
+    df_feat2 = None
+    df_feat3 = None
+    df_feat4 = None
+
+    print('\n\n {}    {}'.format(feat, T_target))
+
+r'''
+
+feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=30) # need to run one time to send INP info -> REI
+
+
+if feature_error is None: 
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+    df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+    
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
+    if feature_error is None: 
+        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+        df_feat2 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+    
+        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
+        if feature_error is None: 
+            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+            df_feat3 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+
+            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
+            if feature_error is None: 
+                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                df_feat4 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+  
+print('\n\n {}    {}'.format(feat, T_target))
+
+
+r''' 
+
+
+
+
+# d_labfit_kernal = d_labfit_kp3
 d_old_all = r'E:\water database' # for comparing to original input files
 
 lines_main_header = 3 # number of lines at the very very top of inp and rei files
@@ -437,13 +459,12 @@ lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if usi
 
 
 
-
 for i_bin, bin_name in enumerate(bin_names_test):
 
     features = features_strong[i_bin]
     features_constrain = features_doublets[i_bin]
             
-    for i_type, d_type in enumerate(['pure', 'air']): 
+    for i_type, d_type in enumerate(d_types): 
         
         if d_type == 'pure': 
             d_which = 'self'
@@ -566,38 +587,86 @@ for i_bin, bin_name in enumerate(bin_names_test):
             # run labfit
             feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
             
+            
             if feature_error is None: 
                 
-                # plot results (at least at first to make sure things aren't crazy)
-                # [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props['gamma_'+d_which], props['nu'], features=features, axis_labels=False) # <-------------------
-                # plt.title(bin_name + ' - ' + T_iter)
-        
-        
-                # extract updated values and compile 
-                for feat in features: 
+                i_labfit = 0
+                while feature_error is None and i_labfit < 10: 
+                    i_labfit+=1 
+                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
                     
-                    for i_p, param in enumerate(extra_params_base): 
-
-                        name_df = param + '_' + d_which + '_' + T_iter
-                        name_labfit = param + '_' + d_which
+                    if feature_error is None: 
+                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                        df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
                         
                         
-                        if name_labfit == 'sd_air':
-                            name_labfit = 'sd_self' # labfit calls everything SD self
+                    
+                    # plot results (at least at first to make sure things aren't crazy)
+                    # [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+                    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                    # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props['gamma_'+d_which], props['nu'], features=features, axis_labels=False) # <-------------------
+                    # plt.title(bin_name + ' - ' + T_iter)
+            
+            
+                    # extract updated values and compile 
+                    for feat in features: 
+                        
+                        for i_p, param in enumerate(extra_params_base): 
+    
+                            name_df = param + '_' + d_which + '_' + T_iter
+                            name_labfit = param + '_' + d_which
                             
-                        df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
-                        df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
-                                         
+                            
+                            if name_labfit == 'sd_air':
+                                name_labfit = 'sd_self' # labfit calls everything SD self
+                                
+                            df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
+                            df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
+                                             
+                            
+                            if name_df == 'gamma_self_300': 
+    
+                                df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
+                                df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu']                            
+
+
+
+
+
+
+            if testing_one: 
+                if T_target == T_iter: 
+                    if ((d_types == d_types2) and (d_type == 'air')) or (d_types == ['pure']):
                         
-                        if name_df == 'gamma_self_300': 
+                        
+                        if feature_error is None: 
+                            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                            df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+                            
+                            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
+                            if feature_error is None: 
+                                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                df_feat2 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+                            
+                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
+                                if feature_error is None: 
+                                    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                    df_feat3 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
 
-                            df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
-                            df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu']                            
-
-
-            else:  
+                                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
+                                    if feature_error is None: 
+                                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                        df_feat4 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
+                      
+                        
+                        print('\n\n {}    {}'.format(feat, T_target))
+                        
+                        please = pause_here
+                    
+            
+            
+            
+            if feature_error is not None:  
                  
                 for feat in features: 
                                         
@@ -612,6 +681,7 @@ for i_bin, bin_name in enumerate(bin_names_test):
                                 features_constrain_iter = [doublet.copy()]
                         
                         open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+                        
                         
                         print('\n            trying one at a time, currently on {}'.format(feat))                                    
                         
@@ -665,6 +735,9 @@ for i_bin, bin_name in enumerate(bin_names_test):
                                     try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
                                     except: feature_error = 'df_calc error'; print(feature_error)
                                 
+                                
+                                
+                                
                         if feature_error is None: 
                             
                             for feat in features_iter:  
@@ -696,7 +769,6 @@ f.close()
 
 df_sceg.to_csv('DPL results.csv', float_format='%g')
 
-r'''
 
 #%% load in the DPL data
 
