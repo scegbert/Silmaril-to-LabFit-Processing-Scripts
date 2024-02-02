@@ -367,7 +367,7 @@ df_sceg = df_sceg[df_sceg.index.isin(features_strong_flat_all)]
 
 
 d_whiches = ['self', 'air']
-extra_params_base = ['gamma','sd','delta'] # self and air width, SD, and shift
+extra_params_base = ['gamma','sd','delta', 'iter'] # self and air width, SD, and shift
 extra_params = ['nu_300', 'uc_nu_300']
 
 for d_which in d_whiches: 
@@ -377,7 +377,9 @@ for d_which in d_whiches:
             name = param + '_' + d_which + '_' + T_iter
             
             extra_params.append(name)
-            extra_params.append('uc_' + name)
+            
+            if param != 'iter': 
+                extra_params.append('uc_' + name)
     
     
 
@@ -390,7 +392,42 @@ d_types2 = d_types.copy()
 
 T_conditions2 = T_conditions.copy()
 
+
+#%%  update parameters function 
+
+
+def update_df(df_output, df_input, features, d_which, T_iter, i_labfit):
+    # extract updated values and compile 
+    for feat in features: 
+        
+        for i_p, param in enumerate(extra_params_base): 
+    
+            name_df = param + '_' + d_which + '_' + T_iter
+            name_labfit = param + '_' + d_which
+            
+            if param == 'iter': 
+                
+                df_output.loc[feat, name_df] = i_labfit
+                
+            else: 
+                
+                if name_labfit == 'sd_air':
+                    name_labfit = 'sd_self' # labfit calls everything SD self
+                    
+                df_output.loc[feat, name_df] = df_input.loc[feat][name_labfit]
+                df_output.loc[feat, 'uc_'+name_df] = df_input.loc[feat]['uc_'+name_labfit]
+                                 
+                
+                if name_df == 'gamma_self_300': 
+        
+                    df_output.loc[feat, 'nu_300'] = df_input.loc[feat]['nu']
+                    df_output.loc[feat, 'uc_nu_300'] = df_input.loc[feat]['uc_nu'] 
+                    
+    return df_output
+
+
 stop = DPL_processing_next
+
 
 #%% perform DPL calculations
 
@@ -406,7 +443,6 @@ if testing_one:
     
     bin_names_test = [bin_names_test2[[i for i, sublist in enumerate(features_strong2) if feat in sublist][0]]]
     features_strong = [[feat]]
-    features_doublets = [[]]
 
     if T_target == '300': T_conditions = ['300']
     else: T_conditions = ['300',T_target]
@@ -418,39 +454,13 @@ if testing_one:
 
     print('\n\n {}    {}'.format(feat, T_target))
 
-r'''
-
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=30) # need to run one time to send INP info -> REI
 
 
-if feature_error is None: 
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-    df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-    
-    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
-    if feature_error is None: 
-        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-        df_feat2 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-    
-        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
-        if feature_error is None: 
-            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-            df_feat3 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-
-            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
-            if feature_error is None: 
-                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                df_feat4 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-  
-print('\n\n {}    {}'.format(feat, T_target))
-
-
-r''' 
+iter_limit = 10 # iterate labfit up to X times
 
 
 
-
-# d_labfit_kernal = d_labfit_kp3
+d_labfit_kernal = d_labfit_kp1
 d_old_all = r'E:\water database' # for comparing to original input files
 
 lines_main_header = 3 # number of lines at the very very top of inp and rei files
@@ -462,7 +472,6 @@ lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if usi
 for i_bin, bin_name in enumerate(bin_names_test):
 
     features = features_strong[i_bin]
-    features_constrain = features_doublets[i_bin]
             
     for i_type, d_type in enumerate(d_types): 
         
@@ -578,196 +587,85 @@ for i_bin, bin_name in enumerate(bin_names_test):
             
             # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
             if T_iter == '300' and d_type == 'pure': 
-                lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', features_constrain) 
+                lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', []) 
             
-            lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_'+d_which], 'inp_new', features_constrain) 
-            lab.float_lines(d_labfit_kernal, bin_name, features, props['sd_self'], 'inp_new', features_constrain) 
+            lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_'+d_which], 'inp_new', []) 
+            lab.float_lines(d_labfit_kernal, bin_name, features, props['sd_self'], 'inp_new', []) 
             lab.float_lines(d_labfit_kernal, bin_name, features, props['delta_'+d_which], 'inp_new', []) 
             
-            # run labfit
+            
+            
+            # run labfit for all transitions in this bin
             feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
             
             
+            # if that worked
             if feature_error is None: 
                 
+                # push updated values to df_sceg
                 i_labfit = 0
-                while feature_error is None and i_labfit < 10: 
+                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
+                
+                while feature_error is None and i_labfit < iter_limit: 
                     i_labfit+=1 
+                    print(i_labfit)
                     feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
                     
+                    # keep iterating and pushing updated values to df_sceg
                     if feature_error is None: 
                         df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                        df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-                        
-                        
+                        df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
+            
+            
+            # if that didn't work
+            if feature_error is not None:  
+                
+                # go feature by feature
+                for feat in features: 
                     
-                    # plot results (at least at first to make sure things aren't crazy)
-                    # [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-                    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                    # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, props['gamma_'+d_which], props['nu'], features=features, axis_labels=False) # <-------------------
-                    # plt.title(bin_name + ' - ' + T_iter)
-            
-            
-                    # extract updated values and compile 
-                    for feat in features: 
+                    open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+                    
+                    print('\n            trying one at a time, currently on {}'.format(feat))                                    
+                    
+                    # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
+                    if T_iter == '300' and d_type == 'pure': 
+                        lab.float_lines(d_labfit_kernal, bin_name, feat, props['nu'], 'inp_new', []) 
+                    
+                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['gamma_'+d_which], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['sd_self'], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['delta_'+d_which], 'inp_new', []) 
+                    
+                    # run labfit
+                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
+
+                    # if that worked
+                    if feature_error is None: 
                         
-                        for i_p, param in enumerate(extra_params_base): 
-    
-                            name_df = param + '_' + d_which + '_' + T_iter
-                            name_labfit = param + '_' + d_which
-                            
-                            
-                            if name_labfit == 'sd_air':
-                                name_labfit = 'sd_self' # labfit calls everything SD self
-                                
-                            df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
-                            df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
-                                             
-                            
-                            if name_df == 'gamma_self_300': 
-    
-                                df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
-                                df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu']                            
+                        # push updated values to df_sceg
+                        i_labfit = 0
 
-
-
-
-
-
-            if testing_one: 
-                if T_target == T_iter: 
-                    if ((d_types == d_types2) and (d_type == 'air')) or (d_types == ['pure']):
+                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                        df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
                         
-                        
-                        if feature_error is None: 
-                            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                            df_feat1 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-                            
+                        while feature_error is None and i_labfit < iter_limit: 
+                            i_labfit+=1 
+                            print(i_labfit)
                             feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
+                            
+                            # keep iterating and pushing updated values to df_sceg
                             if feature_error is None: 
                                 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                                df_feat2 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-                            
-                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
-                                if feature_error is None: 
-                                    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                                    df_feat3 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-
-                                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) # need to run one time to send INP info -> REI
-                                    if feature_error is None: 
-                                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                                        df_feat4 = df_calcs.loc[feat][['nu','gamma_air','uc_gamma_air', 'delta_air','uc_delta_air', 'sd_self','uc_sd_self']] 
-                      
-                        
-                        print('\n\n {}    {}'.format(feat, T_target))
-                        
-                        please = pause_here
+                                df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
                     
-            
-            
-            
-            if feature_error is not None:  
-                 
-                for feat in features: 
-                                        
-                    if feat in features_strong_flat: 
-                    
-                        # go through data one feature (or doublet pair) at a time                        
-                        features_iter = [feat].copy()
-                        features_constrain_iter = []
-                        for doublet in features_constrain: 
-                            if feat in doublet: 
-                                features_iter = doublet.copy()
-                                features_constrain_iter = [doublet.copy()]
-                        
-                        open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
-                        
-                        
-                        print('\n            trying one at a time, currently on {}'.format(feat))                                    
-                        
-                        # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
-                        if T_iter == '300' and d_type == 'pure': 
-                            lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['nu'], 'inp_new', features_constrain_iter) 
-                        
-                        lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
-                        lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['sd_self'], 'inp_new', features_constrain_iter) 
-                        lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['delta_'+d_which], 'inp_new', []) 
-                        
-                        # run labfit
-                        feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
-
-                        if feature_error is None: 
-                            try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                            except: feature_error = '\t\t\t df_calc error'; print(feature_error)
     
-                        if feature_error is not None: 
-                                                   
-                            print('\n            trying without shift (but with nu), still taking things one at a time')
-                            
-                            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
-                            
-                            # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
-                            lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['nu'], 'inp_new', features_constrain_iter) 
-                            lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
-                            lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['sd_self'], 'inp_new', features_constrain_iter)  
-                            
-                            # run labfit
-                            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
-
-                            if feature_error is None: 
-                                try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                                except: feature_error = 'df_calc error'; print(feature_error)
-                                
-                            if feature_error is not None: 
-                            
-                                open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
-                            
-                                print('\n            trying without shift (but with nu) or SD, still taking things one at a time')
-                                            
-                                # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
-                                lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['nu'], 'inp_new', features_constrain_iter) 
-                                lab.float_lines(d_labfit_kernal, bin_name, features_iter, props['gamma_'+d_which], 'inp_new', features_constrain_iter) 
-                                
-                                # run labfit
-                                feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
-                                
-                                if feature_error is None: 
-                                    try: df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                                    except: feature_error = 'df_calc error'; print(feature_error)
-                                
-                                
-                                
-                                
-                        if feature_error is None: 
-                            
-                            for feat in features_iter:  
-                                
-                                for i_p, param in enumerate(extra_params_base): 
-            
-                                    name_df = param + '_' + d_which + '_' + T_iter
-                                    name_labfit = param + '_' + d_which
-                                    
-                                    
-                                    if name_labfit == 'sd_air':
-                                        name_labfit = 'sd_self' # labfit calls everything SD self
-                                        
-                                    df_sceg.loc[feat, name_df] = df_calcs.loc[feat][name_labfit]
-                                    df_sceg.loc[feat, 'uc_'+name_df] = df_calcs.loc[feat]['uc_'+name_labfit]
-                                                     
-                                    
-                                    if name_df == 'gamma_self_300': 
-            
-                                        df_sceg.loc[feat, 'nu_300'] = df_calcs.loc[feat]['nu']
-                                        df_sceg.loc[feat, 'uc_nu_300'] = df_calcs.loc[feat]['uc_nu'] 
-
-
-
-
-f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
-pickle.dump([df_sceg, T_conditions, features_strong, features_doublets], f)
-f.close()               
-
-df_sceg.to_csv('DPL results.csv', float_format='%g')
+    
+    
+    f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
+    pickle.dump([df_sceg, T_conditions, features_strong], f)
+    f.close()               
+    
+    df_sceg.to_csv('DPL results.csv', float_format='%g')
 
 
 #%% load in the DPL data

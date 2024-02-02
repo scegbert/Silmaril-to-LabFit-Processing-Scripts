@@ -242,6 +242,9 @@ for i_feat, feat in  enumerate(df_sceg.index): # enumerate(features_plot): #
         air_T_index = [index for index in df_feat.index if '_air_' in index]
         which = ~np.any(df_feat[air_T_index].isna())
         
+        if which: 
+            which = 
+        
     if which:
 
         df_gamma_self = df_feat[df_feat.index.str.startswith('gamma_self_')]
