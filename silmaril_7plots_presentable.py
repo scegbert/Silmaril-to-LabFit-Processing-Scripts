@@ -65,7 +65,7 @@ def mark_inset_custom(parent_axes, inset_axes, loc1a=1, loc1b=1, loc2a=2, loc2b=
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -207,7 +207,7 @@ elif d_type == 'air': f = open(os.path.join(d_sceg,'df_sceg_air.pckl'), 'rb')
 [df_sceg, df_HT2020, df_HT2020_HT, df_HT2016_HT, df_paul, df_sd0] = pickle.load(f)
 f.close()
 
-# df_sceg = df_sd0.copy() # activate this line if you only want to look at SD = 0 data
+df_sceg = df_sd0.copy() # activate this line if you only want to look at SD = 0 data
 
 if d_type == 'air': df_sceg = df_sceg.rename(columns={'sd_self':'sd_air', 'uc_sd_self':'uc_sd_air'})
 
@@ -1708,7 +1708,7 @@ df_sceg_save = df_sceg_save.sort_values('nu')
 
 df_sceg_save
 
-df_sceg_save.to_csv(os.path.join(d_sceg,'sceg_pure_output.csv'), index=False)
+df_sceg_save.to_csv(os.path.join(d_sceg,'sceg_pure_output.csv'), index=True)
 
 
 #%%

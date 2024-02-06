@@ -630,11 +630,11 @@ for i_bin, bin_name in enumerate(bin_names_test):
                     
                     # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
                     if T_iter == '300' and d_type == 'pure': 
-                        lab.float_lines(d_labfit_kernal, bin_name, feat, props['nu'], 'inp_new', []) 
+                        lab.float_lines(d_labfit_kernal, bin_name, [feat], props['nu'], 'inp_new', []) 
                     
-                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['gamma_'+d_which], 'inp_new', []) 
-                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['sd_self'], 'inp_new', []) 
-                    lab.float_lines(d_labfit_kernal, bin_name, feat, props['delta_'+d_which], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['gamma_'+d_which], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['sd_self'], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['delta_'+d_which], 'inp_new', []) 
                     
                     # run labfit
                     feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
@@ -660,12 +660,14 @@ for i_bin, bin_name in enumerate(bin_names_test):
                     
     
     
+
+        df_sceg.to_csv('DPL results.csv', float_format='%g')
+
+
+f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
+pickle.dump([df_sceg, T_conditions, features_strong], f)
+f.close()               
     
-    f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
-    pickle.dump([df_sceg, T_conditions, features_strong], f)
-    f.close()               
-    
-    df_sceg.to_csv('DPL results.csv', float_format='%g')
 
 
 #%% load in the DPL data
