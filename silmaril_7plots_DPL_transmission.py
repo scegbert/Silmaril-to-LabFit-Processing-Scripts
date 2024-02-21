@@ -68,9 +68,12 @@ df_sceg = df_sceg.loc[:,~df_sceg.columns.str.startswith('iter_')]
 df_sceg_ex = pd.read_excel(os.path.join(d_sceg_save,'DPL results.xlsx'), index_col=0)
 
 # replace values that were updated manually, constrained doublets are now rows of NAN (not in excel file)
-df_sceg.iloc[:, 48:] = df_sceg_ex.iloc[:, 48:-1]
+df_sceg.iloc[:, 48:] = df_sceg_ex.iloc[:, 48:]
 
 
+f = open(os.path.join(d_sceg_save,'df_sceg_air.pckl'), 'rb')
+[df_calcs, _, _, _, _, _] = pickle.load(f)
+f.close()
 
 
 
@@ -196,6 +199,9 @@ please = stop_here____fully_loaded
 
 d_type = 'air' # 'pure' or 'air'
 
+partials = False
+aw = True # plot aw (if false, plot SD as gamma_2)
+
 if d_type == 'pure': 
 
     features_plot = [14817, 12952]
@@ -213,10 +219,10 @@ if d_type == 'pure':
 
 elif d_type == 'air':
     
-    features_plot = [17112, 13950]
-    nu_span =  [0.18, 0.18]
-    y_span0 = [0.89, 0.701]
-    y_span1 = [[-0.055, 0.019], [-0.04, 0.017]]
+    features_plot = [17112, 27034] # 13950]
+    nu_span =  [0.35, 0.55, 0.16]
+    y_span0 = [0.901, .301, 0.8601]
+    y_span1 = [[-0.0105, 0.003], [-0.034, 0.022], [-0.067, 0.057]]
     
     which_files = which_files_air.copy()
     wvn = wvn_air.copy()
@@ -226,6 +232,15 @@ elif d_type == 'air':
 
     nu_spacing = 0.18
 
+
+features_plot = [16467, 17300, 17423, 17955, 18406, 18555, 19055, 19406,
+                 20349, 20429, 20835, 21484, 21873, 21929, 22422, 22431,
+                 22455, 23200, 23360, 23615, 24324, 24605, 25695, 26578,
+                 27622, 27730, 28543, 30781, 31555, 32453, 32958, 33330,
+                 33347, 33603, 33706, 33757, 33811, 34111, 34360, 34617,
+                 34834, 34962, 35005, 35251, 35597]
+
+features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251]
 
 colors_fits = ['lime','darkorange','blue', 'red']
 
@@ -272,7 +287,9 @@ iter_sd = 0
 
 df_unc = pd.DataFrame(index=df_sceg.index, columns=['uc_gamma_max','uc_delta_max','uc_sd_max','sd_min','sd_min_unc'])
 
-for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): # 
+df_sceg_updated_uc = df_sceg.copy()
+
+for i_feat, feat in enumerate(df_sceg.index): # enumerate(features_plot): # 
     
     feat = int(feat)
     
@@ -321,8 +338,6 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
 
         df_gamma_self = df_feat[df_feat.index.str.startswith('gamma_self_')]
         df_uc_gamma_self = df_feat[df_feat.index.str.startswith('uc_gamma_self_')]
-        
-        
         df_uc_gamma_self[:] = np.sqrt((df_uc_gamma_self.to_numpy(float)/df_gamma_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2) * df_gamma_self
         
         df_sd_self = df_feat[df_feat.index.str.startswith('sd_self_')]
@@ -348,6 +363,14 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
         df_uc_delta_air[:] = np.sqrt((df_uc_delta_air.to_numpy(float)/df_delta_air.to_numpy(float))**2 + (P_unc_air)**2 + (T_unc_air)**2 +  (y_unc_air)**2 +
                                       (1.7E-4 / (0.789*df_delta_air.to_numpy(float)))**2) * abs(df_delta_air)
         
+        
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_gamma_self_')] = df_uc_gamma_self
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_sd_self_')] = df_uc_sd_self
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_delta_self_')] = df_uc_delta_self
+        
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_gamma_air_')] = df_uc_gamma_air
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_sd_air_')] = df_uc_sd_air
+        df_sceg_updated_uc.loc[feat,df_feat.index.str.startswith('uc_delta_air_')] = df_uc_delta_air
         
         
         fig = plt.figure(figsize=(6.5*2, 3.6*2)) 
@@ -377,15 +400,22 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
         
         
         if d_type == 'pure': 
+            if aw: sd_mult = 1
+            else: sd_mult =df_gamma_self.to_numpy()
+            
             data_plots = [[df_gamma_self, df_uc_gamma_self], 
                           [df_delta_self, df_uc_delta_self], 
-                          [df_sd_self *df_gamma_self.to_numpy(), df_uc_sd_self *df_gamma_self.to_numpy()]]
+                          [df_sd_self *sd_mult, df_uc_sd_self *sd_mult]]
             g_unc = 0.10
             
         elif d_type == 'air': 
+            if aw: sd_mult = 1
+            else: sd_mult =df_gamma_air.to_numpy()
+            
             data_plots = [[df_gamma_air, df_uc_gamma_air], 
                           [df_delta_air, df_uc_delta_air], 
-                          [df_sd_air *df_gamma_air.to_numpy(), df_uc_sd_air*df_gamma_air.to_numpy()]]
+                          [df_sd_air *sd_mult, df_uc_sd_air *sd_mult]]
+            
             g_unc = 0.012
             
         d_unc = 0.005
@@ -396,32 +426,43 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
 
         for i_plot, [data, uc_data] in enumerate(data_plots): 
 
-            if data.index[0].split('_')[0] == 'gamma': 
-                which = (~np.any(df_feat[uc_g_index]>g_unc*mult_unc)) # check if uncertainies below threshold
+            
+            if partials: 
+                if data.index[0].split('_')[0] == 'gamma': 
+                    which = (~np.any(df_feat[uc_g_index]>g_unc*mult_unc)) # check if uncertainies below threshold
+                    if which: 
+                        iter_g+=1
+                    else: 
+                        df_sceg.loc[feat,all_g_index] = np.nan
+                        
+                elif data.index[0].split('_')[0] == 'delta': 
+                    which = (~np.any(df_feat[uc_d_index]>d_unc*mult_unc)) # check if uncertainies below threshold
+                    if which: 
+                        iter_d+=1
+                    else: 
+                        df_sceg.loc[feat,all_d_index] = np.nan
+                    
+                elif data.index[0].split('_')[0] == 'sd': 
+                                        
+                    which = ((~np.any(df_feat[uc_sd_index]>sd_unc*mult_unc))&
+                             (df_unc.loc[feat,'sd_min_unc']>0.0)) # check if uncertainies below threshold, value larger than 0
+                    if which: 
+                        iter_sd+=1
+                    else: 
+                        df_sceg.loc[feat,all_sd_index] = np.nan
+                        
+            else: 
+                
+                which = ((~np.any(df_feat[uc_g_index]>g_unc*mult_unc))&
+                         (~np.any(df_feat[uc_d_index]>d_unc*mult_unc))&
+                         (~np.any(df_feat[uc_sd_index]>sd_unc*mult_unc))&
+                                  (df_unc.loc[feat,'sd_min_unc']>0.0)) # check if uncertainies below threshold
+                    
                 if which: 
                     iter_g+=1
-                else: 
-                    df_sceg.loc[feat,all_g_index] = np.nan
-                    
-            elif data.index[0].split('_')[0] == 'delta': 
-                which = (~np.any(df_feat[uc_d_index]>d_unc*mult_unc)) # check if uncertainies below threshold
-                if which: 
                     iter_d+=1
-                else: 
-                    df_sceg.loc[feat,all_d_index] = np.nan
-                
-            elif data.index[0].split('_')[0] == 'sd': 
-                
-                df_unc.loc[feat,'sd_min_unc']
-                
-                which = ((~np.any(df_feat[uc_sd_index]>sd_unc*mult_unc))&(df_unc.loc[feat,'sd_min_unc']>0.0)) # check if uncertainies below threshold
-                if which: 
                     iter_sd+=1
-                else: 
-                    df_sceg.loc[feat,all_sd_index] = np.nan
-            
-            
-            
+           
             if which: 
                                 
                 axs_data[i_plot].plot(T_conditions, data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
@@ -480,12 +521,20 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
                         
                         sd = df_feat[data_labfit[i_plot]]
                         
-                        base = df_feat[data_labfit[i_plot]] * df_feat['gamma_'+data_labfit[i_plot].split('_')[-1]]
-                        n = df_feat['n_'+data_labfit[i_plot].split('_')[-1]]
+                        if aw: 
+                            
+                            y_center = sd * np.ones_like(T_smooth)
+                            y_max = y_center + df_feat['uc_'+data_labfit[i_plot]]
+                            y_min = y_center - df_feat['uc_'+data_labfit[i_plot]]
+                            
+                        else: 
                         
-                        y_center = SPL(T_smooth, base, n)
-                        y_max = y_center # + df_feat['uc_'+data_labfit[i_plot]]
-                        y_min = y_center # - df_feat['uc_'+data_labfit[i_plot]]
+                            base = df_feat[data_labfit[i_plot]] * df_feat['gamma_'+data_labfit[i_plot].split('_')[-1]]
+                            n = df_feat['n_'+data_labfit[i_plot].split('_')[-1]]
+                            
+                            y_center = SPL(T_smooth, base, n)
+                            y_max = y_center # + df_feat['uc_'+data_labfit[i_plot]]
+                            y_min = y_center # - df_feat['uc_'+data_labfit[i_plot]]
                         
                     else:                       
                         
@@ -605,6 +654,14 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
         colors_trans = ['k', '#0028ff','#0080af','#117d11','#be961e','#ff0000',     '#e6ab02', '#fee9ac']
         nu_center = df_feat.nu
         
+        # identify neighbors (for air transitions)
+        df_neighbors = df_calcs[(df_calcs.nu > nu_center-nu_spacing)&
+                                (df_calcs.nu < nu_center+nu_spacing)&
+                                (df_calcs.ratio_max > max(df_feat[df_feat.index.str.startswith('ratio_')])-1)]
+        
+        # axs_trans[0].plot(df_neighbors.nu, df_neighbors.ratio_max/100 + .95,'x',color='m',markersize=10)
+        # axs_trans[0].plot(df_neighbors.nu, df_neighbors.ratio_max/100 + .95,'+',color='m',markersize=20)
+        
         if feat in features_plot:
             nu_min = nu_center - nu_span[features_plot.index(feat)]
             nu_max = nu_center + 2*nu_span[features_plot.index(feat)]
@@ -643,7 +700,9 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
         axs_trans[0].set_xlim(nu_min, nu_max)
 
         if feat in features_plot:
-            axs_trans[0].set_ylim(y_span0[features_plot.index(feat)], 1.02)
+            if d_type == 'pure': axs_trans[0].set_ylim(y_span0[features_plot.index(feat)], 1.02)
+            else: axs_trans[0].set_ylim(y_span0[features_plot.index(feat)], 1.002)
+            
             axs_trans[1].set_ylim(y_span1[features_plot.index(feat)])
             axs_trans[2].set_ylim(y_span1[features_plot.index(feat)])
         else: 
@@ -722,6 +781,15 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
             axs_data[0].set_ylim((-0.019, 0.15))
             axs_data[1].set_ylim((-0.019, 0.001))
             axs_data[2].set_ylim((0.04, 0.25))  
+            
+        if (feat == 27034) and (d_type == 'air'):
+            
+            axs_data[1].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10)        
+            
+            axs_data[1].set_ylim((-0.033, 0.0015))
+            axs_data[2].set_ylim((0.14, 0.63))
+            
+            
 
         
         axs_data[0].text(0.015, 0.88, "A", fontsize=12, transform=axs_data[0].transAxes) 
@@ -735,17 +803,28 @@ for i_feat, feat in enumerate(df_sceg.index): #  enumerate(features_plot): #
         
         if ((feat == 12952) and (d_type == 'pure')) or ((feat in [17112]) and (d_type == 'air')): 
             axs_trans[0].text(0.015, 0.87, "D", fontsize=12, transform=axs_trans[0].transAxes) 
+        elif ((feat in [13950]) and (d_type == 'air')): 
+            axs_trans[0].text(0.015, 0.89, "D", fontsize=12, transform=axs_trans[0].transAxes) 
         else: 
             axs_trans[0].text(0.015, 0.95, "D", fontsize=12, transform=axs_trans[0].transAxes) 
-                
-        axs_trans[1].text(0.015, 0.5, "E", fontsize=12, transform=axs_trans[1].transAxes) 
-        axs_trans[2].text(0.015, 0.8, "F", fontsize=12, transform=axs_trans[2].transAxes) 
+        
+        if (feat in [17112]) and (d_type == 'air'): 
+            axs_trans[1].text(0.015, 0.5, "E", fontsize=12, transform=axs_trans[1].transAxes) 
+            axs_trans[2].text(0.015, 0.5, "F", fontsize=12, transform=axs_trans[2].transAxes)
+        else: 
+            axs_trans[1].text(0.015, 0.75, "E", fontsize=12, transform=axs_trans[1].transAxes) 
+            axs_trans[2].text(0.015, 0.75, "F", fontsize=12, transform=axs_trans[2].transAxes) 
         
         
         
-        
-        plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+        if partials is False: 
+            if which: 
+                plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+        else: 
+            plt.savefig(os.path.abspath('')+r'\plots\DPL\with trans\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+            
         # plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+        
         
         plt.close()
                   
@@ -905,7 +984,8 @@ plt.savefig(os.path.abspath('')+r'\plots\DPL\{} {}.png'.format(d_type, feat), bb
 
 d_type = 'pure' # 'pure' or 'air'
 prop_plot = 'gamma'
-features_plot = [35597, 32958, 17955, 35597, 32958, 17955]
+features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251] # from 45 that met criteria for both air and pure
+# features_plot = [35597, 32958, 17955, 35597, 32958, 17955] # previous selection
 
 
 colors_fits = ['lime','darkorange','blue', 'red']

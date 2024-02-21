@@ -432,219 +432,230 @@ stop = DPL_processing_next
 #%% perform DPL calculations
 
 
-testing_one = False
+
+feats_fix1 = [10165, 10827, 11124, 22855, 24802]
+
+feats_fix2 = [13848, 13867, 13873, 13886, 14045, 14060, 14459, 14509, 14740, 14742,
+              15812, 16182, 16259, 16295, 16467, 16551, 16558, 19207, 19281, 19333,
+              19339, 19346, 19398, 19406, 19463, 26046, 26067, 26134, 26190, 26365,
+              26463, 26578, 27622, 27698, 27730, 27839, 28117, 28152, 28492, 28543,
+              28805, 28824, 29054, 29433, 29524, 29550, 29743, 29840, 29937, 30022,
+              30697, 30781, 30851, 30999, 34403, 34413, 34508, 34537, 34617, 34662,
+              34834, 34892, 34917, 34962, 35005]
+
+feats_fix3 = [13886, 14740, 29054, 30022]
+
+testing_one = True
+
 
 # skip to a specific transition and condition
 if testing_one: 
+
+    for feat in feats_fix3: 
     
-    feat = 12136
-    T_target = '900'
-    d_types = d_types2 # ['pure']  # not to run pure first to get to air
+        # feat = 8085
+        T_target = '1300'
+        T_copy = '900'
+        d_types = ['pure'] # ['pure']  # not to run pure first to get to air
+        
+        bin_names_test = [bin_names_test2[[i for i, sublist in enumerate(features_strong2) if feat in sublist][0]]]
+        features_strong = [[feat]]
+        T_conditions = [T_target]
+            
+        df_feat = None
+        
+        f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'rb')
+        [df_sceg_ext, _, _] = pickle.load(f)
+        f.close()     
     
-    bin_names_test = [bin_names_test2[[i for i, sublist in enumerate(features_strong2) if feat in sublist][0]]]
-    features_strong = [[feat]]
+        df_sceg_xlsx = pd.read_excel(os.path.join(d_sceg_save,'DPL results.xlsx'), index_col=0)
 
-    if T_target == '300': T_conditions = ['300']
-    else: T_conditions = ['300',T_target]
     
-    df_feat1 = None
-    df_feat2 = None
-    df_feat3 = None
-    df_feat4 = None
+        print('\n\n {}    {}'.format(feat, T_target))
 
-    print('\n\n {}    {}'.format(feat, T_target))
-
-
-
-iter_limit = 10 # iterate labfit up to X times
-
-
-
-d_labfit_kernal = d_labfit_kp1
-d_old_all = r'E:\water database' # for comparing to original input files
-
-lines_main_header = 3 # number of lines at the very very top of inp and rei files
-lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
-lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
-
-
-
-for i_bin, bin_name in enumerate(bin_names_test):
-
-    features = features_strong[i_bin]
-            
-    for i_type, d_type in enumerate(d_types): 
         
-        if d_type == 'pure': 
-            d_which = 'self'
-            
-        elif d_type == 'air': 
-            d_which = 'air'    
-            bin_name+='a'
-        
-        # get most up-to-date REI file into Labfit
-        d_load_folder = os.path.join(d_old_all, d_type+' water')
-        [_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
-        d_load_file = os.path.join(d_load_folder, bin_name, use_which)
-        
-        inp_saved = open(d_load_file, "r").readlines()
-        
-        num_asc = int(inp_saved[0].split()[2])
-        num_features = int(inp_saved[0].split()[3])
-         
-        line_first_feature = lines_main_header + num_asc * lines_per_asc # all of the header down to the spectra
-        line_first_constraint = line_first_feature + num_features * lines_per_feature
-        
-        # remove all constraints and unfloat all features
-        inp_saved[1] = inp_saved[1][:26] + '      0      0' + inp_saved[1][40:] # remove all constraints from file header
-        inp_saved = inp_saved[:line_first_constraint] # remove all constraints from bottom of file
-        
-        for i in range(num_features): 
-            
-            inp_saved[line_first_feature+i*lines_per_feature+2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n' # unfloat everything
-        
-        inp_header = inp_saved[:lines_main_header]
-        inp_features = inp_saved[line_first_feature:]
-        
-        # extract updated values and compile into dict/list
-        [T, P, wvn, trans_og, res_og, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_load_folder, bins, bin_name, og=True) # <-------------------
 
-        d_og = os.path.join(d_old_all, d_type+' water', bin_name, bin_name + '-000-og') # for comparing to original input files
-        df_calcs = lab.information_df(False, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load_file[:-4]) # <-------------------
 
-        for feat in features: 
-            
-            # set all temperature dependences to 0 
-            i_guess = feat*lines_per_feature
-            
-            if int(inp_features[i_guess].split()[0]) != feat: 
-                i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
-                i_guess -=2
-                
-            inp_features[i_guess] = inp_features[i_guess][:65] + ' 0.0000 ' + inp_features[i_guess][73:84] + ' 0.00000000 ' + inp_features[i_guess][96:]
-            inp_features[i_guess+1] = inp_features[i_guess+1][:11] + ' 0.0000 ' + inp_features[i_guess+1][19:30] + ' 0.00000000 ' + inp_features[i_guess+1][42:]
-    
+
+
+
         
-        for i_T, T_iter in enumerate(T_conditions): 
-            
-            for i_meas, meas_condition in enumerate(d_conditions): 
-                            
-                # remove all measurement files except the ones we're investigating (T_iter)
-                iter_asc = 0
-                
-                for i_asc in range(num_asc): 
+        iter_limit = 10 # iterate labfit up to X times
+        
+        
+        
+        d_labfit_kernal = d_labfit_kp3
+        d_old_all = r'E:\water database' # for comparing to original input files
+        
+        lines_main_header = 3 # number of lines at the very very top of inp and rei files
+        lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
+        lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
+        
+        
+        
+        for i_bin, bin_name in enumerate(bin_names_test):
+        
+            features = features_strong[i_bin]
                     
-                    line_asc = lines_main_header+i_asc*lines_per_asc
-                    
-                    T_asc = inp_saved[line_asc].split()[0].replace('_', ' ').split('.')[0].split()[1]
-                                    
-                    if T_asc == T_iter: 
-                        
-                        if iter_asc == 0: 
-                            iter_asc+=1
-                            inp_asc = inp_saved[line_asc:line_asc+lines_per_asc] # for first (and/or only) instance
-                            
-                        else: 
-                            iter_asc+=1
-                            inp_asc.extend(inp_saved[line_asc:line_asc+lines_per_asc]) # if multiple instances of this ASC file
-                        
-            # update nu for all conditions that aren't 300 K, pure H2O
-            if (T_iter == '300' and d_type == 'pure') is False:
+            for i_type, d_type in enumerate(d_types): 
                 
+                if d_type == 'pure': 
+                    d_which = 'self'
+                    
+                elif d_type == 'air': 
+                    d_which = 'air'    
+                    bin_name+='a'
+                
+                # get most up-to-date REI file into Labfit
+                d_load_folder = os.path.join(d_old_all, d_type+' water')
+                [_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
+                d_load_file = os.path.join(d_load_folder, bin_name, use_which)
+                
+                inp_saved = open(d_load_file, "r").readlines()
+                
+                num_asc = int(inp_saved[0].split()[2])
+                num_features = int(inp_saved[0].split()[3])
+                 
+                line_first_feature = lines_main_header + num_asc * lines_per_asc # all of the header down to the spectra
+                line_first_constraint = line_first_feature + num_features * lines_per_feature
+                
+                # remove all constraints and unfloat all features
+                inp_saved[1] = inp_saved[1][:26] + '      0      0' + inp_saved[1][40:] # remove all constraints from file header
+                inp_saved = inp_saved[:line_first_constraint] # remove all constraints from bottom of file
+                
+                for i in range(num_features): 
+                    
+                    inp_saved[line_first_feature+i*lines_per_feature+2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n' # unfloat everything
+                
+                inp_header = inp_saved[:lines_main_header]
+                inp_features = inp_saved[line_first_feature:]
+                
+                # extract updated values and compile into dict/list
+                [T, P, wvn, trans_og, res_og, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_load_folder, bins, bin_name, og=True) # <-------------------
+        
+                d_og = os.path.join(d_old_all, d_type+' water', bin_name, bin_name + '-000-og') # for comparing to original input files
+                df_calcs = lab.information_df(False, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load_file[:-4]) # <-------------------
+        
                 for feat in features: 
-                                                
-                    # wavenumber as string
-                    nu_str = '{:.7f}'.format(df_sceg.nu_300[feat]) 
                     
-                    # find the feature
+                    # set all temperature dependences to 0 
                     i_guess = feat*lines_per_feature
                     
                     if int(inp_features[i_guess].split()[0]) != feat: 
                         i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
                         i_guess -=2
                         
-                    inp_features[i_guess] = inp_features[i_guess][:15] + nu_str + inp_features[i_guess][27:]
+                    inp_features[i_guess] = inp_features[i_guess][:65] + ' 0.0000 ' + inp_features[i_guess][73:84] + ' 0.00000000 ' + inp_features[i_guess][96:]
+                    inp_features[i_guess+1] = inp_features[i_guess+1][:11] + ' 0.0000 ' + inp_features[i_guess+1][19:30] + ' 0.00000000 ' + inp_features[i_guess+1][42:]
+            
+                
+                for i_T, T_iter in enumerate(T_conditions): 
                     
-                    # update width and shift to match values obtained for that conditions
-                    if d_type == 'air': 
- 
-                        g_self_T = '{:.5f}'.format(df_sceg.loc[feat, 'gamma_self_'+T_iter])
-                        d_self_T = '{:.7f}'.format(df_sceg.loc[feat, 'delta_self_'+T_iter])
-                        if d_self_T[0] != '-': d_self_T = ' '+d_self_T
+                    for i_meas, meas_condition in enumerate(d_conditions): 
+                                    
+                        # remove all measurement files except the ones we're investigating (T_iter)
+                        iter_asc = 0
                         
-                        inp_features[i_guess+1] = '   ' + g_self_T + inp_features[i_guess+1][10:19] + d_self_T + inp_features[i_guess+1][29:]
-            
-            # document number of files included and save INP            
-            inp_header[0] = inp_header[0][:25] + '    {}  '.format(iter_asc) + inp_header[0][32:]
-            
-            inp_updated = inp_header.copy()
-            inp_updated.extend(inp_asc)
-            inp_updated.extend(inp_features)
-            
-            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
-            
-            print('\n************************            {}          {}        {}\n'.format(bin_name, d_type, T_iter))
-            
-            # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
-            if T_iter == '300' and d_type == 'pure': 
-                lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', []) 
-            
-            lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_'+d_which], 'inp_new', []) 
-            lab.float_lines(d_labfit_kernal, bin_name, features, props['sd_self'], 'inp_new', []) 
-            lab.float_lines(d_labfit_kernal, bin_name, features, props['delta_'+d_which], 'inp_new', []) 
-            
-            
-            
-            # run labfit for all transitions in this bin
-            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
-            
-            
-            # if that worked
-            if feature_error is None: 
-                
-                # push updated values to df_sceg
-                i_labfit = 0
-                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
-                
-                while feature_error is None and i_labfit < iter_limit: 
-                    i_labfit+=1 
-                    print(i_labfit)
-                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
+                        for i_asc in range(num_asc): 
+                            
+                            line_asc = lines_main_header+i_asc*lines_per_asc
+                            
+                            T_asc = inp_saved[line_asc].split()[0].replace('_', ' ').split('.')[0].split()[1]
+                                            
+                            if T_asc == T_iter: 
+                                
+                                if iter_asc == 0: 
+                                    iter_asc+=1
+                                    inp_asc = inp_saved[line_asc:line_asc+lines_per_asc] # for first (and/or only) instance
+                                    
+                                else: 
+                                    iter_asc+=1
+                                    inp_asc.extend(inp_saved[line_asc:line_asc+lines_per_asc]) # if multiple instances of this ASC file
+                                
+                    # update nu for all conditions that aren't 300 K, pure H2O
+                    if (T_iter == '300' and d_type == 'pure') is False:
+                        
+                        for feat in features: 
+                                                        
+                            # wavenumber as string
+                            if testing_one is not True: 
+                                nu_str = '{:.7f}'.format(df_sceg.nu_300[feat]) 
+                            else: 
+                                nu_str = '{:.7f}'.format(df_sceg_ext.nu_300[feat]) 
+                            
+                            
+                            # find the feature
+                            i_guess = feat*lines_per_feature
+                            
+                            if int(inp_features[i_guess].split()[0]) != feat: 
+                                i_guess = lab.floated_line_moved(i_guess+2, feat, inp_features, lines_per_feature)
+                                i_guess -=2
+                                
+                            inp_features[i_guess] = inp_features[i_guess][:15] + nu_str + inp_features[i_guess][27:]
+                            
+                            # update width and shift to match values obtained for that conditions
+                            if d_type == 'air': 
+                                
+                                if testing_one is not True:  
+                                    g_self_T = '{:.5f}'.format(df_sceg.loc[feat, 'gamma_self_'+T_iter])
+                                    d_self_T = '{:.7f}'.format(df_sceg.loc[feat, 'delta_self_'+T_iter])
+                                    if d_self_T[0] != '-': d_self_T = ' '+d_self_T
+                                
+                                else: 
+                                    
+                                    try: 
+                                        g_self_T = '{:.5f}'.format(df_sceg_xlsx.loc[feat, 'gamma_self_'+T_iter])
+                                        d_self_T = '{:.7f}'.format(df_sceg_xlsx.loc[feat, 'delta_self_'+T_iter])
+                                        if d_self_T[0] != '-': d_self_T = ' '+d_self_T  
+                                        
+                                        g_air_T = '{:.5f}'.format(df_sceg_xlsx.loc[feat, 'gamma_air_'+T_copy])
+                                        d_air_T = '{:.7f}'.format(df_sceg_xlsx.loc[feat, 'delta_air_'+T_copy])
+                                        if d_air_T[0] != '-': d_air_T = ' '+d_air_T  
+                                        sd_air_T = '{:.5f}'.format(df_sceg_xlsx.loc[feat, 'gamma_air_'+T_copy])
+                                    except: 
+                                        g_self_T = '{:.5f}'.format(df_sceg_ext.loc[feat, 'gamma_self_'+T_iter])
+                                        d_self_T = '{:.7f}'.format(df_sceg_ext.loc[feat, 'delta_self_'+T_iter])
+                                        if d_self_T[0] != '-': d_self_T = ' '+d_self_T  
+                                        
+                                        g_air_T = '{:.5f}'.format(df_sceg_ext.loc[feat, 'gamma_air_'+T_copy])
+                                        d_air_T = '{:.7f}'.format(df_sceg_ext.loc[feat, 'delta_air_'+T_copy])
+                                        if d_air_T[0] != '-': d_air_T = ' '+d_air_T  
+                                        sd_air_T = '{:.5f}'.format(df_sceg_ext.loc[feat, 'gamma_air_'+T_copy])
+                                    
+                                    inp_features[i_guess] = inp_features[i_guess][:43] + g_air_T + inp_features[i_guess][50:73] + d_air_T + '  0.00000000   18.0106\n'
+          
+                                inp_features[i_guess+1] = '   ' + g_self_T + inp_features[i_guess+1][10:19] + d_self_T + inp_features[i_guess+1][29:]
                     
-                    # keep iterating and pushing updated values to df_sceg
-                    if feature_error is None: 
-                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
-                        df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
-            
-            
-            # if that didn't work
-            if feature_error is not None:  
-                
-                # go feature by feature
-                for feat in features: 
+                    # document number of files included and save INP            
+                    inp_header[0] = inp_header[0][:25] + '    {}  '.format(iter_asc) + inp_header[0][32:]
+                    
+                    inp_updated = inp_header.copy()
+                    inp_updated.extend(inp_asc)
+                    inp_updated.extend(inp_features)
                     
                     open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
                     
-                    print('\n            trying one at a time, currently on {}'.format(feat))                                    
+                    print('\n************************            {}          {}        {}\n'.format(bin_name, d_type, T_iter))
                     
                     # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
                     if T_iter == '300' and d_type == 'pure': 
-                        lab.float_lines(d_labfit_kernal, bin_name, [feat], props['nu'], 'inp_new', []) 
+                        lab.float_lines(d_labfit_kernal, bin_name, features, props['nu'], 'inp_new', []) 
                     
-                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['gamma_'+d_which], 'inp_new', []) 
-                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['sd_self'], 'inp_new', []) 
-                    lab.float_lines(d_labfit_kernal, bin_name, [feat], props['delta_'+d_which], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, features, props['gamma_'+d_which], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, features, props['sd_self'], 'inp_new', []) 
+                    lab.float_lines(d_labfit_kernal, bin_name, features, props['delta_'+d_which], 'inp_new', []) 
                     
-                    # run labfit
-                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
-
+                    
+                    
+                    # run labfit for all transitions in this bin
+                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
+                    
+                    
                     # if that worked
                     if feature_error is None: 
                         
                         # push updated values to df_sceg
                         i_labfit = 0
-
                         df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
                         df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
                         
@@ -657,12 +668,58 @@ for i_bin, bin_name in enumerate(bin_names_test):
                             if feature_error is None: 
                                 df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
                                 df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
+                   
                     
-    
-    
-
-        df_sceg.to_csv('DPL results.csv', float_format='%g')
-
+                   
+                    
+                   
+                    # if that didn't work (and we aren't testing individual transitions)
+                    if feature_error is not None and testing_one is not True:  
+                        
+                        # go feature by feature
+                        for feat in features: 
+                            
+                            open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(inp_updated)
+                            
+                            print('\n            trying one at a time, currently on {}'.format(feat))                                    
+                            
+                            # float lines we're investigating (gamma, SD, delta), constrain all values for doublets            
+                            if T_iter == '300' and d_type == 'pure': 
+                                lab.float_lines(d_labfit_kernal, bin_name, [feat], props['nu'], 'inp_new', []) 
+                            
+                            lab.float_lines(d_labfit_kernal, bin_name, [feat], props['gamma_'+d_which], 'inp_new', []) 
+                            lab.float_lines(d_labfit_kernal, bin_name, [feat], props['sd_self'], 'inp_new', []) 
+                            lab.float_lines(d_labfit_kernal, bin_name, [feat], props['delta_'+d_which], 'inp_new', []) 
+                            
+                            # run labfit
+                            feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) 
+        
+                            # if that worked
+                            if feature_error is None: 
+                                
+                                # push updated values to df_sceg
+                                i_labfit = 0
+        
+                                df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
+                                
+                                while feature_error is None and i_labfit < iter_limit: 
+                                    i_labfit+=1 
+                                    print(i_labfit)
+                                    feature_error = lab.run_labfit(d_labfit_kernal, bin_name, use_rei=True, time_limit=30) 
+                                    
+                                    # keep iterating and pushing updated values to df_sceg
+                                    if feature_error is None: 
+                                        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------
+                                        df_sceg = update_df(df_sceg, df_calcs, features, d_which, T_iter, i_labfit)
+                            
+            
+            
+                
+                df_sceg.to_csv('DPL results3.csv', float_format='%g')
+                
+                
+ddddddddddddddddddddddddd
 
 f = open(os.path.join(d_sceg_save,'DPL results.pckl'), 'wb')
 pickle.dump([df_sceg, T_conditions, features_strong], f)

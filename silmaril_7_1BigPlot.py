@@ -31,6 +31,7 @@ import numpy as np
 #%% setup things
 
 d_type = 'air' # 'pure' or 'air'
+air_og = False
 
 wvn2_processing = [6500, 7800] # range used when processing the data
 wvn2_data = [6615, 7650] # where there is actually useful data that we would want to include
@@ -41,10 +42,16 @@ if d_type == 'pure':
     post_label = ''
     which_vacuum = 25 # vacuum scans that correspond to the file above
 elif d_type == 'air': 
-    which_file = '1300 K 600 T'
-    y_h2o = '2%'
-    post_label = ' in Air'
-    which_vacuum = 25 # vacuum scans that correspond to the file above
+    if air_og:
+        which_file = '1300 K 600 T'
+        y_h2o = '2%'
+        post_label = ' in Air'
+        which_vacuum = 25 # vacuum scans that correspond to the file above
+    else: 
+        which_file = '1100 K 600 T'
+        y_h2o = '2%'
+        post_label = ' in Air'
+        which_vacuum = 19 # vacuum scans that correspond to the file above
 
 #%% load in transmission data (model from labfit results)
 
@@ -278,7 +285,8 @@ if d_type == 'air':
     ax21ins.yaxis.tick_left()
     ax21ins.yaxis.set_minor_locator(AutoMinorLocator(5))
 
-    ax21ins.text(0.4, 0.2, "noise floor", fontsize=10, transform=ax21ins.transAxes)
+    if air_og: ax21ins.text(0.4, 0.2, "noise floor", fontsize=10, transform=ax21ins.transAxes)
+    else: ax21ins.text(0.4, 0.1, "noise floor", fontsize=10, transform=ax21ins.transAxes)
 
 
 #%% 1300 K inset
@@ -311,7 +319,8 @@ if d_type == 'air':
 
     ax00.arrow(narrow[1], 0.55, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
     ax10.arrow(narrow[1], 0.3, 75, 0, length_includes_head=True, head_width=0.05, head_length=30, color='k')
-    ax20.arrow(narrow[1], 0.68, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    if air_og: ax20.arrow(narrow[1], 0.68, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
+    else: ax20.arrow(narrow[1], 0.6, 75, 0, length_includes_head=True, head_width=0.03, head_length=30, color='k')
 
 #%% set axis
 
@@ -332,14 +341,22 @@ elif d_type == 'air':
 
     ax21.xaxis.set_ticks(np.arange(6962.8, 6964.0, 0.3))
 
-    ax01.set_ylim([0.953, 0.959])
-    ax11.set_ylim([0.901, 0.938])
-    ax21.set_ylim([0.96, 1.01])
-    
     ax00.set_ylim([0,1.1])
     ax10.set_ylim([0,1.1])
-    ax20.set_ylim([0.45,1.06])
+
+    if air_og: 
+        ax01.set_ylim([0.953, 0.959])
+        ax11.set_ylim([0.901, 0.938])
+        ax21.set_ylim([0.96, 1.01])
+        
+        ax20.set_ylim([0.45,1.06])
     
+    else: 
+        ax01.set_ylim([0.988, 0.993])
+        ax11.set_ylim([0.963, 0.999])
+        ax21.set_ylim([0.969, 1.005])
+        
+        ax20.set_ylim([0.3,1.06])
 
 
 #%%  remove x label on upper plots (mostly covered)
@@ -437,9 +454,16 @@ elif d_type == 'air':
     v0 = 0.87
     v1 = 0.9
     
-    ax00.text(0.405, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
-    ax10.text(0.405, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
-    ax20.text(0.405, 0.425, "(F)", fontsize=12, transform=ax20.transAxes)
+    if air_og: 
+        h2 = 0.405
+        vf = 0.425
+    else: 
+        h2 = 0.402
+        vf = 0.445
+    
+    ax00.text(h2, 0.55, "(B)", fontsize=12, transform=ax00.transAxes)
+    ax10.text(h2, 0.32, "(D)", fontsize=12, transform=ax10.transAxes)
+    ax20.text(h2, vf, "(F)", fontsize=12, transform=ax20.transAxes)
 
     ax00.text(h0, v1, "A", fontweight="bold", fontsize=12, transform=ax00.transAxes)   
     ax01.text(h1, v1, "B", fontweight="bold", fontsize=12, transform=ax01.transAxes)
@@ -453,6 +477,8 @@ elif d_type == 'air':
 
 
 #%% save it
+
+
 
 if d_type == 'pure':
     plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-1big.svg',bbox_inches='tight')
