@@ -289,7 +289,7 @@ df_unc = pd.DataFrame(index=df_sceg.index, columns=['uc_gamma_max','uc_delta_max
 
 df_sceg_updated_uc = df_sceg.copy()
 
-for i_feat, feat in enumerate(df_sceg.index): # enumerate(features_plot): # 
+for i_feat, feat in enumerate([32958]): # enumerate(df_sceg.index): # enumerate(features_plot): # 
     
     feat = int(feat)
     
@@ -982,8 +982,8 @@ plt.savefig(os.path.abspath('')+r'\plots\DPL\{} {}.png'.format(d_type, feat), bb
 
 #%% DPL plots (Part III) measured values
 
-d_type = 'pure' # 'pure' or 'air'
-prop_plot = 'gamma'
+d_type = 'air' # 'pure' or 'air'
+prop_plot = 'sd'
 features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251] # from 45 that met criteria for both air and pure
 # features_plot = [35597, 32958, 17955, 35597, 32958, 17955] # previous selection
 
@@ -992,7 +992,7 @@ colors_fits = ['lime','darkorange','blue', 'red']
 
 
 
-fig = plt.figure(figsize=(6.5, 3.6*3)) 
+fig = plt.figure(figsize=(6.5, 13)) 
 gs = GridSpec(len(features_plot), 1, figure=fig, hspace = 0) 
 axs_data = []
 
@@ -1004,16 +1004,22 @@ for i_feat, feat in enumerate(features_plot):
     
     feat = int(feat)
     df_feat = df_sceg.loc[feat]   
-    
-        
-    
+       
     quanta = df_feat.quanta.split()
     try: kcJ = float(quanta[11])/float(quanta[9])
     except: kcJ = 0.
-           
-    title = '{}{}{} ← {}{}{}      {}$_{}$$_{}$ ← {}$_{}$$_{}$      Kc" / J" = {:.3f}'.format(quanta[0],quanta[1],quanta[2],quanta[3],quanta[4],quanta[5],
-                                                                    quanta[6],quanta[7],quanta[8],quanta[9],quanta[10],quanta[11], kcJ)
-    # plt.suptitle(title)
+    
+    KaKcp = quanta[7] + ',' + quanta[8]
+    KaKcpp = quanta[10] + ',' + quanta[11]
+    
+    title = 'ν$_{}$+ν$_{}$  ({}$_{{{}}}$)←({}$_{{{}}}$)'.format('1','3',quanta[6],KaKcp,quanta[9],KaKcpp)
+    
+    if prop_plot == 'gamma':
+        axs_data[i_feat].text(0.02, 0.08, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+    if prop_plot == 'delta':
+        axs_data[i_feat].text(0.55, 0.08, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+    if prop_plot == 'sd': 
+        axs_data[i_feat].text(0.02, 0.8, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
     
     
     if d_type == 'pure': 
@@ -1034,18 +1040,6 @@ for i_feat, feat in enumerate(features_plot):
             data_HT = False
             uc_HT = False
             data_labfit = 'n_delta_self'
-                
-            df_sd_self = df_feat[df_feat.index.str.startswith('sd_self_')]
-            df_uc_sd_self = df_feat[df_feat.index.str.startswith('uc_sd_self_')]
-            df_uc_sd_self[:] = np.sqrt((df_uc_sd_self.to_numpy(float)/df_sd_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2) * df_sd_self # droped 3.9% due to TD of SD
-        
-            data_plots = [df_sd_self, df_uc_sd_self] 
-            
-        elif prop_plot == 'sd': 
-            name_plot = 'Speed Dependence\nof the Self-Width, a$_{w}$'
-            data_HT = False
-            uc_HT = False
-            data_labfit = 'sd_self'
 
             df_delta_self = df_feat[df_feat.index.str.startswith('delta_self_')]
             df_uc_delta_self = df_feat[df_feat.index.str.startswith('uc_delta_self_')]
@@ -1053,6 +1047,20 @@ for i_feat, feat in enumerate(features_plot):
                                           (1.7E-4 / (0.021*df_delta_self.to_numpy(float)))**2) * abs(df_delta_self)
             
             data_plots = [df_delta_self, df_uc_delta_self] 
+                
+            
+        elif prop_plot == 'sd': 
+            name_plot = 'SD of the\nSelf-Width, a$_{w}$'
+            data_HT = False
+            uc_HT = False
+            data_labfit = 'sd_self'
+
+            df_sd_self = df_feat[df_feat.index.str.startswith('sd_self_')]
+            df_uc_sd_self = df_feat[df_feat.index.str.startswith('uc_sd_self_')]
+            df_uc_sd_self[:] = np.sqrt((df_uc_sd_self.to_numpy(float)/df_sd_self.to_numpy(float))**2 + (P_unc_pure)**2 + (T_unc_pure)**2) * df_sd_self # droped 3.9% due to TD of SD
+        
+            data_plots = [df_sd_self, df_uc_sd_self] 
+
 
     elif d_type == 'air': 
         if prop_plot == 'gamma': 
@@ -1082,7 +1090,7 @@ for i_feat, feat in enumerate(features_plot):
             
             
         elif prop_plot == 'sd': 
-            name_plot = 'Speed Dependence\nof the Air-Width, a$_{w}$'
+            name_plot = 'SD of the\Air-Width, a$_{w}$'
             data_HT = False
             uc_HT = False
             data_labfit = 'sd_air'
@@ -1157,8 +1165,8 @@ for i_feat, feat in enumerate(features_plot):
             y_max = y_center + df_feat['uc_'+data_labfit]
             y_min = y_center - df_feat['uc_'+data_labfit]
             
-        else:                       
-            
+        else:     
+           
             base = df_feat[data.index[0][:-4]]
             uc_base = df_feat['uc_'+data.index[0][:-4]]
             
@@ -1167,8 +1175,10 @@ for i_feat, feat in enumerate(features_plot):
             if uc_n == -1: 
                 uc_n = 0  
                 color_labfit = 'darkgreen'
+
+            # if prop_plot == 'delta': delta_nu = df_feat.nu - df_feat.nu_300                             
             
-            y_center = SPL(T_smooth, base, n)
+            y_center = SPL(T_smooth, base, n) 
             y_unc = np.array([SPL(T_smooth, base+uc_base, n+uc_n), 
                             SPL(T_smooth, base+uc_base, n-uc_n), 
                             SPL(T_smooth, base-uc_base, n+uc_n),
@@ -1241,8 +1251,17 @@ for i_feat, feat in enumerate(features_plot):
         if y_min < 0: y_min = -0.01
     
     y_max = max(data+uc_data.to_numpy(float))
-    axs_data[i_feat].set_ylim(y_min-0.15*np.abs(y_min), y_max+0.15*np.abs(y_max))
+    if prop_plot == 'delta' and d_type == 'pure': 
+        y_scale = 0.5
+        y_min_plot = min([y_min-y_scale*np.abs(y_min), y_min-y_scale*np.abs(y_max)])
+        y_max_plot = max([y_max+y_scale*np.abs(y_max), y_max+y_scale*np.abs(y_min)])
+        axs_data[i_feat].set_ylim(y_min_plot, y_max_plot)
+    else: 
+        if prop_plot == 'sd': y_scale = 0.5
+        else: y_scale = 0.15
+        axs_data[i_feat].set_ylim(y_min-y_scale*np.abs(y_min), y_max+y_scale*np.abs(y_max))
     
+        
     # axs_data[i_feat].legend(framealpha=1, edgecolor='black', fontsize=10)
     
     axs_data[i_feat].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
@@ -1250,21 +1269,15 @@ for i_feat, feat in enumerate(features_plot):
     axs_data[i_feat].yaxis.set_minor_locator(AutoMinorLocator(5))
     if i_feat != len(features_plot)-1: plt.setp(axs_data[i_feat].get_xticklabels(), visible=False) 
 
+
+
     
 axs_data[-1].set_xticks(np.arange(300, 1301, 200))
 axs_data[-1].set_xlim(200, 1400)
 axs_data[-1].set_xlabel('Temperature (K)')
         
 
-    
-axs_data[2].text(0.015, 0.88, "C", fontsize=12, transform=axs_data[2].transAxes) 
-    
-
-    
-
-
-plt.savefig(os.path.abspath('')+r'\plots\DPL\{} {} {}.png'.format(d_type, prop_plot, feat), bbox_inches='tight',pad_inches = 0.1)
-# plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
+# plt.savefig(os.path.abspath('')+r'\plots\DPL {} {}.svg'.format(d_type, prop_plot), bbox_inches='tight',pad_inches = 0.1)
 
 # plt.close()
           
