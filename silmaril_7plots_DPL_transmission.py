@@ -836,14 +836,19 @@ print(iter_sd)
 
 #%% plot transmission only (Part III)
 
-d_type = 'pure'
+d_type = 'air'
+
+plot_4 = False
+
+plt.close()
 
 if d_type == 'pure': 
 
-    features_plot = [35597, 32958, 17955]
-    nu_span =  [0.08, 0.08, 0.08]
-    y_span0 = [0.45, 0.1, 0.5]
-    y_span1 = [[-0.049, 0.02], [-0.075, 0.031], [-0.075, 0.031]]
+    features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251]    
+    nu_span =  0.1
+    y_min_plot = -0.02
+    y_max_plot = 1.02
+    y_span1 = [-0.075, 0.075]
 
     
     which_files = which_files_pure.copy()
@@ -854,10 +859,11 @@ if d_type == 'pure':
 
 elif d_type == 'air':
     
-    features_plot = [35597, 32958, 17955]
-    nu_span =  [0.18, 0.18, 0.18]
-    y_span0 = [0.8, 0.65, 0.86]
-    y_span1 = [[-0.049, 0.02], [-0.075, 0.031], [-0.075, 0.031]]
+    features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251]    
+    nu_span =  0.165
+    y_min_plot = 0.55
+    y_max_plot = 1.005
+    y_span1 = [-0.075, 0.075]
 
     
     which_files = which_files_air.copy()
@@ -868,8 +874,12 @@ elif d_type == 'air':
 
 
 
+width_ratios = np.ones(len(features_plot),int).tolist()
+# width_ratios[-1] = 1.5
+
 fig = plt.figure(figsize=(6.5*2, 3.6*2)) 
-gs = GridSpec(4, 3, figure=fig, height_ratios=[4,1,1,1], hspace = 0, wspace = 0.3) 
+if plot_4: gs = GridSpec(4, len(features_plot), figure=fig, height_ratios=[4,1,1,1], width_ratios=width_ratios, hspace = 0, wspace = 0) 
+else: gs = GridSpec(3, len(features_plot), figure=fig, height_ratios=[4,1,1], width_ratios=width_ratios, hspace = 0, wspace = 0) 
 
 axs_trans = []
 
@@ -880,131 +890,12 @@ for i_feat, feat in  enumerate(features_plot):
     axs_trans[i_feat].append(fig.add_subplot(gs[0,i_feat]))
     axs_trans[i_feat].append(fig.add_subplot(gs[1,i_feat], sharex=axs_trans[i_feat][0]))
     axs_trans[i_feat].append(fig.add_subplot(gs[2,i_feat], sharex=axs_trans[i_feat][0]))
-    axs_trans[i_feat].append(fig.add_subplot(gs[3,i_feat], sharex=axs_trans[i_feat][0]))
+    if plot_4: axs_trans[i_feat].append(fig.add_subplot(gs[3,i_feat], sharex=axs_trans[i_feat][0]))
     
     
     feat = int(feat)
     df_feat = df_sceg.loc[feat]   
     
-    # plot transimission data
-    linewidth = 2
-    colors_trans = ['k', '#0028ff','#0080af','#117d11','#be961e','#ff0000',     '#e6ab02', '#fee9ac']
-    nu_center = df_feat.nu
-    
-    nu_min = nu_center - nu_span[features_plot.index(feat)]
-    nu_max = nu_center + 2*nu_span[features_plot.index(feat)]
-
-    y_min = 1
-    
-    for i_trans, which_file in enumerate(which_files): 
-        
-        axs_trans[i_feat][0].plot(wvn[i_trans],trans[i_trans], color=colors_trans[i_trans], label=which_file, 
-                  linewidth=linewidth)
-        axs_trans[i_feat][0].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10)
-
-        [istart, istop] = td.bandwidth_select_td(wvn[i_trans], [nu_min, nu_max], max_prime_factor=500, print_value=False)
-        
-        try: 
-            if y_min == 1: y_min = min(trans[i_trans][istart:istop])
-            else: y_min = min(y_min, min(trans[i_trans][istart:istop]))
-        except: pass
-
-        
-        axs_trans[i_feat][1].plot(wvn[i_trans],res_HT[i_trans], color=colors_trans[i_trans], label=which_file, 
-                  linewidth=linewidth)
-        
-        axs_trans[i_feat][2].plot(wvn[i_trans],res_updated[i_trans], color=colors_trans[i_trans], label=which_file, 
-                  linewidth=linewidth)
-        
-
-        
-        
-    # set axis
-    axs_trans[i_feat][0].set_xlim(nu_min, nu_max)
-
-    axs_trans[i_feat][0].set_ylim(y_span0[features_plot.index(feat)], 1.02)
-    axs_trans[i_feat][1].set_ylim(y_span1[features_plot.index(feat)])
-    axs_trans[i_feat][2].set_ylim(y_span1[features_plot.index(feat)])
-
-    
-    
-    #  remove x label on upper plots (mostly covered)
-    plt.setp(axs_trans[i_feat][0].get_xticklabels(), visible=False) 
-    plt.setp(axs_trans[i_feat][1].get_xticklabels(), visible=False) 
-    plt.setp(axs_trans[i_feat][2].get_xticklabels(), visible=False) 
-    
-    
-
-    # labels
-    axs_trans[i_feat][3].set_xlabel('Wavenumber - {}'.format(int(nu_center)) + ' ($\mathregular{cm^{-1}}$)')
-    
-    if i_feat == 0: 
-        axs_trans[i_feat][0].set_ylabel('Measured\nTransmission')
-        axs_trans[i_feat][1].set_ylabel('Meas-\nHITRAN')
-        axs_trans[i_feat][2].set_ylabel('Meas-\nMSF TW')
-        axs_trans[i_feat][3].set_ylabel('Meas-\n1by1 TW')
-   
-    
-    # add ticks and minor ticks all over
-    axs_trans[i_feat][0].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-    axs_trans[i_feat][0].xaxis.set_minor_locator(AutoMinorLocator(10))
-    axs_trans[i_feat][0].yaxis.set_minor_locator(AutoMinorLocator(5))
-    axs_trans[i_feat][0].xaxis.get_offset_text().set_visible(False)
-    
-    axs_trans[i_feat][1].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-    axs_trans[i_feat][1].xaxis.set_minor_locator(AutoMinorLocator(10))
-    axs_trans[i_feat][1].yaxis.set_minor_locator(AutoMinorLocator(5))
-    axs_trans[i_feat][1].xaxis.get_offset_text().set_visible(False)
-    
-    axs_trans[i_feat][2].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-    axs_trans[i_feat][2].xaxis.set_minor_locator(AutoMinorLocator(10))
-    axs_trans[i_feat][2].yaxis.set_minor_locator(AutoMinorLocator(5))
-    axs_trans[i_feat][2].xaxis.get_offset_text().set_visible(False)
-    
-    axs_trans[i_feat][3].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
-    axs_trans[i_feat][3].xaxis.set_minor_locator(AutoMinorLocator(10))
-    axs_trans[i_feat][3].yaxis.set_minor_locator(AutoMinorLocator(5))
-    axs_trans[i_feat][3].xaxis.get_offset_text().set_visible(False)
-    
-    
-    axs_trans[i_feat][2].text(0.015, 0.8, "F", fontsize=12, transform=axs_trans[i_feat][2].transAxes) 
-    
-    
-    
-
-
-plt.savefig(os.path.abspath('')+r'\plots\DPL\{} {}.png'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
-# plt.savefig(os.path.abspath('')+r'\plots\{} {}.svg'.format(d_type, feat), bbox_inches='tight',pad_inches = 0.1)
-
-# plt.close()
-      
-
-
-#%% DPL plots (Part III) measured values
-
-d_type = 'air' # 'pure' or 'air'
-prop_plot = 'sd'
-features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251] # from 45 that met criteria for both air and pure
-# features_plot = [35597, 32958, 17955, 35597, 32958, 17955] # previous selection
-
-
-colors_fits = ['lime','darkorange','blue', 'red']
-
-
-
-fig = plt.figure(figsize=(6.5, 13)) 
-gs = GridSpec(len(features_plot), 1, figure=fig, hspace = 0) 
-axs_data = []
-
-for i_feat, feat in enumerate(features_plot): 
-    
-    if i_feat == 0: axs_data.append(fig.add_subplot(gs[i_feat]))
-    else: axs_data.append(fig.add_subplot(gs[i_feat], sharex=axs_data[0]))
-    
-    
-    feat = int(feat)
-    df_feat = df_sceg.loc[feat]   
-       
     quanta = df_feat.quanta.split()
     try: kcJ = float(quanta[11])/float(quanta[9])
     except: kcJ = 0.
@@ -1012,19 +903,165 @@ for i_feat, feat in enumerate(features_plot):
     KaKcp = quanta[7] + ',' + quanta[8]
     KaKcpp = quanta[10] + ',' + quanta[11]
     
-    title = 'ν$_{}$+ν$_{}$  ({}$_{{{}}}$)←({}$_{{{}}}$)'.format('1','3',quanta[6],KaKcp,quanta[9],KaKcpp)
+    title = '({}$_{{{}}}$←{}$_{{{}}}$)'.format(quanta[6],KaKcp,quanta[9],KaKcpp)
+    
+    axs_trans[i_feat][0].text(0.05, 0.03, title, fontsize=12, transform=axs_trans[i_feat][0].transAxes) 
+    
+    if i_feat in [1,7]: 
+        axs_trans[i_feat][0].text(0.42, 0.95, ['A','B','C','D','E','F','G','H'][i_feat], fontsize=12, transform=axs_trans[i_feat][0].transAxes) 
+    else: 
+        axs_trans[i_feat][0].text(0.45, 0.95, ['A','B','C','D','E','F','G','H'][i_feat], fontsize=12, transform=axs_trans[i_feat][0].transAxes) 
+    
+    # plot transimission data
+    linewidth = 2
+    colors_trans = ['k', '#0028ff','#0080af','#117d11','#be961e','#ff0000',     '#e6ab02', '#fee9ac']
+    
+    nu_center = df_feat.nu    
+    nu_center_int = int(nu_center)
+    
+    if d_type == 'air': 
+        if i_feat in [0,2,5]: nu_center -= 0.01
+        if i_feat == 1: nu_center += 0.01
+
+    
+    if i_feat == 0: nu_center_int += 1
+    
+    nu_min = nu_center - nu_span
+    nu_max = nu_center + nu_span
+
+    y_min = 1
+    
+    for i_trans, which_file in enumerate(which_files): 
+        
+        axs_trans[i_feat][0].plot(wvn[i_trans]-nu_center_int,trans[i_trans], color=colors_trans[i_trans], label=which_file+'orr', 
+                  linewidth=linewidth)
+        if (i_feat == len(features_plot)-1) and (d_type == 'pure'): 
+            axs_trans[i_feat][0].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10, bbox_to_anchor=(0.8, 0.08))
+        if (i_feat == 1) and (d_type == 'air'): 
+            axs_trans[i_feat][0].legend(loc = 'lower right', framealpha=1, edgecolor='black', fontsize=10, bbox_to_anchor=(0.3, 0.08))
+
+        
+        axs_trans[i_feat][1].plot(wvn[i_trans]-nu_center_int,res_HT[i_trans], color=colors_trans[i_trans], label=which_file, 
+                  linewidth=linewidth)
+        
+        axs_trans[i_feat][2].plot(wvn[i_trans]-nu_center_int,res_updated[i_trans], color=colors_trans[i_trans], label=which_file, 
+                  linewidth=linewidth)
+        
+        
+    # set axis
+    axs_trans[i_feat][0].set_xticks(np.arange(-1,1.4,0.1))
+    axs_trans[i_feat][0].set_xlim(nu_min-nu_center_int, nu_max-nu_center_int)
+
+    axs_trans[i_feat][0].set_ylim(y_min_plot, y_max_plot)
+    axs_trans[i_feat][1].set_ylim(y_span1)
+    axs_trans[i_feat][2].set_ylim(y_span1)
+    if plot_4: axs_trans[i_feat][3].set_ylim(y_span1)
+    
+    
+    #  remove x label on upper plots (mostly covered)
+    plt.setp(axs_trans[i_feat][0].get_xticklabels(), visible=False) 
+    plt.setp(axs_trans[i_feat][1].get_xticklabels(), visible=False) 
+    if plot_4: plt.setp(axs_trans[i_feat][2].get_xticklabels(), visible=False) 
+    
+    #  remove y label on later plots (mostly covered)
+    if i_feat > 0: 
+        plt.setp(axs_trans[i_feat][0].get_yticklabels(), visible=False) 
+        plt.setp(axs_trans[i_feat][1].get_yticklabels(), visible=False) 
+        plt.setp(axs_trans[i_feat][2].get_yticklabels(), visible=False) 
+        if plot_4: plt.setp(axs_trans[i_feat][3].get_yticklabels(), visible=False)
+    
+    
+
+    # labels
+    axs_trans[i_feat][-1].set_xlabel('Wavenumber\n- {}'.format(nu_center_int) + ' [cm$^{-1}$]')
+    
+    if i_feat == 0: 
+        axs_trans[i_feat][0].set_ylabel('Measured\nTransmission')
+        axs_trans[i_feat][1].set_ylabel('Meas-\nHITRAN')
+        axs_trans[i_feat][2].set_ylabel('Meas-\nMSF TW')
+        if plot_4: axs_trans[i_feat][3].set_ylabel('Meas-\nSTF TW')
+   
+    
+    # add ticks and minor ticks all over
+    for i_panel, _ in enumerate(axs_trans[i_feat]): 
+    
+        axs_trans[i_feat][i_panel].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
+        axs_trans[i_feat][i_panel].xaxis.set_minor_locator(AutoMinorLocator(10))
+        axs_trans[i_feat][i_panel].yaxis.set_minor_locator(AutoMinorLocator(5))
+        axs_trans[i_feat][i_panel].xaxis.get_offset_text().set_visible(False)
+
+
+
+plt.savefig(os.path.abspath('')+r'\plots\DPL trans {}.svg'.format(d_type), bbox_inches='tight',pad_inches = 0.1)
+
+# plt.close()
+      
+
+
+#%% DPL plots (Part III) measured values
+
+plt.close()
+save_fig = False
+
+d_type = 'pure' # 'pure' or 'air'
+prop_plot = 'delta' # gamma delta sd
+features_plot = [17300, 18406, 19055, 32958, 33706, 34617, 35005, 35251] # from 45 that met criteria for both air and pure
+
+if d_type == 'air': 
+    # if prop_plot == 'gamma':         
+    if prop_plot == 'delta': 
+        y_span = 
+
+
+colors_fits = ['lime','darkorange','blue', 'red']
+
+
+
+fig = plt.figure(figsize=(6.5, 14)) 
+gs = GridSpec(len(features_plot), 1, figure=fig, hspace = 0.02) 
+axs_data = []
+
+RMS_labfit = np.zeros_like(features_plot,float) # calculating weighted RMS
+RMS_HITRAN = np.zeros_like(features_plot,float)
+RMS_DPL = np.zeros_like(features_plot,float)
+
+prop_extractor = np.zeros_like(features_plot,float)
+
+for i_feat, feat in enumerate(features_plot): 
+    
+    if i_feat == 0: axs_data.append(fig.add_subplot(gs[i_feat]))
+    else: axs_data.append(fig.add_subplot(gs[i_feat], sharex=axs_data[0]))
+    
+    feat = int(feat)
+    df_feat = df_sceg.loc[feat]   
+    
+    prop_extractor[i_feat] = df_calcs.nu[feat]
+    
+    quanta = df_feat.quanta.split()
+    try: kcJ = float(quanta[11])/float(quanta[9])
+    except: kcJ = 0.
+    
+    KaKcp = quanta[7] + ',' + quanta[8]
+    KaKcpp = quanta[10] + ',' + quanta[11]
+    
+    title = '({}$_{{{}}}$←{}$_{{{}}}$)'.format(quanta[6],KaKcp,quanta[9],KaKcpp)
     
     if prop_plot == 'gamma':
         axs_data[i_feat].text(0.02, 0.08, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+        axs_data[i_feat].text(0.95, 0.8, ['A','B','C','D','E','F','G','H'][i_feat], fontsize=12, transform=axs_data[i_feat].transAxes)
+
     if prop_plot == 'delta':
-        axs_data[i_feat].text(0.55, 0.08, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+        axs_data[i_feat].text(0.7, 0.08, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+        axs_data[i_feat].text(0.95, 0.8, ['A','B','C','D','E','F','G','H'][i_feat], fontsize=12, transform=axs_data[i_feat].transAxes)
+
     if prop_plot == 'sd': 
         axs_data[i_feat].text(0.02, 0.8, title, fontsize=12, transform=axs_data[i_feat].transAxes) 
+        axs_data[i_feat].text(0.95, 0.8, ['A','B','C','D','E','F','G','H'][i_feat], fontsize=12, transform=axs_data[i_feat].transAxes)
     
     
     if d_type == 'pure': 
         if prop_plot == 'gamma': 
-            name_plot = 'Self-Width\nγ$_{self}$ [cm$^{-1}$/atm]'
+            name_plot = 'Self-Width, γ$_{self}$\n[cm$^{-1}$/atm]'
             data_HT = ['gamma_self',False]    
             uc_HT = [3,False]
             data_labfit = 'n_self'
@@ -1036,7 +1073,7 @@ for i_feat, feat in enumerate(features_plot):
             data_plots = [df_gamma_self, df_uc_gamma_self] 
                          
         elif prop_plot == 'delta': 
-            name_plot = 'Self-Shift\nδ$_{self}$ [cm$^{-1}$/atm]'
+            name_plot = 'Self-Shift, δ$_{self}$\n[cm$^{-1}$/atm]'
             data_HT = False
             uc_HT = False
             data_labfit = 'n_delta_self'
@@ -1064,7 +1101,7 @@ for i_feat, feat in enumerate(features_plot):
 
     elif d_type == 'air': 
         if prop_plot == 'gamma': 
-            name_plot = 'Air-Width\nγ$_{air}$ [cm$^{-1}$/atm]'
+            name_plot = 'Air-Width, γ$_{air}$\n[cm$^{-1}$/atm]'
             data_HT = ['gamma_air', 'n_air']  
             uc_HT = [2,4]
             data_labfit = 'n_air'
@@ -1076,7 +1113,7 @@ for i_feat, feat in enumerate(features_plot):
             data_plots = [df_gamma_air, df_uc_gamma_air]       
               
         elif prop_plot == 'delta': 
-            name_plot = 'Air-Shift\nδ$_{air}$ [cm$^{-1}$/atm]'
+            name_plot = 'Air-Shift, δ$_{air}$\n[cm$^{-1}$/atm]'
             data_HT = ['delta_air', False]
             uc_HT = [5, False]
             data_labfit = 'n_delta_air'
@@ -1090,7 +1127,7 @@ for i_feat, feat in enumerate(features_plot):
             
             
         elif prop_plot == 'sd': 
-            name_plot = 'SD of the\Air-Width, a$_{w}$'
+            name_plot = 'SD of the\nAir-Width, a$_{w}$'
             data_HT = False
             uc_HT = False
             data_labfit = 'sd_air'
@@ -1105,7 +1142,7 @@ for i_feat, feat in enumerate(features_plot):
     
     [data, uc_data]  = data_plots
             
-    axs_data[i_feat].plot(T_conditions, data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='Measurement', zorder=10)
+    axs_data[i_feat].plot(T_conditions, data, color='k', marker='x', markersize=10, markeredgewidth=3, linestyle='None', label='1TF (Meas.)', zorder=10)
     axs_data[i_feat].errorbar(T_conditions, data, uc_data, color='k', fmt='none', capsize=5, zorder=10)
 
         
@@ -1141,21 +1178,16 @@ for i_feat, feat in enumerate(features_plot):
         y_max = np.max(y_unc,axis=0)
         y_min = np.min(y_unc,axis=0)
         
-        if data_HT[0] == 'gamma_self': 
-            axs_data[i_feat].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}'.format(base))
-        elif data_HT[0] == 'gamma_air': 
-            axs_data[i_feat].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
-        elif data_HT[0] == 'delta_air': 
-            if uc_base_str in ['0','1','2']: 
-                axs_data[i_feat].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD, no uncertainty listed)'.format(base))
-            else: 
-                axs_data[i_feat].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN {:.3f} (no TD)'.format(base))
+        axs_data[i_feat].plot(T_smooth, y_center, color=colors_fits[3], label='HITRAN')
         axs_data[i_feat].fill_between(T_smooth, y_min, y_max, color=colors_fits[3], alpha=.2)
+    
+        RMS_HITRAN[i_feat] = np.sqrt(np.mean(((SPL(T_conditions, base, n) - data)/uc_data.to_list())**2))
     
     # overlay Labfit prediction (if there is one)
     if df_feat['uc_'+data.index[0][:-4]] != -1: 
         
         color_labfit = colors_fits[0]
+        linestyle = 'solid'
         
         if data_labfit[:2] == 'sd':  
            
@@ -1175,6 +1207,7 @@ for i_feat, feat in enumerate(features_plot):
             if uc_n == -1: 
                 uc_n = 0  
                 color_labfit = 'darkgreen'
+                linestyle = 'dashed'
 
             # if prop_plot == 'delta': delta_nu = df_feat.nu - df_feat.nu_300                             
             
@@ -1186,15 +1219,18 @@ for i_feat, feat in enumerate(features_plot):
             y_max = np.max(y_unc,axis=0)
             y_min = np.min(y_unc,axis=0)
                                 
-        if data_labfit[:2] == 'sd': 
-            axs_data[i_feat].plot(T_smooth, y_center, color=color_labfit, label='Multispectrum Fit TW a$_w$ = {:.2f}'.format(sd))
-        else: 
-            axs_data[i_feat].plot(T_smooth, y_center, color=color_labfit, label='Multispectrum Fit TW {:.3f}(T/T)$^{{{:.2f}}}$'.format(base,n))
+        axs_data[i_feat].plot(T_smooth, y_center, color=color_labfit, label='MSF (SPL)', linestyle=linestyle)
         axs_data[i_feat].fill_between(T_smooth, y_min, y_max, color=color_labfit, alpha=.2)
     
+        RMS_labfit[i_feat] = np.sqrt(np.mean(((SPL(T_conditions, base, n) - data)/uc_data.to_list())**2))
+        
     if data_labfit.split('_')[1] == 'delta': 
         axs_data[i_feat].plot(T_smooth,np.zeros_like(T_smooth), color='k', linestyle=':')
-                    
+    
+    if (df_feat['uc_'+data.index[0][:-4]] == -1)&(data_labfit[:2] == 'sd'):
+        y_center = df_feat[data_labfit] * np.ones_like(T_smooth)
+        axs_data[i_feat].plot(T_smooth, y_center, color='darkgreen', label='MSF (SPL)')
+                
     if data_labfit[:2] != 'sd': 
 
         # fit the data using DPL (weighted by Labfit uncertainties)
@@ -1203,19 +1239,18 @@ for i_feat, feat in enumerate(features_plot):
         
         if df_feat['uc_' + data_labfit] == -1: n = 0.75
         
-        p0s = [[2*data[0], n, -2*data[0], -1*n], [data[0], n, -1*data[0], -1*n], [data[0]/2, n, data[0]/2, -1*n]]
+        p0s = [[2*data[0], n, -2*data[0], -1*n], [data[0], n, -1*data[0], -1*n], [data[0]/2, n, data[0]/2, -1*n], [data[0], n, 0, 0]]
         while solving:
             i_solve+=1
             try: 
-                p_DPL, cov = fit(DPL, T_conditions, data, p0=p0s[i_solve], maxfev=5000, sigma=uc_data.to_numpy(float))
+                p_DPL, cov = fit(DPL, T_conditions, data, p0=p0s[i_solve], maxfev=15000, sigma=uc_data.to_numpy(float))
                 p_err = np.sqrt(np.diag(cov))
 
                 solving=False # you solved it!
                 
                 if p_DPL[2] > 0: sign = '+'
                 else: sign = ''
-                axs_data[i_feat].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], 
-                                      label='DPL Fit TW {:.3f}(T/T)$^{{{:.2f}}}${}{:.3f}(T/T)$^{{{:.2f}}}$'.format(p_DPL[0],p_DPL[1],sign,p_DPL[2],p_DPL[3]))
+                axs_data[i_feat].plot(T_smooth, DPL(T_smooth, *p_DPL), color=colors_fits[2], label='DPL')
                 
                 # calculate uncertainties (too many Infs and NANS - haven't been using much)
                 y_unc = np.array([DPL(T_smooth, p_DPL[0]+p_err[0], p_DPL[1]+p_err[1], p_DPL[2]+p_err[2], p_DPL[3]+p_err[3]), 
@@ -1242,6 +1277,9 @@ for i_feat, feat in enumerate(features_plot):
             except: print('could not solve DPL for {}'.format(feat))    
             if i_solve == len(p0s)-1: solving=False # you didn't solve it, but it's time to move on
         
+        RMS_DPL[i_feat] = np.sqrt(np.mean(((DPL(T_conditions, *p_DPL) - data)/uc_data.to_list())**2))
+        
+    
     # housekeeping to make the plots look nice
     axs_data[i_feat].set_ylabel(name_plot)
     
@@ -1251,9 +1289,14 @@ for i_feat, feat in enumerate(features_plot):
         if y_min < 0: y_min = -0.01
     
     y_max = max(data+uc_data.to_numpy(float))
-    if prop_plot == 'delta' and d_type == 'pure': 
+    
+    if (prop_plot=='gamma')&(d_type=='pure'):  y_max *=1.1
+    
+    if prop_plot == 'delta': # and d_type == 'pure': 
         y_scale = 0.5
         y_min_plot = min([y_min-y_scale*np.abs(y_min), y_min-y_scale*np.abs(y_max)])
+        if (d_type == 'air')&(i_feat in [0,1,5,7]): y_min_plot -= 0.004
+        if (d_type == 'air')&(i_feat in [2]): y_min_plot -= 0.005
         y_max_plot = max([y_max+y_scale*np.abs(y_max), y_max+y_scale*np.abs(y_min)])
         axs_data[i_feat].set_ylim(y_min_plot, y_max_plot)
     else: 
@@ -1261,8 +1304,17 @@ for i_feat, feat in enumerate(features_plot):
         else: y_scale = 0.15
         axs_data[i_feat].set_ylim(y_min-y_scale*np.abs(y_min), y_max+y_scale*np.abs(y_max))
     
-        
-    # axs_data[i_feat].legend(framealpha=1, edgecolor='black', fontsize=10)
+    if (prop_plot=='gamma')&(d_type=='pure')&(i_feat==7): axs_data[7].set_ylim(0.1306, 0.265) 
+    if (prop_plot=='sd')&(d_type=='air')&(i_feat==1): axs_data[1].set_ylim(0.101, 0.377) 
+    if (prop_plot=='sd')&(d_type=='air')&(i_feat==2): axs_data[2].set_ylim(0.07, 0.32) 
+
+    if i_feat == 0: 
+        if prop_plot == 'sd':        
+            axs_data[i_feat].legend(loc='upper right', framealpha=1, edgecolor='black', fontsize=10, ncol=4, bbox_to_anchor=(0.75, 1.27))
+        elif (prop_plot == 'delta')&(d_type == 'pure'):
+            axs_data[i_feat].legend(loc='upper right', framealpha=1, edgecolor='black', fontsize=10, ncol=4, bbox_to_anchor=(0.85, 1.27))
+        else: 
+            axs_data[i_feat].legend(loc='upper right', framealpha=1, edgecolor='black', fontsize=10, ncol=4, bbox_to_anchor=(0.98, 1.27))
     
     axs_data[i_feat].tick_params(axis='both', which='both', direction='in', top=True, bottom=True, left=True, right=True)
     axs_data[i_feat].xaxis.set_minor_locator(AutoMinorLocator(10))
@@ -1277,8 +1329,10 @@ axs_data[-1].set_xlim(200, 1400)
 axs_data[-1].set_xlabel('Temperature (K)')
         
 
-# plt.savefig(os.path.abspath('')+r'\plots\DPL {} {}.svg'.format(d_type, prop_plot), bbox_inches='tight',pad_inches = 0.1)
+if save_fig: plt.savefig(os.path.abspath('')+r'\plots\DPL {} {}.svg'.format(d_type, prop_plot), bbox_inches='tight',pad_inches = 0.1)
 
 # plt.close()
           
+
+
 
