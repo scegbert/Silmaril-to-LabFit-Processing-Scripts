@@ -838,8 +838,10 @@ plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water c
 
 #%% look for good yH2O features and features for exploring double power law relationships
 
-d_old = r'E:\water database\air water' # for comparing to original input files
+# d_old = r'E:\water database\air water' # for comparing to original input files
+d_old = r'E:\water database\pure water' # for comparing to original input files
 
+nu = 6969.069086
 
 bin_names_test = ['B10', 
                   'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
@@ -847,13 +849,24 @@ bin_names_test = ['B10',
                   'B31', 'B32', 'B33', 'B34', 'B35', 'B36', 'B37', 'B38', 'B39', 'B40',
                   'B41', 'B42', 'B43', 'B44', 'B45', 'B46', 'B47']
 
-bin_names_test = ['B14', 'B33']
+
+for key in bins.keys(): 
+    if key != 'all': 
+        if (bins[key][1] < nu) and (bins[key][2] > nu): 
+            bin_names_test = [key]
+            
+print(bin_names_test)
+print('\n\n\n\n\n\n\n')
+
+
+ssssssssssssssssssssss
+
 
 # features_strong = {}
 
 for i, bin_name in enumerate(bin_names_test): 
   
-    bin_name = bin_name + 'a' 
+    bin_name = bin_name # + 'a' 
    
     d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
     
@@ -868,10 +881,12 @@ for i, bin_name in enumerate(bin_names_test):
     [T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name, d_load=d_load) # <-------------------
     df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_og, d_load=d_load) # <-------------------
     # features_strong[bin_name] = df_calcs[df_calcs.ratio_max>1.7].index.tolist()
-    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, features=features_strong[i], axis_labels=False) # <-------------------
+    lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>-2], 2, axis_labels=False) # <-------------------
+    # lab.plot_spectra(T,wvn,trans,res,False, df_calcs[df_calcs.ratio_max>0], 2, features=features_strong[i], axis_labels=False) # <-------------------
     plt.title(bin_name)
+    
 
-
+a = df_calcs[(df_calcs.uc_nu > -0.5)&(df_calcs.nu > nu-0.5)&(df_calcs.nu < nu+0.5)]
     
 pausehere
 
