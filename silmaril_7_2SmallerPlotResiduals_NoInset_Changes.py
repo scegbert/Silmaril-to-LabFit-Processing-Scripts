@@ -231,5 +231,6 @@ if adjust:
 
 
 
-plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
+plt.savefig(r'C:\Users\scott\Documents\1-WorkStuff\code\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
+# plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-2 changes.svg', bbox_inches='tight')
 

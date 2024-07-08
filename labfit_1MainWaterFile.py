@@ -36,7 +36,7 @@ import pickle
 
 # %% define some dictionaries and parameters
 
-d_type = 'air' # 'pure' or 'air'
+d_type = 'pure' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
@@ -71,12 +71,14 @@ props['sd_self'] = ['sd_self', 'speed dependence', 15, 37, 0.10] # pure and air
 props[False] = False # used with props_which2 option (when there isn't a second prop)
 
 buffer = 2 # I added a cm-1 buffer to avoid weird chebyshev edge effects at bin edges
+
 bin_breaks = [6500.2, 6562.8, 6579.7, 6599.5, 6620.6, 6639.4, 6660.2, 6680.1, 6699.6, 6717.9,
               6740.4, 6761.0, 6779.6, 6801.8, 6822.3, 6838.3 ,6861.4, 6883.2, 6900.1, 6920.2,
               6940.0, 6960.5, 6982.9, 7002.5, 7021.4, 7041.1, 7060.5, 7081.7, 7099.0, 7119.0, 
               7141.4, 7158.3, 7177.4, 7198.2, 7217.1, 7238.9, 7258.4, 7279.7, 7301.2, 7321.2, 
               7338.9, 7358.5, 7377.1, 7398.5, 7421.0, 7440.8, 7460.5, 7480.6, 7500.1, 7520.4,
               7540.6, 7560.5, 7580.5, 7600.0, 7620.0, 7640.0, 7660.0, 7720.0, 7799.8]
+
 bin_names = ['B1',  'B2',  'B3',  'B4',  'B5',  'B6',  'B7',  'B8',  'B9',  'B10', 
              'B11', 'B12', 'B13', 'B14', 'B15', 'B16', 'B17', 'B18', 'B19', 'B20', 
              'B21', 'B22', 'B23', 'B24', 'B25', 'B26', 'B27', 'B28', 'B29', 'B30', 
@@ -93,7 +95,7 @@ for i in range(len(bin_names)):
 bins['all'] = [-buffer, 6700, 7158.3, buffer] 
 
 d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
-d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
+# d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
 
 d_labfit_kp1 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP1'
 d_labfit_kp2 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - KP2'
@@ -126,13 +128,13 @@ cutoff_s296 = 5E-24
 
 bin_name = 'B14a' # name of working bin (for these calculations)
 
-d_labfit_kernal = d_labfit_kp4 # d_labfit_main # d_labfit_kp1
+d_labfit_kernal = d_labfit_main # d_labfit_kp1
 
 
 
 
 # d_old = os.path.join(d_labfit_main, bin_name, bin_name + '-000-og') # for comparing to original input files
-d_old_holder = r'E:\water database\pure water'
+d_old_holder = r'H:\water database\pure water'
 d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
 
 # use_rei = True
@@ -1302,183 +1304,120 @@ for bin_name in bin_names_test:
 
 
 
-#%%
+#%% exploring transitions for Tibor
 
-bin_name = 'B19a'
-
-[_, use_which] = lab.newest_rei(os.path.join(d_load_folder, bin_name), bin_name)
-d_load_newest = os.path.join(d_load_folder, bin_name, use_which)[:-4]
-
-[_, _,   _,     _, res_prior,      _,     _,           _] = lab.labfit_to_spectra(_, bins, bin_name, d_load=d_load_newest) # <-------------------
-
-
-feature_error = lab.run_labfit(d_labfit_kernal, bin_name, time_limit=60) # need to run one time to send INP info -> REI
-
-[T, P, wvn, trans, res, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T) # <-------------------
-lab.plot_spectra(T,wvn,trans,res,res_prior, df_calcs[df_calcs.ratio_max>-1.5], offset, props['n_'+d_which], props['sd_self'], axis_labels=False) # <-------------------
-plt.title(bin_name)
-
-
-#%%
-
-d_save_name = 'set some delta = 0'
-if feature_error == None: lab.save_file(d_load_folder, bin_name, d_save_name, d_folder_input=d_labfit_kernal)
-
-
-
-
-
-     
-#%%  revert delta_air back to HITRAN, update SD to 0.13, and update y_h2o
-
-
-
-y_h2o_old = [0.0189750, 0.0191960, 0.0192650, 0.0193170, 0.0193940, 0.0194900, 0.0195320, 0.0194730, 
-             0.0193570, 0.0193190, 0.0192070, 0.0192580, 0.0195700, 
-             0.0189490, 0.0190160, 0.0189890, 0.0189220, 0.0189220, # duplicates
-             0.0186050, 0.0189100, 0.0187070, 0.0185840, 0.0185690, 
-             0.0191550, 0.0195360, 0.0192420, 0.0187510, 0.0188580, 
-             0.0193090] # calculated using 38 features (listed above) using HITRAN 2020
-
-y_h2o_new = [0.0194565, 0.0197830, 0.0199033, 0.0199502, 0.0200456, 0.0200617, 0.0200454, 0.0199243, 
-             0.0198340, 0.0199169, 0.0198419, 0.0198157, 0.0200947, 
-             0.0193546, 0.0195809, 0.0196135, 0.0195629, 0.0195001, 
-             0.0189080, 0.0193659, 0.0193067, 0.0192536, 0.0191974, 
-             0.0195506, 0.0199976, 0.0198608, 0.0194793, 0.0195815, 
-             0.0200991] # calculated using 38 features (listed above) using updated database (~0.0001 lower)
-
-y_h2o_lab = [0.0195687, 0.0198780, 0.0199699, 0.0199530, 0.0200125, 0.0200252, 0.0198926, 0.0197421, 
-             0.0198567, 0.0198780, 0.0197901, 0.0197584, 0.0199763, 
-             0.0196421, 0.0195510, 0.0196035, 0.0195262, 0.0194346, 
-             0.0192477, 0.0194570, 0.0192889, 0.0192088, 0.0191539, 
-             0.0193705, 0.0203911, 0.0199124, 0.0195472, 0.0196069, 
-             0.0202362] # calculated using 251 features using LabFit
-             
-             
-             
 lines_main_header = 3 # number of lines at the very very top of inp and rei files
 lines_per_asc = 134 # number of lines per asc measurement file in inp or rei file
 lines_per_feature = 4 # number of lines per feature in inp or rei file (5 if using HTP - this version is untested)
 
-lines_header_lwa = 18 # number of lines per header in lwa file
-
-# d_labfit_main = r'C:\Users\scott\Documents\1-WorkStuff\Labfit'
-d_labfit_main = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit'
-d_labfit_k1 = r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Labfit - Kiddie Pool'
+prop_which = 'nu'
+prop_which2 = 'sw'
 
 
-d_labfit_kernal = d_labfit_main 
+wvn_new = [7010.972238, 6924.605637, 6633.399489, 7155.824131, 7164.784714, 7243.570000, 6931.149824, 6788.644188, 7032.545215,
+           7150.799191, 6944.179118, 7033.030246, 7026.623336, 6821.589772, 7171.737815, 7026.716363, 6970.794222, 7327.595578, 
+           6881.232414, 7019.902243, 6707.432199, 7382.344828, 6739.801060, 7444.231575, 7378.922989, 6932.724849, 7274.873102, 
+           7390.262912, 7024.496499, 7163.954821, 7298.916203, 6963.081136, 6896.536731, 7212.596124, 7047.900105, 6698.637463, 
+           6856.267559, 6756.033820, 7137.650628, 7132.736817, 7008.534449, 7034.113240, 7071.360385, 7080.715018, 6990.753891, 
+           6829.879005, 7019.842821, 6866.666058, 7452.779382, 7046.844303, 6808.611156, 6967.859272, 7004.028540, 7384.306035, 
+           7033.320189, 6820.036726, 7177.801154, 6818.218863, 6812.879061, 6887.118988, 7071.936373, 7159.000000, 7390.260000, 
+           7000.343856, 6953.705813, 6848.281019, 6993.175574, 6831.475224, 6857.852666, 6857.850000, 7150.115996, 6907.976805, 
+           7160.450000, 6948.045385, 6806.939525, 6756.619933, 6755.920322, 6656.870372, 6983.005397, 7253.072635, 6813.989361, 
+           6846.313548, 6849.290013, 6666.690896, 7151.146591, 7048.477550, 7291.050935, 6781.570898, 6663.755814, 6881.638378, 
+           7302.222114, 6908.144317, 7291.141066, 7022.922097, 6712.458951, 6881.033994, 6783.366244, 7051.091577, 6990.583511, 
+           6831.889723, 7092.269839, 7115.949328, 7178.255437, 6845.088827, 7376.544992, 6736.962030, 6828.575357, 6898.123198, 
+           7049.611010, 6977.922732, 6989.155056, 7491.478353, 6996.549031, 6816.964224]
 
-# d_old = r'H:\water database\air water' # for comparing to original input files
-d_old = r'E:\water database\air water' # for comparing to original input files
+elower_new = [5076.26601276, 3629.09611416, 5690.87960189, 5690.87960189, 5742.03692618, 4412.31708543, 5614.08735324, 5683.33256543,
+              5674.30938274, 5587.51867639, 5586.59022201, 5421.26757229, 5534.11045464, 5484.00020847, 5621.33438267, 5500.85662039, 
+              5475.75537710, 5355.26279349, 5256.38144166, 5554.83422372, 5579.49121917, 5477.00583794, 5475.75537710, 5632.04223517,
+              5523.11739752, 5473.80321659, 5414.12677528, 3598.72694932, 5289.95905112, 5439.05630366, 5534.11045464, 4847.62209626,
+              5538.80210440, 5324.66663070, 5442.09781133, 5512.01424456, 3940.54492808, 5464.33208073, 5400.73672878, 5496.98050248, 
+              5409.54718184, 5418.80338201, 5430.18360443, 4329.49578805, 5258.86857730, 5457.36965218, 5334.98828289, 5271.37011549,
+              5310.23977038, 4695.83624707, 5294.03719450, 5414.12677528, 5457.36965218, 4902.61402321, 5039.62741921, 5421.26757229, 
+              5439.05630366, 5324.66663070, 5477.00583794 ,4735.84492592, 5300.17823670, 5258.63047053 ,3598.72694932 ,5027.25669634, 
+              4052.81087277, 5204.00865187, 5369.69201430, 5336.32705442, 5074.22162349, 5074.22162349, 5334.98828289, 5378.74451935, 
+              4381.73537579, 5612.49335386, 5289.95905112, 5342.18721646, 5096.24530746, 5399.33130374, 5276.46433772, 5213.26934644, 
+              5300.17823670, 5255.34673811, 5369.69201430, 5207.80209252, 5316.80416753, 5273.63261357, 5289.15192694, 4285.64751251, 
+              5316.80416753, 5355.26279349, 5421.26757229, 5279.67108511, 5289.15261747, 5193.45762501, 5152.96439205, 5256.44866157, 
+              5193.88218190, 5193.88218190, 5256.84526905, 5255.34673811, 5207.80209252, 5256.44866157, 2983.39637988, 5175.95511953, 
+              5193.88218190, 5204.98799958, 5108.34932253, 4150.28728186, 5122.39289211, 5070.03101818, 5208.89531551, 5688.50215558, 
+              4992.12160894, 4842.13129829]
 
+for i_wvn, wvn in enumerate(wvn_new): 
+    
+    # which bin is this transition in? 
+    bin_indices = []
+    
+    for i_bin in range(len(bin_breaks) - 1):
+        if bin_breaks[i_bin] <= wvn < bin_breaks[i_bin + 1]:
+            bin_name = bin_names[i_bin]
+            break
 
-
-
-for bin_name in bin_names: 
-       
-    d_og = os.path.join(d_old, bin_name, bin_name + '-000-og') # for comparing to original input files
-    # d_og = os.path.join(d_old, bin_name, bin_name + '-000-HITRAN') # for comparing to original input files
+    # read in og HITRAN info
+    d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
+    [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
     
+    # load in updated file and run labfit to prep for next steps
+    lab.float_lines(d_labfit_kernal, bin_name, [], prop_which, use_which='inp_saved', d_folder_input=d_labfit_main)
     
-    # copy file and load
+    lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
+    [T, P, wvn_plot, trans, res_pre_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
     
-    [_, use_which] = lab.newest_rei(os.path.join(d_old, bin_name), bin_name)
+    # load in INP file and get ready to update E"
+    i_transition = int(df_calcs[np.round(df_calcs.nu,3) == np.round(wvn,3)].index[0])
+    i_closest = int(df_calcs[df_calcs.nu == df_calcs.iloc[(df_calcs[(df_calcs.index<1e6)].nu-wvn).abs().argmin()].nu].index[0])
     
-    inp_updated = open(os.path.join(d_old, bin_name, use_which), "r").readlines() 
+    [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
+    inp_latest = open(os.path.join(d_labfit_main, bin_name, use_which[:-4])+'.inp', "r").readlines()   
     
-    print('\n{}        {} features in this file, starting with {}'.format(bin_name, inp_updated[0].split()[3], use_which))
+    lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    line_closest = lines_until_features + lines_per_feature*i_closest + 2   
     
-    inp_HT = open(os.path.join(d_old, bin_name, bin_name + '-000-HITRAN.rei'), "r").readlines()
-    
-    lines_until_features = lines_main_header + int(inp_updated[0].split()[2]) * lines_per_asc # all of the header down to the spectra
-    
-    
-    # update yh2o
-    
-    for i_asc in range(int(inp_updated[0].split()[2])): 
-    
-        asc_name = ' '.join(inp_updated[lines_main_header+i_asc*lines_per_asc].split()[0].replace('_', ' ').split('.')[0].split()[1:-1])
+    # update E" for the new transition
+    if int(rei_latest[line_latest-2].split()[0]) != i: # check if the feature changed places with a neighbor (nu)
+        line_latest = lab.floated_line_moved(line_latest, i, rei_latest, lines_per_feature)
             
-        i_condition = d_conditions.index(asc_name)
-        
-        y_asc = float(inp_updated[lines_main_header+i_asc*lines_per_asc + 20].split()[0])
-        
-        y_h2o_old_i = y_h2o_old[i_condition]
-        
-        if y_h2o_old[i_condition] != y_h2o_old_i: throw_error = different_y
-        
-        y_h2o_new_i = y_h2o_lab[i_condition]
-        
-        inp_updated[lines_main_header+i_asc*lines_per_asc + 20] = '     {0:.6f}    '.format(y_h2o_new_i) + inp_updated[lines_main_header+i_asc*lines_per_asc + 20][17:]
-        
-    # update SD and delta (and n_delta back to 1)
     
-    i_feature_updated = 0
     
-    for i_feature_HT in range(int(inp_HT[0].split()[3])): 
-       
-        i_feature_HT += 1
-        if str(i_feature_HT) != inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)].split()[0]: throw_error = pleasehere
-        
-        delta_HT = inp_HT[lines_until_features + lines_per_feature*(i_feature_HT-1)][73:] # includes delta, n_delta, MW
-        delta_HT = delta_HT[:12] + '1' + delta_HT[13:] # reset n_delta to 1 for all features
-        
-        i_feature_updated += 1
-        line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
-        
-        i_feature_updated_down = i_feature_updated
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    lab.plot_spectra(T,wvn_plot,trans,res,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 0.5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+    plt.title(bin_name)
+    plt.xlim(wvn-0.25, wvn+0.25)
+    plt.ylim(99, 101.5)
 
-        # make sure you're on the right line
-        while inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+
+    sdfsdfsdfsdfsdfsd
+
+
+
+
+    # unfloat all lines so we're only looking for this one transition right now
+    [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
+    rei_latest = open(os.path.join(d_labfit_main, bin_name, use_which), "r").readlines()
+    
+    lines_until_features = lines_main_header + int(rei_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    number_of_transitions = int(rei_latest[0].split()[3])
+    
+    for i in range(number_of_transitions): 
             
-            if inp_updated[line_updated+1][67:-1] == '0.12000': 
-                inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD wherever you are
-            
-            i_feature_updated += 1 # look at the next feature
-            line_updated = lines_until_features + lines_per_feature*(i_feature_updated-1)
-            
-            if inp_updated[line_updated].split()[0] != str(i_feature_HT): 
+        line_latest = lines_until_features + lines_per_feature*i + 2            
+        rei_latest[line_latest] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
                 
-                i_feature_updated_down -= 1 # also look at above where you were
-                line_updated = lines_until_features + lines_per_feature*(i_feature_updated_down-1)
-                
-                if inp_updated[line_updated].split()[0] == str(i_feature_HT): 
-                    i_feature_updated = i_feature_updated_down # if we found it going down, use that index
-        
-        if inp_updated[line_updated].split()[0] != str(i_feature_HT): please = stop_here
-            
-        inp_updated[line_updated] = inp_updated[line_updated][:73] + delta_HT
-        
-        
-        
-        if inp_updated[line_updated+1][67:-1] == '0.12000': 
-            inp_updated[line_updated+1] = inp_updated[line_updated+1][:67] + '0.13000\n' # update SD          
-            
-        if inp_updated[line_updated-lines_per_feature+1][67:-1] == '0.12000':     
-            inp_updated[line_updated-lines_per_feature+1] = inp_updated[line_updated-lines_per_feature+1][:67] + '0.13000\n' # update SD above just in case
-        
-        if inp_updated[line_updated-2*lines_per_feature+1][67:-1] == '0.12000': 
-            inp_updated[line_updated-2*lines_per_feature+1] = inp_updated[line_updated-2*lines_per_feature+1][:67] + '0.13000\n' # update SD 2 above just in case
-        
-        if inp_updated[line_updated-3*lines_per_feature+1][67:-1] == '0.12000': 
-            inp_updated[line_updated-3*lines_per_feature+1] = inp_updated[line_updated-3*lines_per_feature+1][:67] + '0.13000\n' # update SD 3 above just in case
-        # don't go down so you don't mess up the constraints
-    
-
-    # unfloat any floated shifts
-    for i_feature_updated in range(int(inp_updated[0].split()[3])): 
- 
-        line_updated = lines_until_features + lines_per_feature*i_feature_updated    
- 
-        inp_updated[line_updated+2] = inp_updated[line_updated+2][:18] + '1  1' + inp_updated[line_updated+2][22:]
- 
-    
-    
-    use_which_updated = bin_name + '-100-updated yh2o SD and delta for last iteration.rei'
-    
-    open(os.path.join(d_old, bin_name, use_which_updated), 'w').writelines(inp_updated)
+    open(os.path.join(d_labfit_kernal, bin_name) + '.inp', 'w').writelines(rei_latest)
     
     
 

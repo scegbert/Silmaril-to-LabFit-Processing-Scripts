@@ -65,7 +65,7 @@ def mark_inset_custom(parent_axes, inset_axes, loc1a=1, loc1b=1, loc2a=2, loc2b=
 
 # %% define some dictionaries and parameters
 
-d_type = 'pure' # 'pure' or 'air'
+d_type = 'air' # 'pure' or 'air'
 
 if d_type == 'pure': 
     d_conditions = ['300 K _5 T', '300 K 1 T', '300 K 1_5 T', '300 K 2 T', '300 K 3 T', '300 K 4 T', '300 K 8 T', '300 K 16 T', 
