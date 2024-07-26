@@ -1379,71 +1379,65 @@ where_save = 'updated' # 'HITRAN' # 'updated'
 #                 5119.37559142]
 
 
-# # wavenumber check needed
-# wvn_new = [6656.261041, 6656.506836, 6680.030081, 6695.406495, 6711.304691, 6741.142758, 6745.720000, 6754.096308, 6756.335626, 6767.738772, 
-#             6781.020657, 6782.724159, 6783.360000, 6783.419051, 6786.170913, 6791.439003, 6795.200000, 6799.520825, 6805.238473, 6809.851824, 
-#             6811.080343, 6815.723782, 6818.937177, 6828.289101, 6830.936234, 6832.127416, 6835.347320, 6863.816093, 6865.752648, 6866.212608, 
-#             6870.370000, 6870.760000, 6870.764004, 6872.307952, 6872.920866, 6874.733555, 6881.525589, 6899.121124, 6915.248379, 6917.390000, 
-#             6918.627858, 6943.949098, 6953.916456, 6956.770000, 6965.417285, 6966.014182, 6973.138848, 6973.428826, 6975.470640, 6977.429180, 
-#             6983.862821, 6988.163287, 6988.558605, 6988.676265, 6988.749491, 6988.750000, 7001.308994, 7008.775435, 7016.067984, 7033.997484, 
-#             7034.989500, 7036.917390, 7052.680458, 7056.432036, 7063.280448, 7063.706514, 7067.366079, 7069.387226, 7081.962357, 7084.161227, 
-#             7085.560000, 7087.887129, 7093.967265, 7100.914199, 7101.750000, 7124.717440, 7147.249274, 7160.737101, 7162.994065, 7164.656387, 
-#             7165.013016, 7178.680000, 7183.320314, 7184.179063, 7184.888873, 7192.572784, 7195.955098, 7201.564335, 7202.057335, 7213.893172, 
-#             7214.319689, 7225.016172, 7231.756569, 7248.094169, 7250.308019, 7250.310000, 7268.809041, 7273.135067, 7280.780000, 7280.780505, 
-#             7282.280000, 7287.750000, 7300.771068, 7302.639187, 7305.529745, 7317.489642, 7334.044851, 7340.543818, 7382.340000, 7385.252401, 
-#             7389.400358, 7401.298403, 7415.060361, 7415.464579, 7438.092500, 7443.801993, 7451.888710, 7478.654807, 7490.228731, 7490.809659, 
-#             7491.417655, 7491.821286, 7492.599507, 7495.707905, 7495.959427]
+# wavenumber check needed
+wvn_new = [6656.261041, 6656.506836, 6680.030081, 6695.406495, 6711.304691, 6741.142758, 6745.720000, 6754.096308, 6756.335626, 6767.738772, 
+            6781.020657, 6782.724159, 6783.360000, 6783.419051, 6786.170913, 6791.439003, 6795.200000, 6799.520825, 6805.238473, 6809.851824, 
+            6811.080343, 6815.723782, 6818.937177, 6828.289101, 6830.936234, 6832.127416, 6835.347320, 6863.816093, 6865.752648, 6866.212608, 
+            6870.370000, 6870.760000, 6870.764004, 6872.307952, 6872.920866, 6874.733555, 6881.525589, 6899.121124, 6915.248379, 6917.390000, 
+            6918.627858, 6943.949098, 6953.916456, 6956.770000, 6965.417285, 6966.014182, 6973.138848, 6973.428826, 6975.470640, 6977.429180, 
+            6983.862821, 6988.163287, 6988.558605, 6988.676265, 6988.749491, 6988.750000, 7001.308994, 7008.775435, 7016.067984, 7033.997484, 
+            7034.989500, 7036.917390, 7052.680458, 7056.432036, 7063.280448, 7063.706514, 7067.366079, 7069.387226, 7081.962357, 7084.161227, 
+            7085.560000, 7087.887129, 7093.967265, 7100.914199, 7101.750000, 7124.717440, 7147.249274, 7160.737101, 7162.994065, 7164.656387, 
+            7165.013016, 7178.680000, 7183.320314, 7184.179063, 7184.888873, 7192.572784, 7195.955098, 7201.564335, 7202.057335, 7213.893172, 
+            7214.319689, 7225.016172, 7231.756569, 7248.094169, 7250.308019, 7250.310000, 7268.809041, 7273.135067, 7280.780000, 7280.780505, 
+            7282.280000, 7287.750000, 7300.771068, 7302.639187, 7305.529745, 7317.489642, 7334.044851, 7340.543818, 7382.340000, 7385.252401, 
+            7389.400358, 7401.298403, 7415.060361, 7415.464579, 7438.092500, 7443.801993, 7451.888710, 7478.654807, 7490.228731, 7490.809659, 
+            7491.417655, 7491.821286, 7492.599507, 7495.707905, 7495.959427]
 
-# elower_tibor = [5163.08124650, 5163.08763707, 4066.12257395, 4971.26066265, 5466.40248811, 4408.02882210, 4260.46692240, 4427.22682357,
-#                 5208.89531551, 3526.62746419, 4784.99992542 ,4992.12160894, 5193.88218190 ,2927.07518877 ,5256.44866157, 4756.39401793, 
-#                 5193.45762501, 5409.69797106, 4436.94052569, 5096.24538482, 5523.11739752, 5039.62741921, 5144.40901328, 4992.12160894, 
-#                 5670.61527220, 2927.07518877, 5430.18360443, 5052.66862206, 5184.73428194, 4031.85357180, 4769.03845451, 4195.81808078, 
-#                 4195.81808078, 5315.50009057, 4977.04419783, 4329.49578805, 4249.52442169, 5454.59620510, 5429.11838152, 3655.48281415, 
-#                 4644.21717450, 5199.59660508, 4756.39401793, 4387.06285453, 4926.34694016, 5457.23699800, 4728.22116642, 4611.79479731, 
-#                 4980.22313032, 4837.69957025, 5286.56288401, 5069.08825131, 4837.69957025, 4750.38772568, 4717.10447381, 4717.10447381, 
-#                 5256.11644305, 4976.04327386, 4048.24954447, 5523.11739752, 5022.28126107, 5171.05987663, 5196.50054423, 5193.45762501, 
-#                 5477.00583794, 4643.99911285, 5334.98828289, 4782.92004741, 5144.40901328, 5316.80416753, 5020.02614885 ,5429.11838152, 
-#                 5169.03924855, 3752.41620098, 5286.56288401, 4506.73381954, 5399.33130374, 5169.03924855, 5238.38529808, 2724.16711089, 
-#                 3567.25475111, 3951.31499959, 5524.56916455, 4427.22682357, 4525.23906839, 3032.69039203, 4918.23474301, 5119.37559142, 
-#                 5455.88864111, 3895.25290074, 4612.79070416, 4759.85308121, 2952.39373221, 4268.24093181, 5466.40248811, 5466.40248811, 
-#                 5015.70405468, 4976.04327386, 5334.86018233, 5334.86018233, 5310.23977038, 5067.07675234, 5409.69797106, 3144.57876256, 
-#                 4696.83464688, 3535.87044665, 5119.37559142, 5208.89531551, 5477.00583794, 3482.48017553, 3136.41248609, 3386.05233763, 
-#                 4752.73294407, 5324.66663070, 5255.44874185, 5611.32977444, 4062.83809343, 3647.45949024, 4738.62165700, 5246.07900130, 
-#                 5163.08124650, 5604.30897052, 5713.24954725, 5031.97797906, 5471.86399333]
+elower_tibor = [5163.08124650, 5163.08763707, 4066.12257395, 4971.26066265, 5466.40248811, 4408.02882210, 4260.46692240, 4427.22682357,
+                5208.89531551, 3526.62746419, 4784.99992542 ,4992.12160894, 5193.88218190 ,2927.07518877 ,5256.44866157, 4756.39401793, 
+                5193.45762501, 5409.69797106, 4436.94052569, 5096.24538482, 5523.11739752, 5039.62741921, 5144.40901328, 4992.12160894, 
+                5670.61527220, 2927.07518877, 5430.18360443, 5052.66862206, 5184.73428194, 4031.85357180, 4769.03845451, 4195.81808078, 
+                4195.81808078, 5315.50009057, 4977.04419783, 4329.49578805, 4249.52442169, 5454.59620510, 5429.11838152, 3655.48281415, 
+                4644.21717450, 5199.59660508, 4756.39401793, 4387.06285453, 4926.34694016, 5457.23699800, 4728.22116642, 4611.79479731, 
+                4980.22313032, 4837.69957025, 5286.56288401, 5069.08825131, 4837.69957025, 4750.38772568, 4717.10447381, 4717.10447381, 
+                5256.11644305, 4976.04327386, 4048.24954447, 5523.11739752, 5022.28126107, 5171.05987663, 5196.50054423, 5193.45762501, 
+                5477.00583794, 4643.99911285, 5334.98828289, 4782.92004741, 5144.40901328, 5316.80416753, 5020.02614885 ,5429.11838152, 
+                5169.03924855, 3752.41620098, 5286.56288401, 4506.73381954, 5399.33130374, 5169.03924855, 5238.38529808, 2724.16711089, 
+                3567.25475111, 3951.31499959, 5524.56916455, 4427.22682357, 4525.23906839, 3032.69039203, 4918.23474301, 5119.37559142, 
+                5455.88864111, 3895.25290074, 4612.79070416, 4759.85308121, 2952.39373221, 4268.24093181, 5466.40248811, 5466.40248811, 
+                5015.70405468, 4976.04327386, 5334.86018233, 5334.86018233, 5310.23977038, 5067.07675234, 5409.69797106, 3144.57876256, 
+                4696.83464688, 3535.87044665, 5119.37559142, 5208.89531551, 5477.00583794, 3482.48017553, 3136.41248609, 3386.05233763, 
+                4752.73294407, 5324.66663070, 5255.44874185, 5611.32977444, 4062.83809343, 3647.45949024, 4738.62165700, 5246.07900130, 
+                5163.08124650, 5604.30897052, 5713.24954725, 5031.97797906, 5471.86399333]
 
 
-# problematic cases
-wvn_new = [7390.262912, # 27
-           6856.267559, # 36
-           7080.715018, # 43
-           7046.844303, # 49
-           6887.118988, # 59
-           6887.118988, # 59
-           6887.118988, # 59
-           6887.118988, # 59
-           6953.705813, # 64
-           6953.705813, # 64
-           6953.705813, # 64
-           6781.570898, # 87
-           7178.255437, # 102
-           6898.123198, # 107
-           6963.081136] # 31         
+# # problematic cases
+# wvn_new = [7390.262912, # 27
+#            6856.267559, # 36
+#            7080.715018, # 43
+#            7046.844303, # 49
+#            6887.118988, # 59
+#            6953.705813, # 64
+#            6953.705813, # 64
+#            6953.705813, # 64
+#            6781.570898, # 87
+#            7178.255437, # 102
+#            6898.123198, # 107
+#            6963.081136] # 31         
            
-elower_tibor = [6149.493696, # 27
-                6240.487063, # 36
-                6013.447885, # 43
-                6340.33789, # 49
-                6500, # 59
-                7000, # 59
-                7500, # 59
-                8000, # 59
-                5475.755373, # 64
-                6705.593530, # 64
-                5069.088248, # 64
-                5827.338197, # 87
-                5507.474906, # 102
-                6290.183818, # 107
-                6019.181143] # 31  
+# elower_tibor = [6149.493696, # 27
+#                 6240.487063, # 36
+#                 6013.447885, # 43
+#                 6340.33789, # 49
+#                 4735.844887, # 59
+#                 5475.755373, # 64
+#                 6705.593530, # 64
+#                 5069.088248, # 64
+#                 5827.338197, # 87
+#                 5507.474906, # 102
+#                 6290.183818, # 107
+#                 6019.181143] # 31  
 
 
 index_labfit = [0.0] * len(elower_tibor)
@@ -1454,134 +1448,155 @@ sw_unc_updated = [0.0] * len(elower_tibor)
 nu_updated = [0.0] * len(elower_tibor)
 nu_unc_updated = [0.0] * len(elower_tibor)
 
-for i_wvn, wvn in enumerate(wvn_new): 
-        
-    # i_wvn = 6
-    # wvn = wvn_new[i_wvn]
+# for i_wvn, wvn in enumerate(wvn_new): 
     
+i_wvn = 12
+wvn = wvn_new[i_wvn]
+
+   
+print('           {}   (i={})  '.format(wvn,i_wvn))
+
+# which bin is this transition in? 
+bin_indices = []
+
+for i_bin in range(len(bin_breaks) - 1):
+    if bin_breaks[i_bin] <= wvn < bin_breaks[i_bin + 1]:
+        bin_name = bin_names[i_bin]
+        break
+
+# read in og HITRAN info
+d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
+[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
+
+# load in updated file and run labfit to prep for next steps
+lab.float_lines(d_labfit_kernal, bin_name, [], prop_which, use_which='inp_saved', d_folder_input=d_labfit_main)
+
+lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
+[T, P, wvn_plot, trans, res_pre_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
+
+
+# load in INP file and get ready to update E"
+try: i_transition = int(df_calcs[(np.round(df_calcs.nu,3) == np.round(wvn,3))&(df_calcs.index>100000)].index[0])
+except: 
+    try: 
+        i_transition = int(df_calcs[(np.round(df_calcs.nu,2) == np.round(wvn,2))&(df_calcs.index>100000)].index[0])
+        print('\n wavenumber issues - check that this is the right transition \n')
+    except: 
+        i_transition = False
+        print('\n wavenumber issues - could not find the right transition \n')
+
+if i_transition is not False: 
+    
+    i_closest = int(df_calcs[df_calcs.nu == df_calcs.iloc[(df_calcs[(df_calcs.index<1e6)].nu-wvn).abs().argmin()].nu].index[0])
+    
+    if where_save == 'updated': [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
+    elif where_save == 'HITRAN': use_which = bin_name + '-000-HITRAN.inp'
+    inp_latest = open(os.path.join(d_labfit_main, bin_name, use_which[:-4])+'.inp', "r").readlines()   
+    
+    lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    line_searching = lines_until_features + lines_per_feature*i_closest    
+    
+    # update E" for the new transition
+    if int(inp_latest[line_searching].split()[0]) == i_transition: # check if the transition is right where predicted (very, very unlikely)
+        line_transition = line_searching  
+    
+    else:
+
+        num_checked = 1
+        line_found = False
+        
+        while line_found is False: 
        
-    print('           {}   (i={})  '.format(wvn,i_wvn))
-    
-    # which bin is this transition in? 
-    bin_indices = []
-    
-    for i_bin in range(len(bin_breaks) - 1):
-        if bin_breaks[i_bin] <= wvn < bin_breaks[i_bin + 1]:
-            bin_name = bin_names[i_bin]
-            break
-    
-    # read in og HITRAN info
-    d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
-    [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
-    
-    # load in updated file and run labfit to prep for next steps
-    lab.float_lines(d_labfit_kernal, bin_name, [], prop_which, use_which='inp_saved', d_folder_input=d_labfit_main)
-    
-    lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
-    [T, P, wvn_plot, trans, res_pre_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
-    
-    
-    # load in INP file and get ready to update E"
-    try: i_transition = int(df_calcs[(np.round(df_calcs.nu,3) == np.round(wvn,3))&(df_calcs.index>100000)].index[0])
-    except: i_transition = False
-    
-    if i_transition is not False: 
-        
-        i_closest = int(df_calcs[df_calcs.nu == df_calcs.iloc[(df_calcs[(df_calcs.index<1e6)].nu-wvn).abs().argmin()].nu].index[0])
-        
-        if where_save == 'updated': [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
-        elif where_save == 'HITRAN': use_which = bin_name + '-000-HITRAN.inp'
-        inp_latest = open(os.path.join(d_labfit_main, bin_name, use_which[:-4])+'.inp', "r").readlines()   
-        
-        lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
-        line_searching = lines_until_features + lines_per_feature*i_closest    
-        
-        # update E" for the new transition
-        if int(inp_latest[line_searching].split()[0]) == i_transition: # check if the transition is right where predicted (very, very unlikely)
-            line_transition = line_searching  
-        
-        else:
-    
-            num_checked = 1
-            line_found = False
-            
-            while line_found is False: 
-           
-                if int(inp_latest[line_searching+4*num_checked].split()[0]) == i_transition: 
-                    line_transition = line_searching + 4*num_checked
-                    line_found = True
-                  
-                elif int(inp_latest[line_searching-4*num_checked].split()[0]) == i_transition:
-                    line_transition = line_searching - 4*num_checked
-                    line_found = True
-                   
-                elif num_checked > 1000: stop_we_did_not_find_the_transition
-                
-                else: num_checked += 1
-        
-        inp_latest[line_transition] = inp_latest[line_transition][:52] + "{:.7f}".format(elower_tibor[i_wvn]) + inp_latest[line_transition][64:]
-        
-        
-        # unfloat all other lines so we're only looking for this one transition right now    
-        lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
-        number_of_transitions = int(inp_latest[0].split()[3])
-        
-        for i in range(number_of_transitions): 
-            line_latest = lines_until_features + lines_per_feature*i            
-            if line_latest != line_transition: 
-                inp_latest[line_latest+ 2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
-                    
-                
-        open(os.path.join(d_labfit_kernal, bin_name)+'.inp', 'w').writelines(inp_latest)    
-        
-            
-        # run labfit - only floating the new transition we're focused on 
-        feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
-        
-        if feature_error is None: 
-        
-            [T, P, wvn_plot, trans, res_post_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
-        
-            lab.plot_spectra(T,wvn_plot,trans,res_post_change,res_pre_change, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
-                             0.5, props[prop_which], props[prop_which2], axis_labels=False, res_3=res_og) # <-------------------
-            plt.title('wvn={} ({})   bin={} ({})'.format(wvn, i_wvn,bin_name, i_transition))
-            plt.xlim(wvn-0.25, wvn+0.25)
-            plt.ylim(99, 101.7)
-        
+            if int(inp_latest[line_searching+4*num_checked].split()[0]) == i_transition: 
+                line_transition = line_searching + 4*num_checked
+                line_found = True
+              
+            elif int(inp_latest[line_searching-4*num_checked].split()[0]) == i_transition:
+                line_transition = line_searching - 4*num_checked
+                line_found = True
                
-            plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {}.jpg'.format(i_wvn, wvn)))
-            plt.close()
+            elif num_checked > 1000: stop_we_did_not_find_the_transition
             
-            index_labfit[i_wvn] = i_transition
+            else: num_checked += 1
+    
+    inp_latest[line_transition] = inp_latest[line_transition][:52] + "{:.7f}".format(elower_tibor[i_wvn]) + inp_latest[line_transition][64:]
+    
+    elower_previous = df_calcs.loc[i_transition].elower
+    s296_previous = df_calcs.loc[i_transition].sw
+    s296_guess = s296_previous * lab.strength_T(1300, elower_previous, wvn) / lab.strength_T(1300, elower_tibor[i_wvn], wvn)
+    
+    inp_latest[line_transition] = inp_latest[line_transition][:29] + "{:.5E}".format(s296_guess) + inp_latest[line_transition][40:] # update S296
+    
+    
+    # unfloat all other lines so we're only looking for this one transition right now    
+    lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    number_of_transitions = int(inp_latest[0].split()[3])
+    
+    for i in range(number_of_transitions): 
+        line_latest = lines_until_features + lines_per_feature*i            
+        if line_latest != line_transition: 
+            inp_latest[line_latest+ 2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
+                
             
-            sw_updated[i_wvn] = df_calcs.loc[i_transition].sw
-            sw_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_sw
-            
-            nu_updated[i_wvn] = df_calcs.loc[i_transition].nu
-            nu_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_nu
+    open(os.path.join(d_labfit_kernal, bin_name)+'.inp', 'w').writelines(inp_latest)    
+    
         
-    else: 
+    # run labfit - only floating the new transition we're focused on 
+    feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
+
+    offset = 0.5
+    
+    if feature_error is None: 
         
-        lab.plot_spectra(T,wvn_plot,trans,res_pre_change,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
-                             0.5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-        plt.title('FAILED wvn={:.2f} ({})   bin={} ({}) FAILED'.format(wvn, i_wvn,bin_name, i_transition))
-        plt.xlim(wvn-0.25, wvn+0.25)
-        plt.ylim(99, 101.7)
+                
+        [T, P, wvn_plot, trans, res_post_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+        df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
+    
+        lab.plot_spectra(T,wvn_plot,trans,res_post_change,res_pre_change, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
+                         offset, props[prop_which], props[prop_which2], axis_labels=False, res_extra=res_og) # <-------------------
+        plt.title('wvn={} ({})   bin={} ({})'.format(wvn, i_wvn,bin_name, i_transition))
+        plt.xlim(wvn-0.2, wvn+0.3)
+        plt.ylim(99, 100+offset*3.7)
         
-        plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {} - FAILED.jpg'.format(i_wvn, wvn)))
-        plt.close()
         
         
-        index_labfit[i_wvn] = -1
-            
-        sw_updated[i_wvn] = -1
-        sw_unc_updated[i_wvn] = -1
+        plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {}.jpg'.format(i_wvn, wvn)))
+        # plt.close()
+
         
-        nu_updated[i_wvn] = -1
-        nu_unc_updated[i_wvn] = -1
-            
+        index_labfit[i_wvn] = i_transition
+        
+        sw_updated[i_wvn] = df_calcs.loc[i_transition].sw
+        sw_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_sw
+        
+        nu_updated[i_wvn] = df_calcs.loc[i_transition].nu
+        nu_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_nu
+        
+        
+        wwwwwwwwwwwwwwwwwwwwwwwww
+
+    
+else: 
+    
+    lab.plot_spectra(T,wvn_plot,trans,res_pre_change,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
+                          offset, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
+    plt.title('FAILED wvn={:.2f} ({})   bin={} ({}) FAILED'.format(wvn, i_wvn,bin_name, i_transition))
+    plt.xlim(wvn-0.25, wvn+0.25)
+    plt.ylim(99, 101.7)
+    
+#     plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {} - FAILED.jpg'.format(i_wvn, wvn)))
+#     plt.close()
+    
+    
+#     index_labfit[i_wvn] = -1
+        
+#     sw_updated[i_wvn] = -1
+#     sw_unc_updated[i_wvn] = -1
+    
+#     nu_updated[i_wvn] = -1
+#     nu_unc_updated[i_wvn] = -1
+        
 
 
 
@@ -1596,86 +1611,7 @@ prop_which2 = 'sw'
 
 where_save = 'updated' # 'HITRAN' # 'updated'
 
-# # intensity check transitions
-# wvn_new = [7010.972238, 6924.605637, 6633.399489, 7155.824131, 7164.784714, 7243.570000, 6931.149824, 6788.644188, 7032.545215,
-#             7150.799191, 6944.179118, 7033.030246, 7026.623336, 6821.589772, 7171.737815, 7026.716363, 6970.794222, 7327.595578, 
-#             6881.232414, 7019.902243, 6707.432199, 7382.344828, 6739.801060, 7444.231575, 7378.922989, 6932.724849, 7274.873102, 
-#             7390.262912, 7024.496499, 7163.954821, 7298.916203, 6963.081136, 6896.536731, 7212.596124, 7047.900105, 6698.637463, 
-#             6856.267559, 6756.033820, 7137.650628, 7132.736817, 7008.534449, 7034.113240, 7071.360385, 7080.715018, 6990.753891, 
-#             6829.879005, 7019.842821, 6866.666058, 7452.779382, 7046.844303, 6808.611156, 6967.859272, 7004.028540, 7384.306035, 
-#             7033.320189, 6820.036726, 7177.801154, 6818.218863, 6812.879061, 6887.118988, 7071.936373, 7159.000000, 7390.260000, 
-#             7000.343856, 6953.705813, 6848.281019, 6993.175574, 6831.475224, 6857.852666, 6857.850000, 7150.115996, 6907.976805, 
-#             7160.450000, 6948.045385, 6806.939525, 6756.619933, 6755.920322, 6656.870372, 6983.005397, 7253.072635, 6813.989361, 
-#             6846.313548, 6849.290013, 6666.690896, 7151.146591, 7048.477550, 7291.050935, 6781.570898, 6663.755814, 6881.638378, 
-#             7302.222114, 6908.144317, 7291.141066, 7022.922097, 6712.458951, 6881.033994, 6783.366244, 7051.091577, 6990.583511, 
-#             6831.889723, 7092.269839, 7115.949328, 7178.255437, 6845.088827, 7376.544992, 6736.962030, 6828.575357, 6898.123198, 
-#             7049.611010, 6977.922732, 6989.155056, 7491.478353, 6996.549031, 6816.964224]
-
-# elower_tibor = [5076.26601276, 3629.09611416, 5690.87960189, 5690.87960189, 5742.03692618, 4412.31708543, 5614.08735324, 5683.33256543,
-#                 5674.30938274, 5587.51867639, 5586.59022201, 5421.26757229, 5534.11045464, 5484.00020847, 5621.33438267, 5500.85662039, 
-#                 5475.75537710, 5355.26279349, 5256.38144166, 5554.83422372, 5579.49121917, 5477.00583794, 5475.75537710, 5632.04223517,
-#                 5523.11739752, 5473.80321659, 5414.12677528, 3598.72694932, 5289.95905112, 5439.05630366, 5534.11045464, 4847.62209626,
-#                 5538.80210440, 5324.66663070, 5442.09781133, 5512.01424456, 3940.54492808, 5464.33208073, 5400.73672878, 5496.98050248, 
-#                 5409.54718184, 5418.80338201, 5430.18360443, 4329.49578805, 5258.86857730, 5457.36965218, 5334.98828289, 5271.37011549,
-#                 5310.23977038, 4695.83624707, 5294.03719450, 5414.12677528, 5457.36965218, 4902.61402321, 5039.62741921, 5421.26757229, 
-#                 5439.05630366, 5324.66663070, 5477.00583794 ,4735.84492592, 5300.17823670, 5258.63047053 ,3598.72694932 ,5027.25669634, 
-#                 4052.81087277, 5204.00865187, 5369.69201430, 5336.32705442, 5074.22162349, 5074.22162349, 5334.98828289, 5378.74451935, 
-#                 4381.73537579, 5612.49335386, 5289.95905112, 5342.18721646, 5096.24530746, 5399.33130374, 5276.46433772, 5213.26934644, 
-#                 5300.17823670, 5255.34673811, 5369.69201430, 5207.80209252, 5316.80416753, 5273.63261357, 5289.15192694, 4285.64751251, 
-#                 5316.80416753, 5355.26279349, 5421.26757229, 5279.67108511, 5289.15261747, 5193.45762501, 5152.96439205, 5256.44866157, 
-#                 5193.88218190, 5193.88218190, 5256.84526905, 5255.34673811, 5207.80209252, 5256.44866157, 2983.39637988, 5175.95511953, 
-#                 5193.88218190, 5204.98799958, 5108.34932253, 4150.28728186, 5122.39289211, 5070.03101818, 5208.89531551, 5688.50215558, 
-#                 4992.12160894, 4842.13129829]
-
-
-# # perfect match transitions
-# wvn_new = [6684.995034, 6697.705177, 6740.191594, 6741.582445, 6751.306137, 6752.650963, 6760.503055, 6761.573774, 6794.575903, 
-#            6797.251562, 6801.947130, 6811.080000, 6813.698899, 6818.723941, 6839.587789, 6842.703691, 6843.131625, 6844.526139, 
-#            6860.874158, 6865.274078, 6875.119121, 6885.467660, 6899.540419, 6908.917939, 6993.456014, 7010.731433, 7020.162126, 
-#            7022.966648, 7023.157017, 7029.840208, 7034.582213, 7061.041155, 7106.401573, 7128.616090, 7191.344022, 7228.794815, 
-#            7238.074731, 7247.050000, 7251.218761, 7259.535631, 7272.861417, 7273.750704, 7278.165277, 7279.482835, 7287.755869, 
-#            7291.141000, 7300.653860, 7305.433141, 7334.044800]
-
-# elower_tibor = [4820.64274425, 5065.45355085, 5089.33620276, 5152.96439205, 5090.03869904, 4095.80321525, 5076.26601276, 4643.38034904, 
-#                 5122.34750387, 4837.69957025, 5355.26279349, 5523.11739752, 4572.44628998, 5035.12651241, 5105.72971486, 5027.07397664, 
-#                 4918.23474301, 5029.81049429, 5067.07675234, 5027.55961623, 4977.04419783, 3770.87886655, 4996.33159102, 3935.34465559, 
-#                 4432.86017651, 4830.61439013, 5067.07675234, 5171.05987663, 4939.79424877, 5196.50054423, 5067.07675234, 4559.70763657, 
-#                 4996.33159102, 4437.39977573, 3868.98696608, 4931.27155607, 5021.39143671, 5002.56867608, 4894.58572495, 5122.39289211, 
-#                 4977.04419783, 3894.79890713, 5090.03869904, 4977.04419783, 5067.07675234, 5289.15261747, 5500.85662039, 5067.07675234, 
-#                 5119.37559142]
-
-
-# # wavenumber check needed
-# wvn_new = [6656.261041, 6656.506836, 6680.030081, 6695.406495, 6711.304691, 6741.142758, 6745.720000, 6754.096308, 6756.335626, 6767.738772, 
-#             6781.020657, 6782.724159, 6783.360000, 6783.419051, 6786.170913, 6791.439003, 6795.200000, 6799.520825, 6805.238473, 6809.851824, 
-#             6811.080343, 6815.723782, 6818.937177, 6828.289101, 6830.936234, 6832.127416, 6835.347320, 6863.816093, 6865.752648, 6866.212608, 
-#             6870.370000, 6870.760000, 6870.764004, 6872.307952, 6872.920866, 6874.733555, 6881.525589, 6899.121124, 6915.248379, 6917.390000, 
-#             6918.627858, 6943.949098, 6953.916456, 6956.770000, 6965.417285, 6966.014182, 6973.138848, 6973.428826, 6975.470640, 6977.429180, 
-#             6983.862821, 6988.163287, 6988.558605, 6988.676265, 6988.749491, 6988.750000, 7001.308994, 7008.775435, 7016.067984, 7033.997484, 
-#             7034.989500, 7036.917390, 7052.680458, 7056.432036, 7063.280448, 7063.706514, 7067.366079, 7069.387226, 7081.962357, 7084.161227, 
-#             7085.560000, 7087.887129, 7093.967265, 7100.914199, 7101.750000, 7124.717440, 7147.249274, 7160.737101, 7162.994065, 7164.656387, 
-#             7165.013016, 7178.680000, 7183.320314, 7184.179063, 7184.888873, 7192.572784, 7195.955098, 7201.564335, 7202.057335, 7213.893172, 
-#             7214.319689, 7225.016172, 7231.756569, 7248.094169, 7250.308019, 7250.310000, 7268.809041, 7273.135067, 7280.780000, 7280.780505, 
-#             7282.280000, 7287.750000, 7300.771068, 7302.639187, 7305.529745, 7317.489642, 7334.044851, 7340.543818, 7382.340000, 7385.252401, 
-#             7389.400358, 7401.298403, 7415.060361, 7415.464579, 7438.092500, 7443.801993, 7451.888710, 7478.654807, 7490.228731, 7490.809659, 
-#             7491.417655, 7491.821286, 7492.599507, 7495.707905, 7495.959427]
-
-# elower_tibor = [5163.08124650, 5163.08763707, 4066.12257395, 4971.26066265, 5466.40248811, 4408.02882210, 4260.46692240, 4427.22682357,
-#                 5208.89531551, 3526.62746419, 4784.99992542 ,4992.12160894, 5193.88218190 ,2927.07518877 ,5256.44866157, 4756.39401793, 
-#                 5193.45762501, 5409.69797106, 4436.94052569, 5096.24538482, 5523.11739752, 5039.62741921, 5144.40901328, 4992.12160894, 
-#                 5670.61527220, 2927.07518877, 5430.18360443, 5052.66862206, 5184.73428194, 4031.85357180, 4769.03845451, 4195.81808078, 
-#                 4195.81808078, 5315.50009057, 4977.04419783, 4329.49578805, 4249.52442169, 5454.59620510, 5429.11838152, 3655.48281415, 
-#                 4644.21717450, 5199.59660508, 4756.39401793, 4387.06285453, 4926.34694016, 5457.23699800, 4728.22116642, 4611.79479731, 
-#                 4980.22313032, 4837.69957025, 5286.56288401, 5069.08825131, 4837.69957025, 4750.38772568, 4717.10447381, 4717.10447381, 
-#                 5256.11644305, 4976.04327386, 4048.24954447, 5523.11739752, 5022.28126107, 5171.05987663, 5196.50054423, 5193.45762501, 
-#                 5477.00583794, 4643.99911285, 5334.98828289, 4782.92004741, 5144.40901328, 5316.80416753, 5020.02614885 ,5429.11838152, 
-#                 5169.03924855, 3752.41620098, 5286.56288401, 4506.73381954, 5399.33130374, 5169.03924855, 5238.38529808, 2724.16711089, 
-#                 3567.25475111, 3951.31499959, 5524.56916455, 4427.22682357, 4525.23906839, 3032.69039203, 4918.23474301, 5119.37559142, 
-#                 5455.88864111, 3895.25290074, 4612.79070416, 4759.85308121, 2952.39373221, 4268.24093181, 5466.40248811, 5466.40248811, 
-#                 5015.70405468, 4976.04327386, 5334.86018233, 5334.86018233, 5310.23977038, 5067.07675234, 5409.69797106, 3144.57876256, 
-#                 4696.83464688, 3535.87044665, 5119.37559142, 5208.89531551, 5477.00583794, 3482.48017553, 3136.41248609, 3386.05233763, 
-#                 4752.73294407, 5324.66663070, 5255.44874185, 5611.32977444, 4062.83809343, 3647.45949024, 4738.62165700, 5246.07900130, 
-#                 5163.08124650, 5604.30897052, 5713.24954725, 5031.97797906, 5471.86399333]
+e_lower_steps = np.linspace(-3000, 3000, 13) # np.linspace(-2000, 2000, 9)
 
 
 # problematic cases
@@ -1683,9 +1619,6 @@ wvn_new = [7390.262912, # 27
            6856.267559, # 36
            7080.715018, # 43
            7046.844303, # 49
-           6887.118988, # 59
-           6887.118988, # 59
-           6887.118988, # 59
            6887.118988, # 59
            6953.705813, # 64
            6953.705813, # 64
@@ -1699,10 +1632,7 @@ elower_tibor = [6149.493696, # 27
                 6240.487063, # 36
                 6013.447885, # 43
                 6340.33789, # 49
-                6500, # 59
-                7000, # 59
-                7500, # 59
-                8000, # 59
+                4735.844887, # 59
                 5475.755373, # 64
                 6705.593530, # 64
                 5069.088248, # 64
@@ -1720,141 +1650,132 @@ sw_unc_updated = [0.0] * len(elower_tibor)
 nu_updated = [0.0] * len(elower_tibor)
 nu_unc_updated = [0.0] * len(elower_tibor)
 
-for i_wvn, wvn in enumerate(wvn_new): 
+# for i_wvn, wvn in enumerate(wvn_new): 
         
-    # i_wvn = 6
-    # wvn = wvn_new[i_wvn]
+i_wvn = 4
+wvn = wvn_new[i_wvn]
+
+   
+print('           {}   (i={})  '.format(wvn,i_wvn))
+
+# which bin is this transition in? 
+bin_indices = []
+
+for i_bin in range(len(bin_breaks) - 1):
+    if bin_breaks[i_bin] <= wvn < bin_breaks[i_bin + 1]:
+        bin_name = bin_names[i_bin]
+        break
+
+# read in og HITRAN info
+d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
+[_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
+
+# load in updated file and run labfit to prep for next steps
+lab.float_lines(d_labfit_kernal, bin_name, [], prop_which, use_which='inp_saved', d_folder_input=d_labfit_main)
+
+lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
+[T, P, wvn_plot, trans, res_pre_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
+df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
+
+
+# load in INP file and get ready to update E"
+try: i_transition = int(df_calcs[(np.round(df_calcs.nu,3) == np.round(wvn,3))&(df_calcs.index>100000)].index[0])
+except: i_transition = False
+
+if i_transition is not False: 
     
+    i_closest = int(df_calcs[df_calcs.nu == df_calcs.iloc[(df_calcs[(df_calcs.index<1e6)].nu-wvn).abs().argmin()].nu].index[0])
+    
+    if where_save == 'updated': [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
+    elif where_save == 'HITRAN': use_which = bin_name + '-000-HITRAN.inp'
+    inp_latest = open(os.path.join(d_labfit_main, bin_name, use_which[:-4])+'.inp', "r").readlines()   
+    
+    lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    line_searching = lines_until_features + lines_per_feature*i_closest    
+    
+    # update E" for the new transition
+    if int(inp_latest[line_searching].split()[0]) == i_transition: # check if the transition is right where predicted (very, very unlikely)
+        line_transition = line_searching  
+    
+    else:
+
+        num_checked = 1
+        line_found = False
+        
+        while line_found is False: 
        
-    print('           {}   (i={})  '.format(wvn,i_wvn))
-    
-    # which bin is this transition in? 
-    bin_indices = []
-    
-    for i_bin in range(len(bin_breaks) - 1):
-        if bin_breaks[i_bin] <= wvn < bin_breaks[i_bin + 1]:
-            bin_name = bin_names[i_bin]
-            break
-    
-    # read in og HITRAN info
-    d_old = os.path.join(d_old_holder, bin_name, bin_name + '-000-og') # for comparing to original input files
-    [_, _,   _,     _, res_og,      _,     _,           _] = lab.labfit_to_spectra(d_labfit_main, bins, bin_name, og=True) # <-------------------
-    
-    # load in updated file and run labfit to prep for next steps
-    lab.float_lines(d_labfit_kernal, bin_name, [], prop_which, use_which='inp_saved', d_folder_input=d_labfit_main)
-    
-    lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
-    [T, P, wvn_plot, trans, res_pre_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-    df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
-    
-    
-    # load in INP file and get ready to update E"
-    try: i_transition = int(df_calcs[(np.round(df_calcs.nu,3) == np.round(wvn,3))&(df_calcs.index>100000)].index[0])
-    except: i_transition = False
-    
-    if i_transition is not False: 
-        
-        i_closest = int(df_calcs[df_calcs.nu == df_calcs.iloc[(df_calcs[(df_calcs.index<1e6)].nu-wvn).abs().argmin()].nu].index[0])
-        
-        if where_save == 'updated': [_, use_which] = lab.newest_rei(os.path.join(d_labfit_main, bin_name), bin_name)
-        elif where_save == 'HITRAN': use_which = bin_name + '-000-HITRAN.inp'
-        inp_latest = open(os.path.join(d_labfit_main, bin_name, use_which[:-4])+'.inp', "r").readlines()   
-        
-        lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
-        line_searching = lines_until_features + lines_per_feature*i_closest    
-        
-        # update E" for the new transition
-        if int(inp_latest[line_searching].split()[0]) == i_transition: # check if the transition is right where predicted (very, very unlikely)
-            line_transition = line_searching  
-        
-        else:
-    
-            num_checked = 1
-            line_found = False
+            if int(inp_latest[line_searching+4*num_checked].split()[0]) == i_transition: 
+                line_transition = line_searching + 4*num_checked
+                line_found = True
+              
+            elif int(inp_latest[line_searching-4*num_checked].split()[0]) == i_transition:
+                line_transition = line_searching - 4*num_checked
+                line_found = True
+               
+            elif num_checked > 1000: stop_we_did_not_find_the_transition
             
-            while line_found is False: 
+            else: num_checked += 1
            
-                if int(inp_latest[line_searching+4*num_checked].split()[0]) == i_transition: 
-                    line_transition = line_searching + 4*num_checked
-                    line_found = True
-                  
-                elif int(inp_latest[line_searching-4*num_checked].split()[0]) == i_transition:
-                    line_transition = line_searching - 4*num_checked
-                    line_found = True
-                   
-                elif num_checked > 1000: stop_we_did_not_find_the_transition
-                
-                else: num_checked += 1
+    
+    # unfloat all other lines so we're only looking for this one transition right now    
+    lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
+    number_of_transitions = int(inp_latest[0].split()[3])
+    
+    for i in range(number_of_transitions): 
+        line_latest = lines_until_features + lines_per_feature*i            
+        if line_latest != line_transition: 
+            inp_latest[line_latest+ 2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
+ 
+    res_elower = [0] * len(e_lower_steps)
+    
+    for i_elower, elower_step in enumerate(elower_tibor[i_wvn]+e_lower_steps): 
+
+        print('testing E" of {}'.format(elower_step))            
+
+        inp_latest[line_transition] = inp_latest[line_transition][:52] + "{:.7f}".format(elower_step) + inp_latest[line_transition][64:] # update E"    
         
-        inp_latest[line_transition] = inp_latest[line_transition][:52] + "{:.7f}".format(elower_tibor[i_wvn]) + inp_latest[line_transition][64:]
+        elower_previous = df_calcs.loc[i_transition].elower
+        s296_previous = df_calcs.loc[i_transition].sw
+        s296_guess = s296_previous * lab.strength_T(1300, elower_previous, wvn) / lab.strength_T(1300, elower_step, wvn)
         
-        
-        # unfloat all other lines so we're only looking for this one transition right now    
-        lines_until_features = lines_main_header + int(inp_latest[0].split()[2]) * lines_per_asc # all of the header down to the spectra    
-        number_of_transitions = int(inp_latest[0].split()[3])
-        
-        for i in range(number_of_transitions): 
-            line_latest = lines_until_features + lines_per_feature*i            
-            if line_latest != line_transition: 
-                inp_latest[line_latest+ 2] = '   1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
-                    
+        inp_latest[line_transition] = inp_latest[line_transition][:29] + "{:.5E}".format(s296_guess) + inp_latest[line_transition][40:] # update S296
                 
         open(os.path.join(d_labfit_kernal, bin_name)+'.inp', 'w').writelines(inp_latest)    
-        
-            
+                   
         # run labfit - only floating the new transition we're focused on 
         feature_error = lab.run_labfit(d_labfit_kernal, bin_name) # make sure constraints aren't doubled up
         
         if feature_error is None: 
         
-            [T, P, wvn_plot, trans, res_post_change, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
-            df_calcs = lab.information_df(d_labfit_kernal, bin_name, bins, cutoff_s296, T, d_old=d_old) # <-------------------   
+            [T, P, wvn_plot, trans, res_elower[i_elower], wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------
         
-            lab.plot_spectra(T,wvn_plot,trans,res_post_change,res_pre_change, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
-                             0.5, props[prop_which], props[prop_which2], axis_labels=False, res_3=res_og) # <-------------------
-            plt.title('wvn={} ({})   bin={} ({})'.format(wvn, i_wvn,bin_name, i_transition))
-            plt.xlim(wvn-0.25, wvn+0.25)
-            plt.ylim(99, 101.7)
+        else: 
         
-               
-            plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {}.jpg'.format(i_wvn, wvn)))
-            plt.close()
+            res_elower[i_elower] = False
+
+    offset = 0.5
+    # [T, P, wvn_plot, trans, res_elower, wvn_range, cheby, zero_offset] = lab.labfit_to_spectra(d_labfit_kernal, bins, bin_name) # <-------------------   
+    lab.plot_spectra(T,wvn_plot,trans,res_og,res_pre_change, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
+                     offset, props[prop_which], props[prop_which2], axis_labels=False, res_extra=res_elower) # <-------------------
+    
+    plt.title('wvn={}, E" guess={}'.format(wvn, elower_tibor[i_wvn]))
+    plt.xlim(wvn-0.2, wvn+0.3)
+    plt.ylim(99, 100 + offset*(2.5+len(e_lower_steps)))
+    
+    fig = plt.gcf()
+    fig.set_size_inches(5, 6)
+    
+    plt.annotate('HITRAN (no transition)',(wvn-0.18, 100+1*offset),color='k') 
+    plt.annotate('Labfit {}cm-1'.format(int(elower_previous)),(wvn-0.18, 100+2*offset),color='k') 
+    
+    for i_elower, elower_step in enumerate(elower_tibor[i_wvn]+e_lower_steps):
+        plt.annotate('E" {}cm-1'.format(int(elower_step)),(wvn-0.18, 100+(3+i_elower)*offset),color='k') 
+    
+    plt.vlines(wvn, 99.5, 100+(3+i_elower)*offset)
+       
+    plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {}.jpg'.format(i_wvn, wvn)))
             
-            index_labfit[i_wvn] = i_transition
-            
-            sw_updated[i_wvn] = df_calcs.loc[i_transition].sw
-            sw_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_sw
-            
-            nu_updated[i_wvn] = df_calcs.loc[i_transition].nu
-            nu_unc_updated[i_wvn] = df_calcs.loc[i_transition].uc_nu
-        
-    else: 
-        
-        lab.plot_spectra(T,wvn_plot,trans,res_pre_change,res_og, df_calcs[df_calcs.ratio_max>ratio_min_plot], 
-                             0.5, props[prop_which], props[prop_which2], axis_labels=False) # <-------------------
-        plt.title('FAILED wvn={:.2f} ({})   bin={} ({}) FAILED'.format(wvn, i_wvn,bin_name, i_transition))
-        plt.xlim(wvn-0.25, wvn+0.25)
-        plt.ylim(99, 101.7)
-        
-        plt.savefig(os.path.join(d_labfit_kernal,'plots', where_save, '24EgSyCoDr {} at {} - FAILED.jpg'.format(i_wvn, wvn)))
-        plt.close()
-        
-        
-        index_labfit[i_wvn] = -1
-            
-        sw_updated[i_wvn] = -1
-        sw_unc_updated[i_wvn] = -1
-        
-        nu_updated[i_wvn] = -1
-        nu_unc_updated[i_wvn] = -1
-            
-
-
-
-
-
-
-
+    plt.close()
 
 
 
