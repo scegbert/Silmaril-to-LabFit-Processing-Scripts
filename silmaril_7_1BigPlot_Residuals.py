@@ -407,9 +407,9 @@ ax32.axvspan(narrow2[0]+offset1, narrow2[1]-offset1, alpha=alpha, color=colors[-
 
 
 #%% labels
-ax20.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
-ax21.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
-ax22.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+ax30.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+ax31.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
+ax3 2.set_xlabel('Wavenumber ($\mathregular{cm^{-1}}$)')
 
 
 ax00.set_ylabel('Measured Transmission\n')
@@ -459,6 +459,7 @@ ax02.text(0.18, 0.85, "*", fontweight="bold", fontsize=12, transform=ax02.transA
 
 
 #%% save it
+
 
 plt.savefig(r'C:\Users\silmaril\Documents\from scott - making silmaril a water computer\Silmaril-to-LabFit-Processing-Scripts\plots\7-1 big residual {}.svg'.format(d_type), bbox_inches='tight')
 
